@@ -39,6 +39,7 @@ jobs:
           fi
         done
         echo "    </ul>" >> index.html
+        echo "    <p><a href='https://github.com/gitstua/stu-spa-demos/blob/main/README.md'>Project README</a></p>" >> index.html
         echo "</body>" >> index.html
         echo "</html>" >> index.html
 
