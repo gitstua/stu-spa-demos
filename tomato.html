@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Timer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        #timer {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        button, input {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        .time-entry {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .time-entry label {
+            margin-bottom: 5px;
+        }
+        .time-entry input {
+            width: 60px; /* Adjust the width as needed */
+            text-align: center;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:active {
+            background-color: #004494;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pomodoro Timer</h1>
+    <div id="timer">25:00</div>
+    <div class="time-entry">
+        <label for="minutesInput">Minutes</label>
+        <input type="number" id="minutesInput" placeholder="Minutes" min="0" max="59" maxlength="3" value="25">
+    </div>
+    <div class="time-entry">
+        <label for="secondsInput">Seconds</label>
+        <input type="number" id="secondsInput" placeholder="Seconds" min="0" max="59" maxlength="3" value="0">
+    </div>
+    <button onclick="setTimer()">Set Time</button>
+    <button onclick="startTimer()">Start</button>
+    <button onclick="stopTimer()">Stop</button>
+    <button onclick="resetTimer()">Reset</button>
+    <audio id="alarmSound" src="Temple Bell-SoundBible.com-756181215.mp3" preload="auto"></audio>
+
+    <script>
+        let timer;
+        let minutes = 25;
+        let seconds = 0;
+        let isRunning = false;
+
+        function updateDisplay() {
+            document.getElementById('timer').textContent = 
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function setTimer() {
+            minutes = parseInt(document.getElementById('minutesInput').value) || 0;
+            seconds = parseInt(document.getElementById('secondsInput').value) || 0;
+            updateDisplay();
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            isRunning = true;
+            timer = setInterval(() => {
+                if (seconds === 0) {
+                    if (minutes === 0) {
+                        clearInterval(timer);
+                        isRunning = false;
+                        document.getElementById('alarmSound').play();
+                        alert("Time's up!");
+                    } else {
+                        minutes--;
+                        seconds = 59;
+                    }
+                } else {
+                    seconds--;
+                }
+                updateDisplay();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timer);
+            isRunning = false;
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            isRunning = false;
+            minutes = 25;
+            seconds = 0;
+            document.getElementById('minutesInput').value = 25;
+            document.getElementById('secondsInput').value = 0;
+            updateDisplay();
+        }
+
+        updateDisplay();
+    </script>
+</body>
+</html>
