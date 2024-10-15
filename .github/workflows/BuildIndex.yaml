@@ -1,0 +1,50 @@
+name: Build Index
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'index.html'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Build index.html
+      run: |
+        echo "<!DOCTYPE html>" > index.html
+        echo "<html lang='en'>" >> index.html
+        echo "<head>" >> index.html
+        echo "    <meta charset='UTF-8'>" >> index.html
+        echo "    <meta name='viewport' content='width=device-width, initial-scale=1.0'>" >> index.html
+        echo "    <title>Project Index</title>" >> index.html
+        echo "</head>" >> index.html
+        echo "<body>" >> index.html
+        echo "    <h1>Project Index</h1>" >> index.html
+        echo "    <ul>" >> index.html
+        for file in *.html; do
+          if [ "$file" != "index.html" ]; then
+            echo "        <li><a href='$file'>$file</a></li>" >> index.html
+          fi
+        done
+        echo "    </ul>" >> index.html
+        echo "</body>" >> index.html
+        echo "</html>" >> index.html
+
+    - name: Commit and push changes
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add index.html
+        git commit -m 'Build index.html'
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
