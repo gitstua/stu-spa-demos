@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Timezone Converter</title>
+    <style>
+        p {
+            font-weight: bold;
+        }
+        span {
+            font-weight: normal;
+        }
+    </style>
+
+</head>
+<body>
+    <h1>Timezone Converter</h1>
+    <label for="source">Source Timezone:</label>
+    <input type="text" id="source" placeholder="e.g., America/New_York" value="Europe/Amsterdam"><br><br>
+
+    <label for="target">Target Timezone:</label>
+    <input type="text" id="target" placeholder="e.g., Europe/London" value="America/Los_Angeles"><br><br>
+
+    <button onclick="convertTime()">Convert Time</button>
+
+    <h2>Converted Time:</h2>
+    <p>Local DateTime: <span id="localTime"></span></p>
+    <p>Source DateTime: <span id="sourceTime"></span></p>
+    <p>Converted DateTime: <span id="convertedTime"></span></p>
+
+    <script>
+        function convertTime() {
+            const sourceTimeZone = document.getElementById('source').value;
+            const targetTimeZone = document.getElementById('target').value;
+
+            if (!sourceTimeZone || !targetTimeZone) {
+                alert('Please enter both source and target timezones.');
+                return;
+            }
+
+            const apiUrl = 'https://timeapi.io/api/Conversion/ConvertTimeZone';
+
+            // set localTime
+            const localTime = new Date();
+            document.getElementById('localTime').textContent = localTime;
+
+            // convert the localtime into the source time zone
+            
+            const sourceDate = new Date(localTime.toLocaleString('en-US', { timeZone: sourceTimeZone }));
+
+            const year = sourceDate.getFullYear();
+            const month = String(sourceDate.getMonth() + 1).padStart(2, '0');
+            const day = String(sourceDate.getDate()).padStart(2, '0');
+            const hours = String(sourceDate.getHours()).padStart(2, '0');
+            const minutes = String(sourceDate.getMinutes()).padStart(2, '0');
+            const seconds = String(sourceDate.getSeconds()).padStart(2, '0');
+            const formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+            // Display the source date time without seconds
+            const displayDateTime = `${year}-${month}-${day} ${hours}:${minutes}`;
+            document.getElementById('sourceTime').textContent = `${displayDateTime} (${sourceTimeZone})`;
+
+            const data = {
+                fromTimeZone: sourceTimeZone,
+                dateTime: formattedDateTime,
+                toTimeZone: targetTimeZone,
+                dstAmbiguity: ""
+            };
+
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Extract the converted dateTime
+                const convertedDateTime = data.conversionResult.dateTime;
+
+                // Format the converted dateTime for display without seconds
+                const convertedDate = new Date(convertedDateTime);
+                const cYear = convertedDate.getFullYear();
+                const cMonth = String(convertedDate.getMonth() + 1).padStart(2, '0');
+                const cDay = String(convertedDate.getDate()).padStart(2, '0');
+                const cHours = String(convertedDate.getHours()).padStart(2, '0');
+                const cMinutes = String(convertedDate.getMinutes()).padStart(2, '0');
+                const displayConvertedDateTime = `${cYear}-${cMonth}-${cDay} ${cHours}:${cMinutes}`;
+
+                // Display the converted date time
+                document.getElementById('convertedTime').textContent = `${displayConvertedDateTime} (${targetTimeZone})`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while converting time.');
+            });
+        }
+    </script>
+</body>
+</html>
