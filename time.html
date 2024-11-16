@@ -3,50 +3,242 @@
 <head>
     <title>Timezone Converter</title>
     <style>
-        p {
-            font-weight: bold;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            background-color: #f5f5f5;
         }
-        span {
-            font-weight: normal;
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 2rem;
+        }
+
+        select, button {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .time-display {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        .time-display p {
+            margin: 0.5rem 0;
+            color: #2c3e50;
+        }
+
+        .time {
+            color: #e74c3c;
+            font-size: 1.1rem;
+        }
+
+        .different-date {
+            font-weight: bold;
+            color: #e67e22;
+        }
+
+        .day-difference {
+            font-size: 0.9rem;
+            font-style: italic;
+            color: #e67e22;
+            margin-left: 8px;
+        }
+
+        .date {
+            color: #e67e22;
+            font-size: 0.9rem;
+            margin-right: 4px;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            background: #fde8e8;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .digital-time {
+            background: #000;
+            color: #00ff00;
+            font-family: 'Digital', 'Courier New', monospace;
+            font-size: 1.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            display: inline-block;
+            min-width: 85px;
+            text-align: center;
+            box-shadow: inset 0 0 10px rgba(0,255,0,0.2);
+            margin: 0 8px;
+        }
+
+        .time-label {
+            color: #2c3e50;
+            min-width: 120px;
+            display: inline-block;
+        }
+
+        .timezone-label {
+            color: #666;
+            margin-left: 8px;
+        }
+
+        .date {
+            color: #e67e22;
+            font-size: 0.9rem;
+            margin-right: 8px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        @font-face {
+            font-family: 'Digital';
+            src: url('https://fonts.cdnfonts.com/css/ds-digital') format('truetype');
         }
     </style>
-
 </head>
 <body>
-    <h1>Timezone Converter</h1>
-    <label for="source">Source Timezone:</label>
-    <input type="text" id="source" placeholder="e.g., America/New_York" value="Europe/Amsterdam"><br><br>
+    <div class="container">
+        <h1>Timezone Converter</h1>
 
-    <label for="target">Target Timezone:</label>
-    <input type="text" id="target" placeholder="e.g., Europe/London" value="America/Los_Angeles"><br><br>
+        <label for="timezone1">Timezone 1:</label>
+        <select id="timezone1">
+            <option value="America/Los_Angeles">America/Los_Angeles</option>
+            <option value="America/New_York">America/New_York</option>
+            <option value="Europe/London">Europe/London</option>
+            <option value="Europe/Paris">Europe/Paris</option>
+            <option value="Europe/Amsterdam">Europe/Amsterdam</option>
+            <option value="Asia/Kolkata" selected>Asia/Kolkata</option>
+            <option value="Asia/Tokyo">Asia/Tokyo</option>
+            <option value="Asia/Shanghai">Asia/Shanghai</option>
+            <option value="Australia/Sydney">Australia/Sydney</option>
+            <option value="Pacific/Auckland">Pacific/Auckland</option>
+        </select><br><br>
 
-    <button onclick="convertTime()">Convert Time</button>
+        <label for="timezone2">Timezone 2:</label>
+        <select id="timezone2">
+            <option value="America/Los_Angeles">America/Los_Angeles</option>
+            <option value="America/New_York">America/New_York</option>
+            <option value="Europe/London">Europe/London</option>
+            <option value="Europe/Paris">Europe/Paris</option>
+            <option value="Europe/Amsterdam">Europe/Amsterdam</option>
+            <option value="Asia/Kolkata">Asia/Kolkata</option>
+            <option value="Asia/Tokyo" selected>Asia/Tokyo</option>
+            <option value="Asia/Shanghai">Asia/Shanghai</option>
+            <option value="Australia/Sydney">Australia/Sydney</option>
+            <option value="Pacific/Auckland">Pacific/Auckland</option>
+        </select><br><br>
 
-    <h2>Converted Time:</h2>
-    <p>Local DateTime: <span id="localTime"></span></p>
-    <p>Source DateTime: <span id="sourceTime"></span></p>
-    <p>Converted DateTime: <span id="convertedTime"></span></p>
+        <button id="convertButton">Refresh</button>
+
+        <div id="errorMessage" class="error-message"></div>
+        <div class="time-display">
+            <p>
+                <span class="time-label">Local Time</span>
+                <span id="localTime" class="digital-time"></span>
+            </p>
+            <p>
+                <span class="time-label">Timezone 1</span>
+                <span id="sourceTime" class="digital-time"></span>
+                <span id="sourceZone" class="timezone-label"></span>
+            </p>
+            <p>
+                <span class="time-label">Timezone 2</span>
+                <span id="convertedTime" class="digital-time"></span>
+                <span id="targetZone" class="timezone-label"></span>
+            </p>
+        </div>
+    </div>
 
     <script>
+        // Add event listeners when page loads
+        window.onload = function() {
+            document.getElementById('timezone1').addEventListener('change', convertTime);
+            document.getElementById('timezone2').addEventListener('change', convertTime);
+            document.getElementById('convertButton').addEventListener('click', convertTime);
+            // Initial conversion
+            convertTime();
+        }
+
+        // Add helper function to format time
+        function formatTimeOnly(date) {
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        function formatDateIfDifferent(dateStr, baseDate) {
+            const date = new Date(dateStr);
+            const baseDay = baseDate.getDate();
+            const thisDay = date.getDate();
+            
+            if (baseDay !== thisDay) {
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `<span class="date">${month}-${day}</span>`;
+            }
+            return '';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function clearError() {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.style.display = 'none';
+        }
+
         function convertTime() {
-            const sourceTimeZone = document.getElementById('source').value;
-            const targetTimeZone = document.getElementById('target').value;
+            clearError();
+            const sourceTimeZone = document.getElementById('timezone1').value;
+            const targetTimeZone = document.getElementById('timezone2').value;
 
             if (!sourceTimeZone || !targetTimeZone) {
-                alert('Please enter both source and target timezones.');
+                alert('Please select both timezones.');
                 return;
             }
 
             const apiUrl = 'https://timeapi.io/api/Conversion/ConvertTimeZone';
-
-            // set localTime
             const localTime = new Date();
             document.getElementById('localTime').textContent = localTime;
 
-            // convert the localtime into the source time zone
-            
+            // Get source date and format it properly
             const sourceDate = new Date(localTime.toLocaleString('en-US', { timeZone: sourceTimeZone }));
+            const timeOnly = formatTimeOnly(sourceDate);
+            const datePart = formatDateIfDifferent(sourceDate, localTime);
 
+            // Format datetime string for API in YYYY-MM-DD HH:mm:ss format
             const year = sourceDate.getFullYear();
             const month = String(sourceDate.getMonth() + 1).padStart(2, '0');
             const day = String(sourceDate.getDate()).padStart(2, '0');
@@ -55,9 +247,8 @@
             const seconds = String(sourceDate.getSeconds()).padStart(2, '0');
             const formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
-            // Display the source date time without seconds
-            const displayDateTime = `${year}-${month}-${day} ${hours}:${minutes}`;
-            document.getElementById('sourceTime').textContent = `${displayDateTime} (${sourceTimeZone})`;
+            document.getElementById('sourceTime').innerHTML = 
+                `${datePart}${timeOnly} (${sourceTimeZone})`;
 
             const data = {
                 fromTimeZone: sourceTimeZone,
@@ -66,6 +257,8 @@
                 dstAmbiguity: ""
             };
 
+            console.log('API Request:', data); // Debug log
+
             fetch(apiUrl, {
                 method: 'POST',
                 headers: {
@@ -73,27 +266,44 @@
                 },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
-                // Extract the converted dateTime
-                const convertedDateTime = data.conversionResult.dateTime;
+                if (!data.conversionResult) {
+                    throw new Error('Invalid API response format');
+                }
+                const targetDate = new Date(data.conversionResult.dateTime);
+                const convertedTimeOnly = formatTimeOnly(targetDate);
+                const convertedDatePart = formatDateIfDifferent(targetDate, localTime);
+                const convertedTimeElement = document.getElementById('convertedTime');
+                
+                convertedTimeElement.innerHTML = 
+                    `${convertedDatePart}${convertedTimeOnly} (${targetTimeZone})`;
 
-                // Format the converted dateTime for display without seconds
-                const convertedDate = new Date(convertedDateTime);
-                const cYear = convertedDate.getFullYear();
-                const cMonth = String(convertedDate.getMonth() + 1).padStart(2, '0');
-                const cDay = String(convertedDate.getDate()).padStart(2, '0');
-                const cHours = String(convertedDate.getHours()).padStart(2, '0');
-                const cMinutes = String(convertedDate.getMinutes()).padStart(2, '0');
-                const displayConvertedDateTime = `${cYear}-${cMonth}-${cDay} ${cHours}:${cMinutes}`;
+                // Updated date comparison logic
+                const localDay = localTime.getDate();
+                const sourceDay = sourceDate.getDate();
+                const targetDay = targetDate.getDate();
 
-                // Display the converted date time
-                document.getElementById('convertedTime').textContent = `${displayConvertedDateTime} (${targetTimeZone})`;
+                // Only apply different-date class if the day actually differs
+                document.getElementById('sourceTime').parentElement.classList
+                    .toggle('different-date', sourceDay !== localDay);
+                convertedTimeElement.parentElement.classList
+                    .toggle('different-date', targetDay !== localDay);
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while converting time.');
+                console.error('Error details:', error);
+                showError(`Error converting time: ${error.message}. Please try again later.`);
             });
+        }
+
+        // Extract date parts for comparison
+        function getDatePart(dateStr) {
+            return dateStr.split(' ')[0];
         }
     </script>
 </body>

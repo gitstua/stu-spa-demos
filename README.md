@@ -6,6 +6,9 @@ This repository contains various single-page application (SPA) demos to showcase
 1. **IP Address Viewer**: Displays the user's IP address and allows them to copy it to the clipboard.
 2. **Pomodoro Timer**: A simple Pomodoro timer to help manage work sessions and breaks.
 3. **Downtime SLA Calculator**: Calculates downtime based on a given SLA percentage.
+4. **Paint Application**: A simple paint application to draw and save images.
+5. **PDF JavaScript Scanner**: Analyzes PDF files and extracts content.
+6. **Time Display**: Displays the current time and updates every second for multiple timezones.
 
 ## Demos
 
@@ -33,6 +36,28 @@ Calculates the amount of downtime based on a specified Service Level Agreement (
 1. Open `uptime.html` in your browser.
 2. Enter the desired SLA percentage.
 3. Click "Calculate" to see the downtime in seconds per day, and minutes per week, month, and year.
+
+### Paint Application
+A simple paint application that allows you to draw and save images.
+
+#### Usage
+1. Open `paint.html` in your browser.
+2. Use the drawing tools to create your artwork.
+
+### PDF JavaScript Scanner
+Analyzes PDF files and content using PDF.js. Might be useful to identify dodgy PDF files.
+
+#### Usage
+1. Open `pdf.html` in your browser.
+2. Select a PDF file using the file input.
+3. The  PDF will be analyzed and some info displayed.
+
+### Time Display
+Displays the current time and updates every second in multiple timezones.
+
+#### Usage
+1. Open `time.html` in your browser.
+2. The current time will be displayed and updated every second.
 
 ## Installation
 To run these demos locally, you can simply clone the repository and open the HTML files in your browser.
