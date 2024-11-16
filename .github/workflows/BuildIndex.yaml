@@ -31,7 +31,7 @@ jobs:
         echo "    <title>Project Index</title>" >> index.html
         echo "</head>" >> index.html
         echo "<body>" >> index.html
-        echo "    <h1>Project Index</h1>" >> index.html
+        echo "    <h1>spa.stuarteggerton.com Project Index</h1>" >> index.html
         echo "    <ul>" >> index.html
         for file in *.html; do
           if [ "$file" != "index.html" ]; then
