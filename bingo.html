@@ -63,11 +63,25 @@
             border: none;
             background: transparent;
         }
+        .info {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 10px;
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #666;
+        }
     </style>
 </head>
 <body>
     <button id="editButton">Toggle Edit Mode</button>
     <div class="bingo-grid" id="bingoGrid"></div>
+    <div class="info">
+        📋 Note: Your bingo card is stored entirely in the URL. Bookmark it to save your card!
+        If you lose the URL, you'll get a fresh card next time.
+    </div>
 
     <script>
         class BingoCard {
