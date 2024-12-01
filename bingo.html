@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,9 +28,28 @@
             background: #f0f0f0;
             text-decoration: line-through;
         }
+        .edit-mode .bingo-cell {
+            background: #ffffd0;
+        }
+        .edit-mode .bingo-cell:hover {
+            background: #ffffe0;
+        }
+        #editButton {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        .bingo-cell input {
+            width: 90%;
+            text-align: center;
+            border: none;
+            background: transparent;
+        }
     </style>
 </head>
 <body>
+    <button id="editButton">Toggle Edit Mode</button>
     <div class="bingo-grid" id="bingoGrid"></div>
 
     <script>
@@ -39,7 +57,18 @@
             constructor() {
                 this.grid = document.getElementById('bingoGrid');
                 this.cells = [];
+                this.editMode = false;
                 this.init();
+                this.setupEditButton();
+            }
+
+            setupEditButton() {
+                const editButton = document.getElementById('editButton');
+                editButton.onclick = () => {
+                    this.editMode = !this.editMode;
+                    this.grid.classList.toggle('edit-mode');
+                    this.render();
+                };
             }
 
             init() {
@@ -61,7 +90,13 @@
                 }));
             }
 
+            editCell(index, newText) {
+                this.cells[index].text = newText;
+                this.updateURL();
+            }
+
             toggleCell(index) {
+                if (this.editMode) return;
                 this.cells[index].crossed = !this.cells[index].crossed;
                 this.updateURL();
                 this.render();
@@ -76,7 +111,17 @@
                 this.cells.forEach((cell, index) => {
                     const div = document.createElement('div');
                     div.className = `bingo-cell ${cell.crossed ? 'crossed' : ''}`;
-                    div.textContent = cell.text;
+                    
+                    if (this.editMode) {
+                        const input = document.createElement('input');
+                        input.value = cell.text;
+                        input.onchange = (e) => this.editCell(index, e.target.value);
+                        input.onclick = (e) => e.stopPropagation();
+                        div.appendChild(input);
+                    } else {
+                        div.textContent = cell.text;
+                    }
+                    
                     div.onclick = () => this.toggleCell(index);
                     this.grid.appendChild(div);
                 });
