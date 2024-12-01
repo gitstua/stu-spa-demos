@@ -9,6 +9,11 @@ This repository contains various single-page application (SPA) demos to showcase
 4. **Paint Application**: A simple paint application to draw and save images.
 5. **PDF JavaScript Scanner**: Analyzes PDF files and extracts content.
 6. **Time Display**: Displays the current time and updates every second for multiple timezones.
+7. **Bingo**: An interactive 5x5 bingo card where:
+   - Click cells to mark them as complete
+   - Card state is stored in the URL for easy sharing
+   - Works with browser navigation history
+   - Responsive grid layout
 
 ## Demos
 
@@ -58,6 +63,13 @@ Displays the current time and updates every second in multiple timezones.
 #### Usage
 1. Open `time.html` in your browser.
 2. The current time will be displayed and updated every second.
+
+### Bingo
+An interactive 5x5 bingo card where:
+- Click cells to mark them as complete
+- Card state is stored in the URL for easy sharing
+- Works with browser navigation history
+- Responsive grid layout
 
 ## Installation
 To run these demos locally, you can simply clone the repository and open the HTML files in your browser.

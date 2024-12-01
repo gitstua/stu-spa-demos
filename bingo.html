@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPA Bingo</title>
+    <style>
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        .bingo-cell {
+            aspect-ratio: 1;
+            border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            background: #fff;
+            transition: all 0.3s;
+        }
+        .crossed {
+            background: #f0f0f0;
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body>
+    <div class="bingo-grid" id="bingoGrid"></div>
+
+    <script>
+        class BingoCard {
+            constructor() {
+                this.grid = document.getElementById('bingoGrid');
+                this.cells = [];
+                this.init();
+            }
+
+            init() {
+                // Initialize from URL or create new
+                const hash = window.location.hash.slice(1);
+                if (hash) {
+                    this.cells = JSON.parse(decodeURIComponent(hash));
+                } else {
+                    this.cells = this.generateDefaultItems();
+                }
+                this.render();
+                this.updateURL();
+            }
+
+            generateDefaultItems() {
+                return Array(25).fill('').map((_, i) => ({
+                    text: `Item ${i + 1}`,
+                    crossed: false
+                }));
+            }
+
+            toggleCell(index) {
+                this.cells[index].crossed = !this.cells[index].crossed;
+                this.updateURL();
+                this.render();
+            }
+
+            updateURL() {
+                window.location.hash = encodeURIComponent(JSON.stringify(this.cells));
+            }
+
+            render() {
+                this.grid.innerHTML = '';
+                this.cells.forEach((cell, index) => {
+                    const div = document.createElement('div');
+                    div.className = `bingo-cell ${cell.crossed ? 'crossed' : ''}`;
+                    div.textContent = cell.text;
+                    div.onclick = () => this.toggleCell(index);
+                    this.grid.appendChild(div);
+                });
+            }
+        }
+
+        // Initialize the bingo card
+        const bingo = new BingoCard();
+
+        // Handle back/forward navigation
+        window.addEventListener('hashchange', () => bingo.init());
+    </script>
+</body>
+</html>
