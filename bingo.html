@@ -51,11 +51,14 @@
         .edit-mode .bingo-cell:hover {
             background: #ffffe0;
         }
-        #editButton {
-            display: block;
-            margin: 20px auto;
+        #editButton, #copyButton {
+            display: inline-block;
+            margin: 20px 5px;
             padding: 10px 20px;
             cursor: pointer;
+        }
+        .button-container {
+            text-align: center;
         }
         .bingo-cell input {
             width: 90%;
@@ -76,7 +79,10 @@
     </style>
 </head>
 <body>
-    <button id="editButton">Toggle Edit Mode</button>
+    <div class="button-container">
+        <button id="editButton">Toggle Edit Mode</button>
+        <button id="copyButton">Copy URL</button>
+    </div>
     <div class="bingo-grid" id="bingoGrid"></div>
     <div class="info">
         📋 Note: Your bingo card is stored entirely in the URL. Bookmark it to save your card!
@@ -91,6 +97,7 @@
                 this.editMode = false;
                 this.init();
                 this.setupEditButton();
+                this.setupCopyButton();
             }
 
             setupEditButton() {
@@ -99,6 +106,23 @@
                     this.editMode = !this.editMode;
                     this.grid.classList.toggle('edit-mode');
                     this.render();
+                };
+            }
+
+            setupCopyButton() {
+                const copyButton = document.getElementById('copyButton');
+                copyButton.onclick = async () => {
+                    const url = window.location.href;
+                    try {
+                        await navigator.clipboard.writeText(url);
+                        const originalText = copyButton.textContent;
+                        copyButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyButton.textContent = originalText;
+                        }, 2000);
+                    } catch (err) {
+                        alert('Failed to copy URL');
+                    }
                 };
             }
 
