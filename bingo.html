@@ -183,6 +183,7 @@
                 };
             }
 
+            init() {
                 const hash = window.location.hash.slice(1);
                 if (hash) {
                     try {
@@ -192,8 +193,6 @@
                         this.cells = this.generateDefaultItems();
                     }
                 } else {
-                    this.cells = this.generateDefaultItems();
-                }
                     this.cells = this.generateDefaultItems();
                 }
                 this.render();
