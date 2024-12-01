@@ -26,7 +26,7 @@
             line-height: 1.5;
             margin: 0;
             padding: 20px;
-            padding-bottom: 80px; /* Increased padding to prevent footer overlap */
+            padding-bottom: 120px; /* Increased padding to ensure content doesn't overlap footer */
             min-height: 100vh;
             box-sizing: border-box;
             position: relative; /* Added to establish stacking context */
@@ -62,6 +62,7 @@
             width: 95%;
             max-width: 500px; /* Slightly reduced from 600px for better proportions */
             margin: 24px auto;
+            margin-bottom: calc(25vw / 4); /* Adds approximately 1 cell height worth of space */
             padding: 8px;
             background: var(--cell-bg);
             border-radius: 12px;
@@ -166,6 +167,7 @@
         @media (max-width: 600px) {
             body {
                 padding: 10px;
+                padding-bottom: 10px; /* Reset padding on mobile */
             }
 
             .button-container {
@@ -191,6 +193,17 @@
                 width: 90%;
                 font-size: 0.8rem;
             }
+
+            footer {
+                position: static; /* Change to static on mobile */
+                margin-top: 20px; /* Add some space above footer */
+                background: var(--bg-color);
+                box-shadow: none;
+                border-top: none;
+                backdrop-filter: none;
+                font-size: 0.7rem;
+                padding: 8px;
+            }
         }
 
         footer {
@@ -198,13 +211,73 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 8px;
+            background: rgba(255, 255, 255, 0.95); /* Increased opacity */
+            padding: 12px; /* Increased padding */
             text-align: center;
             font-size: 0.8rem;
             backdrop-filter: blur(5px);
             border-top: 1px solid var(--cell-border);
-            z-index: 100; /* Added z-index to ensure footer stays on top */
+            z-index: 1000; /* Increased z-index */
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); /* Added shadow for better visibility */
+            max-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        footer a {
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .expandable-info {
+            margin: 20px auto;
+            max-width: 600px;
+        }
+
+        .expandable-info summary {
+            padding: 10px;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+
+        .expandable-info summary:hover {
+            background-color: var(--button-hover-bg);
+        }
+
+        .expandable-info[open] summary {
+            margin-bottom: 10px;
+        }
+
+        .expandable-content {
+            padding: 10px;
+            background: var(--cell-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        @media (min-width: 601px) {
+            .expandable-info {
+                display: none;
+            }
+            .desktop-info {
+                display: block;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .desktop-info {
+                display: none;
+            }
+            .expandable-info {
+                display: block;
+            }
         }
     </style>
 </head>
@@ -214,14 +287,21 @@
         <button id="editButton">Toggle Edit Mode</button>
         <button id="copyButton">Copy URL</button>
     </div>
-    <div class="info">
+    <details class="expandable-info">
+        <summary>How to use this Bingo Card</summary>
+        <div class="expandable-content">
+            This Single Page Application (SPA) allows you to create and manage a bingo card. You can toggle edit mode to change the text of each cell, and your bingo card is stored in the URL fragment, so you can bookmark it to save your progress. 
+            In edit mode, you can click on any cell to enter text. When not in edit mode, clicking a cell will mark it as crossed. 
+            Use the "Copy URL" button to copy the current state of your bingo card to the clipboard, so you can share it or save it for later.
+            If you lose the URL, you'll get a fresh card next time.
+        </div>
+    </details>
+
+    <div class="info desktop-info">
         This Single Page Application (SPA) allows you to create and manage a bingo card. You can toggle edit mode to change the text of each cell, and your bingo card is stored in the URL fragment, so you can bookmark it to save your progress. 
         In edit mode, you can click on any cell to enter text. When not in edit mode, clicking a cell will mark it as crossed. 
         Use the "Copy URL" button to copy the current state of your bingo card to the clipboard, so you can share it or save it for later.
         If you lose the URL, you'll get a fresh card next time.
-    </div>
-    <div class="info">
-        This Single Page Application (SPA) allows you to create and manage a bingo card. You can toggle edit mode to change the text of each cell, and your bingo card is stored in the URL fragment, so you can bookmark it to save your progress.
     </div>
     <div class="bingo-grid" id="bingoGrid"></div>
     <div class="info">
@@ -353,7 +433,7 @@
         // Handle back/forward navigation
         window.addEventListener('hashchange', () => bingo.init());
     </script>
-    <footer style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.9); padding: 8px; text-align: center; font-size: 0.8rem; backdrop-filter: blur(5px); border-top: 1px solid var(--cell-border); z-index: 100;">
+    <footer>
         Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos" target="_blank">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot
     </footer>
 </body>
