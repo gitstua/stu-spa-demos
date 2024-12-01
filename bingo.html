@@ -26,9 +26,10 @@
             line-height: 1.5;
             margin: 0;
             padding: 20px;
-            padding-bottom: 60px; /* Space for footer */
+            padding-bottom: 80px; /* Increased padding to prevent footer overlap */
             min-height: 100vh;
             box-sizing: border-box;
+            position: relative; /* Added to establish stacking context */
         }
 
         .button-container {
@@ -56,10 +57,10 @@
 
         .bingo-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(4, 1fr); /* Changed from 5 to 4 columns */
             gap: 8px;
             width: 95%;
-            max-width: 600px;
+            max-width: 500px; /* Slightly reduced from 600px for better proportions */
             margin: 24px auto;
             padding: 8px;
             background: var(--cell-bg);
@@ -203,6 +204,7 @@
             font-size: 0.8rem;
             backdrop-filter: blur(5px);
             border-top: 1px solid var(--cell-border);
+            z-index: 100; /* Added z-index to ensure footer stays on top */
         }
     </style>
 </head>
@@ -351,7 +353,7 @@
         // Handle back/forward navigation
         window.addEventListener('hashchange', () => bingo.init());
     </script>
-    <footer style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.9); padding: 8px; text-align: center; font-size: 0.8rem; backdrop-filter: blur(5px); border-top: 1px solid var(--cell-border);">
+    <footer style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.9); padding: 8px; text-align: center; font-size: 0.8rem; backdrop-filter: blur(5px); border-top: 1px solid var(--cell-border); z-index: 100;">
         Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos" target="_blank">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot
     </footer>
 </body>
