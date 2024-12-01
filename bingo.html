@@ -114,9 +114,26 @@
             font-size: 0.9rem;
             color: #64748b;
         }
+
+        .home-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: var(--text-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 500;
+        }
+
+        .home-link:hover {
+            color: var(--primary-color);
+        }
     </style>
 </head>
 <body>
+    <a href="/" class="home-link">← Back to Home</a>
     <div class="button-container">
         <button id="editButton">Toggle Edit Mode</button>
         <button id="copyButton">Copy URL</button>
