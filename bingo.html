@@ -280,6 +280,7 @@
             }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
 </head>
 <body>
     <a href="/" class="home-link button">← Back to Home</a>
@@ -353,7 +354,14 @@
                 const hash = window.location.hash.slice(1);
                 if (hash) {
                     try {
-                        this.cells = JSON.parse(decodeURIComponent(hash));
+                        // First try to decompress (for new format URLs)
+                        const decompressed = LZString.decompressFromEncodedURIComponent(hash);
+                        if (decompressed) {
+                            this.cells = JSON.parse(decompressed);
+                        } else {
+                            // Fall back to old format for backwards compatibility
+                            this.cells = JSON.parse(decodeURIComponent(hash));
+                        }
                     } catch (e) {
                         console.error('Invalid URL fragment, generating new items', e);
                         this.cells = this.generateDefaultItems();
@@ -402,7 +410,9 @@
             }
 
             updateURL() {
-                window.location.hash = encodeURIComponent(JSON.stringify(this.cells));
+                // Compress the data before adding to URL
+                const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(this.cells));
+                window.location.hash = compressed;
             }
 
             render() {
