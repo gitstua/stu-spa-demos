@@ -287,10 +287,9 @@
     <div class="button-container">
         <button id="editButton">Toggle Edit Mode</button>
         <button id="copyButton">Copy URL</button>
+        <button id="shareButton">Share Link</button>
     </div>
     <details class="expandable-info">
-        <summary>How to use this Bingo Card</summary>
-        <div class="expandable-content">
             This Single Page Application (SPA) allows you to create and manage a bingo card. You can toggle edit mode to change the text of each cell, and your bingo card is stored in the URL fragment, so you can bookmark it to save your progress. 
             In edit mode, you can click on any cell to enter text. When not in edit mode, clicking a cell will mark it as crossed. 
             Use the "Copy URL" button to copy the current state of your bingo card to the clipboard, so you can share it or save it for later.
@@ -354,14 +353,7 @@
                 const hash = window.location.hash.slice(1);
                 if (hash) {
                     try {
-                        // First try to decompress (for new format URLs)
-                        const decompressed = LZString.decompressFromEncodedURIComponent(hash);
-                        if (decompressed) {
-                            this.cells = JSON.parse(decompressed);
-                        } else {
-                            // Fall back to old format for backwards compatibility
-                            this.cells = JSON.parse(decodeURIComponent(hash));
-                        }
+                        this.cells = JSON.parse(decodeURIComponent(hash));
                     } catch (e) {
                         console.error('Invalid URL fragment, generating new items', e);
                         this.cells = this.generateDefaultItems();
@@ -410,9 +402,7 @@
             }
 
             updateURL() {
-                // Compress the data before adding to URL
-                const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(this.cells));
-                window.location.hash = compressed;
+                window.location.hash = encodeURIComponent(JSON.stringify(this.cells));
             }
 
             render() {
