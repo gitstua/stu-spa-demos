@@ -133,15 +133,17 @@
     </style>
 </head>
 <body>
-    <a href="/" class="home-link">← Back to Home</a>
+    <a href="#home" class="home-link">← Back to Home</a>
     <div class="button-container">
         <button id="editButton">Toggle Edit Mode</button>
         <button id="copyButton">Copy URL</button>
     </div>
-    <div class="bingo-grid" id="bingoGrid"></div>
     <div class="info">
         📋 Note: Your bingo card is stored entirely in the URL. Bookmark it to save your card!
         If you lose the URL, you'll get a fresh card next time.
+    </div>
+    <div class="bingo-grid" id="bingoGrid"></div>
+    <div class="info">
     </div>
 
     <script>
@@ -181,12 +183,17 @@
                 };
             }
 
-            init() {
-                // Initialize from URL or create new
                 const hash = window.location.hash.slice(1);
                 if (hash) {
-                    this.cells = JSON.parse(decodeURIComponent(hash));
+                    try {
+                        this.cells = JSON.parse(decodeURIComponent(hash));
+                    } catch (e) {
+                        console.error('Invalid URL fragment, generating new items', e);
+                        this.cells = this.generateDefaultItems();
+                    }
                 } else {
+                    this.cells = this.generateDefaultItems();
+                }
                     this.cells = this.generateDefaultItems();
                 }
                 this.render();
