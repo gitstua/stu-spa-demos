@@ -401,6 +401,29 @@
                 };
             }
 
+            compressData() {
+                // Only store non-empty cells in format: [index, text, crossed]
+                const compressedData = this.cells
+                    .map((cell, index) => cell.text ? [index, cell.text, cell.crossed ? 1 : 0] : null)
+                    .filter(x => x);
+                return compressedData;
+            }
+
+            decompressData(compressedData) {
+                const cells = Array(16).fill('').map(() => ({
+                    text: '',
+                    crossed: false
+                }));
+                
+                compressedData.forEach(([index, text, crossed]) => {
+                    cells[index] = {
+                        text: text,
+                        crossed: crossed === 1
+                    };
+                });
+                return cells;
+            }
+
             init() {
                 if (this.ignoreNextHashChange) {
                     this.ignoreNextHashChange = false;
@@ -409,7 +432,9 @@
                 const hash = window.location.hash.slice(1);
                 if (hash) {
                     try {
-                        this.cells = JSON.parse(decodeURIComponent(hash));
+                        const decompressed = LZString.decompressFromEncodedURIComponent(hash);
+                        const compressedData = JSON.parse(decompressed);
+                        this.cells = this.decompressData(compressedData);
                     } catch (e) {
                         console.error('Invalid URL fragment, generating new items', e);
                         this.cells = this.generateDefaultItems();
@@ -419,6 +444,12 @@
                 }
                 this.render();
                 this.updateURL();
+            }
+
+            updateURL() {
+                const compressedData = this.compressData();
+                const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(compressedData));
+                window.location.hash = compressed;
             }
 
             generateDefaultItems() {
@@ -460,11 +491,6 @@
                 newDiv.textContent = cell.text; // Remove checkmark from display
                 newDiv.onclick = () => this.toggleCell(index);
                 div.replaceWith(newDiv);
-            }
-
-            updateURL() {
-                const hash = encodeURIComponent(JSON.stringify(this.cells));
-                window.location.hash = hash;
             }
 
             render() {
