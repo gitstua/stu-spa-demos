@@ -279,6 +279,18 @@
                 display: block;
             }
         }
+
+        .edit-textarea {
+            width: 100%;
+            min-height: 300px;
+            margin: 20px auto;
+            display: block;
+            padding: 10px;
+            font-family: monospace;
+            border: 2px solid var(--cell-border);
+            border-radius: 8px;
+            resize: vertical;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
 </head>
@@ -368,64 +380,71 @@
             }
 
             generateDefaultItems() {
-                return Array(25).fill('').map((_, index) => ({
+                return Array(16).fill('').map((_, index) => ({
                     text: index === 0 ? 'example 1' : 
                          index === 1 ? 'example 2' : '',
                     crossed: false
                 }));
             }
 
-            editCell(index, newText) {
-                this.cells[index].text = newText;
+            editCells(textContent) {
+                const lines = textContent.split('\n');
+                this.cells = this.cells.map((cell, i) => {
+                    const lineText = lines[i] || '';
+                    const hasCheckmark = lineText.startsWith('✅');
+                    return {
+                        text: hasCheckmark ? lineText.slice(1).trim() : lineText.trim(),
+                        crossed: hasCheckmark
+                    };
+                });
                 this.updateURL();
+                this.render();
             }
 
             toggleCell(index) {
                 if (this.editMode) return;
-                // Only toggle if the cell has text
                 if (!this.cells[index].text.trim()) return;
                 this.cells[index].crossed = !this.cells[index].crossed;
-                this.ignoreNextHashChange = true; // Prevent re-render on hash change
+                this.ignoreNextHashChange = true;
                 this.updateURL();
-                this.updateCell(index); // Only update the changed cell
+                this.updateCell(index);
             }
 
             updateCell(index) {
                 const cell = this.cells[index];
                 const div = this.grid.children[index];
-                
-                // Reset animation by removing and re-adding the element
                 const newDiv = document.createElement('div');
                 newDiv.className = `bingo-cell ${cell.crossed ? 'crossed' : ''}`;
-                newDiv.textContent = cell.text;
+                newDiv.textContent = cell.text; // Remove checkmark from display
                 newDiv.onclick = () => this.toggleCell(index);
-                
                 div.replaceWith(newDiv);
             }
 
             updateURL() {
-                window.location.hash = encodeURIComponent(JSON.stringify(this.cells));
+                const hash = encodeURIComponent(JSON.stringify(this.cells));
+                window.location.hash = hash;
             }
 
             render() {
                 this.grid.innerHTML = '';
-                this.cells.forEach((cell, index) => {
-                    const div = document.createElement('div');
-                    div.className = `bingo-cell ${cell.crossed ? 'crossed' : ''}`;
-                    
-                    if (this.editMode) {
-                        const input = document.createElement('input');
-                        input.value = cell.text;
-                        input.onchange = (e) => this.editCell(index, e.target.value);
-                        input.onclick = (e) => e.stopPropagation();
-                        div.appendChild(input);
-                    } else {
-                        div.textContent = cell.text;
-                    }
-                    
-                    div.onclick = () => this.toggleCell(index);
-                    this.grid.appendChild(div);
-                });
+                if (this.editMode) {
+                    const textarea = document.createElement('textarea');
+                    textarea.className = 'edit-textarea';
+                    // Only show checkmarks in textarea
+                    textarea.value = this.cells.map(cell => 
+                        (cell.crossed ? '✅' : '') + cell.text
+                    ).join('\n');
+                    textarea.onchange = (e) => this.editCells(e.target.value);
+                    this.grid.appendChild(textarea);
+                } else {
+                    this.cells.forEach((cell, index) => {
+                        const div = document.createElement('div');
+                        div.className = `bingo-cell ${cell.crossed ? 'crossed' : ''}`;
+                        div.textContent = cell.text; // Remove checkmark from display
+                        div.onclick = () => this.toggleCell(index);
+                        this.grid.appendChild(div);
+                    });
+                }
             }
         }
 
