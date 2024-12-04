@@ -391,6 +391,7 @@
         <p><small>This application runs directly in your browser using GitHub Pages hosting.</small></p>
     </div>
     <div class="bingo-grid" id="bingoGrid"></div>
+    <textarea class="edit-textarea" id="editTextarea" style="display: none;"></textarea>
     <div class="info">
     </div>
 
@@ -398,6 +399,7 @@
         class BingoCard {
             constructor() {
                 this.grid = document.getElementById('bingoGrid');
+                this.editTextarea = document.getElementById('editTextarea');
                 this.cells = [];
                 this.editMode = false;
                 this.ignoreNextHashChange = false;
@@ -452,7 +454,8 @@
                 const editButton = document.getElementById('editButton');
                 editButton.onclick = () => {
                     this.editMode = !this.editMode;
-                    this.grid.classList.toggle('edit-mode');
+                    this.grid.style.display = this.editMode ? 'none' : 'grid';
+                    this.editTextarea.style.display = this.editMode ? 'block' : 'none';
                     this.render();
                 };
             }
@@ -567,17 +570,13 @@
             }
 
             render() {
-                this.grid.innerHTML = '';
                 if (this.editMode) {
-                    const textarea = document.createElement('textarea');
-                    textarea.className = 'edit-textarea';
-                    // Only show checkmarks in textarea
-                    textarea.value = this.cells.map(cell => 
+                    this.editTextarea.value = this.cells.map(cell => 
                         (cell.crossed ? '✅' : '') + cell.text
                     ).join('\n');
-                    textarea.onchange = (e) => this.editCells(e.target.value);
-                    this.grid.appendChild(textarea);
+                    this.editTextarea.onchange = (e) => this.editCells(e.target.value);
                 } else {
+                    this.grid.innerHTML = '';
                     this.cells.forEach((cell, index) => {
                         const div = document.createElement('div');
                         div.className = `bingo-cell ${cell.crossed ? 'crossed' : ''}`;
