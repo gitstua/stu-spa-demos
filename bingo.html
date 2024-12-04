@@ -299,7 +299,7 @@
     <div class="button-container">
         <button id="editButton">Toggle Edit Mode</button>
         <button id="copyButton">Copy URL</button>
-        <button id="shareButton">Share Link</button>
+        <button id="copyTextButton">Copy as Text</button>
     </div>
     <details class="expandable-info">
             This Single Page Application (SPA) allows you to create and manage a bingo card. You can toggle edit mode to change the text of each cell, and your bingo card is stored in the URL fragment, so you can bookmark it to save your progress. 
@@ -331,6 +331,48 @@
                 this.init();
                 this.setupEditButton();
                 this.setupCopyButton();
+                this.setupCopyTextButton();
+            }
+
+            setupCopyTextButton() {
+                const copyTextButton = document.getElementById('copyTextButton');
+                copyTextButton.onclick = async () => {
+                    let textToCopy;
+                    if (this.editMode) {
+                        const textarea = this.grid.querySelector('.edit-textarea');
+                        if (!textarea) return;
+                        textToCopy = textarea.value;
+                    } else {
+                        // Filter out empty cells and sort checked before unchecked
+                        const nonEmptyCells = this.cells
+                            .map((cell, index) => ({ ...cell, originalIndex: index }))
+                            .filter(cell => cell.text.trim());
+                        
+                        const checkedCells = nonEmptyCells
+                            .filter(cell => cell.crossed)
+                            .sort((a, b) => a.originalIndex - b.originalIndex);
+                            
+                        const uncheckedCells = nonEmptyCells
+                            .filter(cell => !cell.crossed)
+                            .sort((a, b) => a.originalIndex - b.originalIndex);
+
+                        textToCopy = [
+                            ...checkedCells.map(cell => '✅' + cell.text),
+                            ...uncheckedCells.map(cell => cell.text)
+                        ].join('\n');
+                    }
+                    
+                    try {
+                        await navigator.clipboard.writeText(textToCopy);
+                        const originalText = copyTextButton.textContent;
+                        copyTextButton.textContent = 'Text Copied!';
+                        setTimeout(() => {
+                            copyTextButton.textContent = originalText;
+                        }, 2000);
+                    } catch (err) {
+                        alert('Failed to copy text');
+                    }
+                };
             }
 
             setupEditButton() {
