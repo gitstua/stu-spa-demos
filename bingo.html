@@ -414,7 +414,7 @@
                 copyTextButton.onclick = async () => {
                     let textToCopy;
                     if (this.editMode) {
-                        const textarea = this.grid.querySelector('.edit-textarea');
+                        const textarea = this.editTextarea;
                         if (!textarea) return;
                         textToCopy = textarea.value;
                     } else {
@@ -439,10 +439,10 @@
                     
                     try {
                         await navigator.clipboard.writeText(textToCopy);
-                        const originalText = copyTextButton.textContent;
-                        copyTextButton.textContent = 'Text Copied!';
+                        const originalHTML = copyTextButton.innerHTML;
+                        copyTextButton.innerHTML = 'Text Copied!';
                         setTimeout(() => {
-                            copyTextButton.textContent = originalText;
+                            copyTextButton.innerHTML = originalHTML;
                         }, 2000);
                     } catch (err) {
                         alert('Failed to copy text');
@@ -466,10 +466,10 @@
                     const url = window.location.href;
                     try {
                         await navigator.clipboard.writeText(url);
-                        const originalText = copyButton.textContent;
-                        copyButton.textContent = 'Copied!';
+                        const originalHTML = copyButton.innerHTML;
+                        copyButton.innerHTML = 'Copied!';
                         setTimeout(() => {
-                            copyButton.textContent = originalText;
+                            copyButton.innerHTML = originalHTML;
                         }, 2000);
                     } catch (err) {
                         alert('Failed to copy URL');
@@ -598,7 +598,7 @@
         <div class="footer-content">
             Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos" target="_blank">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot
         </div>
-        <div class="version">v41</div>
+        <div class="version">v42</div>
     </footer>
 </body>
 </html>
