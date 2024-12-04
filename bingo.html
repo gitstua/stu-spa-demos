@@ -33,26 +33,88 @@
         }
 
         .button-container {
+            position: fixed;
+            right: 20px;
+            bottom: 60px; /* Position above the footer */
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             gap: 10px;
-            margin: 60px 0 20px;
-            flex-wrap: wrap;
+            z-index: 1000;
         }
 
-        button {
+        .icon-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
             background-color: var(--button-bg);
-            color: var(--button-text);
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s ease;
+            transition: transform 0.2s ease;
         }
 
-        button:hover {
-            background-color: var(--button-hover-bg);
+        .icon-button:hover {
+            transform: scale(1.1);
+        }
+
+        .icon-button svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+                padding-bottom: 140px; /* Increase bottom padding to account for buttons and footer */
+            }
+
+            .button-container {
+                bottom: 50px; /* Adjust for mobile */
+                right: 10px;
+            }
+
+            .icon-button {
+                width: 35px;
+                height: 35px;
+            }
+
+            .info {
+                font-size: 0.8rem;
+                padding: 0 10px;
+            }
+
+            .home-link {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+
+            .bingo-cell input {
+                width: 90%;
+                font-size: 0.8rem;
+            }
+
+            footer {
+                position: static; /* Change to static on mobile */
+                margin-top: 20px; /* Add some space above footer */
+                background: var(--bg-color);
+                box-shadow: none;
+                border-top: none;
+                backdrop-filter: none;
+                font-size: 0.7rem;
+                padding: 8px;
+                flex-direction: column-reverse; /* Changed from column to column-reverse */
+                gap: 8px;
+                max-height: none;
+            }
+
+            #editButton {
+                top: 60px;
+                right: 10px;
+                width: 35px;
+                height: 35px;
+            }
         }
 
         .bingo-grid {
@@ -164,55 +226,13 @@
             background-color: var(--button-hover-bg);
         }
 
-        @media (max-width: 600px) {
-            body {
-                padding: 10px;
-                padding-bottom: 10px; /* Reset padding on mobile */
-            }
-
-            .button-container {
-                margin-top: 50px;
-            }
-
-            button {
-                padding: 8px 16px;
-                font-size: 0.9rem;
-            }
-
-            .info {
-                font-size: 0.8rem;
-                padding: 0 10px;
-            }
-
-            .home-link {
-                padding: 6px 10px;
-                font-size: 0.8rem;
-            }
-
-            .bingo-cell input {
-                width: 90%;
-                font-size: 0.8rem;
-            }
-
-            footer {
-                position: static; /* Change to static on mobile */
-                margin-top: 20px; /* Add some space above footer */
-                background: var(--bg-color);
-                box-shadow: none;
-                border-top: none;
-                backdrop-filter: none;
-                font-size: 0.7rem;
-                padding: 8px;
-            }
-        }
-
         footer {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             background: rgba(255, 255, 255, 0.95); /* Increased opacity */
-            padding: 12px; /* Increased padding */
+            padding: 12px 20px; /* Increase horizontal padding */
             text-align: center;
             font-size: 0.8rem;
             backdrop-filter: blur(5px);
@@ -222,9 +242,21 @@
             max-height: 40px;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between; /* Change from center to space-between */
             gap: 4px;
             white-space: nowrap;
+        }
+
+        .footer-content {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .last-updated {
+            color: #64748b; /* Changed to gray */
+            font-weight: 500;
+            margin-left: 10px; /* Changed from margin-right to margin-left */
         }
 
         footer a {
@@ -262,6 +294,18 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
+        .expandable-content ul,
+        .desktop-info ul {
+            list-style: none;
+            padding: 0;
+            margin: 1em 0;
+        }
+
+        .expandable-content li,
+        .desktop-info li {
+            margin: 0.5em 0;
+        }
+
         @media (min-width: 601px) {
             .expandable-info {
                 display: none;
@@ -291,31 +335,60 @@
             border-radius: 8px;
             resize: vertical;
         }
+
+        .version {
+            color: #64748b;
+            font-weight: 500;
+            margin-left: 10px;
+            font-family: monospace;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
 </head>
 <body>
     <a href="/" class="home-link button">← Back to Home</a>
     <div class="button-container">
-        <button id="editButton">Toggle Edit Mode</button>
-        <button id="copyButton">Copy URL</button>
-        <button id="copyTextButton">Copy as Text</button>
+        <button class="icon-button" id="editButton" title="Toggle Edit Mode">
+            <svg viewBox="0 0 24 24">
+                <path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"/>
+            </svg>
+        </button>
+        <button class="icon-button" id="copyButton" title="Copy URL">
+            <svg viewBox="0 0 24 24">
+                <path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/>
+            </svg>
+        </button>
+        <button class="icon-button" id="copyTextButton" title="Copy as Text">
+            <svg viewBox="0 0 24 24">
+                <path d="M17,9H7V7H17M17,13H7V11H17M14,17H7V15H14M12,3A1,1 0 0,1 13,4A1,1 0 0,1 12,5A1,1 0 0,1 11,4A1,1 0 0,1 12,3M19,3H14.82C14.4,1.84 13.3,1 12,1C10.7,1 9.6,1.84 9.18,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3Z"/>
+            </svg>
+        </button>
     </div>
     <details class="expandable-info">
-            This Single Page Application (SPA) allows you to create and manage a bingo card. You can toggle edit mode to change the text of each cell, and your bingo card is stored in the URL fragment, so you can bookmark it to save your progress. 
-            In edit mode, you can click on any cell to enter text. When not in edit mode, clicking a cell will mark it as crossed. 
-            Use the "Copy URL" button to copy the current state of your bingo card to the clipboard, so you can share it or save it for later.
-            If you lose the URL, you'll get a fresh card next time.
+        <summary>How to use this Bingo Card</summary>
+        <div class="expandable-content">
+            <p>This Single Page Application (SPA) lets you create and play a custom bingo card:</p>
+            <ul>
+                <li>📝 Click the edit button (pencil icon) to modify cells</li>
+                <li>✅ Click any cell to mark it as complete</li>
+                <li>🔗 Use the copy button to share your card with others</li>
+                <li>📋 Use the text button to copy your progress as a list</li>
+            </ul>
+            <p>Your progress is saved in the URL - bookmark it to save your card after any changes!</p>
         </div>
     </details>
 
     <div class="info desktop-info">
-        This Single Page Application (SPA) allows you to create and manage a bingo card. You can toggle edit mode to change the text of each cell, and your bingo card is stored in the URL fragment, so you can bookmark it to save your progress. 
-        In edit mode, you can click on any cell to enter text. When not in edit mode, clicking a cell will mark it as crossed. 
-        Use the "Copy URL" button to copy the current state of your bingo card to the clipboard, so you can share it or save it for later.
-        If you lose the URL, you'll get a fresh card next time.
-
-       <p> This application runs directly in your browser using GitHub Pages hosting. </p>
+        <h2>How to use this Bingo Card</h2>
+        <p>This Single Page Application (SPA) lets you create and play a custom bingo card:</p>
+        <ul>
+            <li>📝 Click the edit button (pencil icon) to modify cells</li>
+            <li>✅ Click any cell to mark it as complete</li>
+            <li>🔗 Use the copy button to share your card with others</li>
+            <li>📋 Use the text button to copy your progress as a list</li>
+        </ul>
+        <p>Your progress is saved in the URL - bookmark it to save your card after any changes!</p>
+        <p><small>This application runs directly in your browser using GitHub Pages hosting.</small></p>
     </div>
     <div class="bingo-grid" id="bingoGrid"></div>
     <div class="info">
@@ -523,7 +596,10 @@
         window.addEventListener('hashchange', () => bingo.init());
     </script>
     <footer>
-        Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos" target="_blank">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot
+        <div class="footer-content">
+            Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos" target="_blank">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot
+        </div>
+        <div class="version">v40</div>
     </footer>
 </body>
 </html>
