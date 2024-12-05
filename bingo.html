@@ -342,11 +342,38 @@
             margin-left: 10px;
             font-family: monospace;
         }
+
+        .title-container {
+            margin: 20px auto;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .title-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .title-input {
+            font-size: 1.5rem;
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            border: 2px solid var(--cell-border);
+            border-radius: 8px;
+            margin: 0;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
 </head>
 <body>
     <a href="/" class="home-link button">← Back to Home</a>
+    <div class="title-container" id="titleContainer">
+        <h1 class="title-display" id="titleDisplay"></h1>
+    </div>
     <div class="button-container">
         <button class="icon-button" id="editButton" title="Toggle Edit Mode">
             <svg viewBox="0 0 24 24">
@@ -403,10 +430,13 @@
                 this.cells = [];
                 this.editMode = false;
                 this.ignoreNextHashChange = false;
+                this.title = 'My Bingo Card';
+                this.titleDisplay = document.getElementById('titleDisplay');
                 this.init();
                 this.setupEditButton();
                 this.setupCopyButton();
                 this.setupCopyTextButton();
+                this.setupTitleEditing();
             }
 
             setupCopyTextButton() {
@@ -477,27 +507,52 @@
                 };
             }
 
-            compressData() {
-                // Only store non-empty cells in format: [index, text, crossed]
-                const compressedData = this.cells
-                    .map((cell, index) => cell.text ? [index, cell.text, cell.crossed ? 1 : 0] : null)
-                    .filter(x => x);
-                return compressedData;
+            setupTitleEditing() {
+                this.titleDisplay.onclick = () => {
+                    const input = document.createElement('input');
+                    input.className = 'title-input';
+                    input.value = this.title;
+                    this.titleDisplay.replaceWith(input);
+                    input.focus();
+
+                    input.onblur = () => {
+                        this.title = input.value.trim() || 'My Bingo Card';
+                        this.updateURL();
+                        this.renderTitle();
+                    };
+
+                    input.onkeypress = (e) => {
+                        if (e.key === 'Enter') input.blur();
+                    };
+                };
             }
 
-            decompressData(compressedData) {
+            renderTitle() {
+                this.titleDisplay.textContent = this.title;
+            }
+
+            compressData() {
+                return {
+                    t: this.title,
+                    c: this.cells
+                        .map((cell, index) => cell.text ? [index, cell.text, cell.crossed ? 1 : 0] : null)
+                        .filter(x => x)
+                };
+            }
+
+            decompressData(data) {
                 const cells = Array(16).fill('').map(() => ({
                     text: '',
                     crossed: false
                 }));
                 
-                compressedData.forEach(([index, text, crossed]) => {
+                data.c.forEach(([index, text, crossed]) => {
                     cells[index] = {
                         text: text,
                         crossed: crossed === 1
                     };
                 });
-                return cells;
+                return { title: data.t || 'My Bingo Card', cells };
             }
 
             init() {
@@ -509,15 +564,19 @@
                 if (hash) {
                     try {
                         const decompressed = LZString.decompressFromEncodedURIComponent(hash);
-                        const compressedData = JSON.parse(decompressed);
-                        this.cells = this.decompressData(compressedData);
+                        const data = this.decompressData(JSON.parse(decompressed));
+                        this.title = data.title;
+                        this.cells = data.cells;
                     } catch (e) {
                         console.error('Invalid URL fragment, generating new items', e);
+                        this.title = 'My Bingo Card';
                         this.cells = this.generateDefaultItems();
                     }
                 } else {
+                    this.title = 'My Bingo Card';
                     this.cells = this.generateDefaultItems();
                 }
+                this.renderTitle();
                 this.render();
                 this.updateURL();
             }
@@ -598,7 +657,7 @@
         <div class="footer-content">
             Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos" target="_blank">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot
         </div>
-        <div class="version">v42</div>
+        <div class="version">v43</div>
     </footer>
 </body>
 </html>
