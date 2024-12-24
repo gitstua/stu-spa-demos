@@ -1,0 +1,18 @@
+<svg width="200" height="100" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+    <!-- Body of the car -->
+    <path d="M20,70 L30,30 L170,30 L180,70 Z" fill="blue" stroke="black" stroke-width="2"/>
+
+    <!-- Bonnet of the car -->
+    <path d="M30,30 L40,15 L160,15 L170,30 Z" fill="lightblue" stroke="black" stroke-width="2"/>
+
+    <!-- Windshield -->
+    <rect x="40" y="30" width="120" height="20" fill="lightblue" stroke="black" stroke-width="1"/>
+
+    <!-- Wheels -->
+    <circle cx="50" cy="80" r="10" fill="black" />
+    <circle cx="150" cy="80" r="10" fill="black" />
+
+    <!-- Door lines -->
+    <line x1="80" y1="30" x2="80" y2="70" stroke="black" stroke-width="1"/>
+    <line x1="120" y1="30" x2="120" y2="70" stroke="black" stroke-width="1"/>
+</svg>

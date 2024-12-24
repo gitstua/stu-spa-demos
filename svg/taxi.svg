@@ -1,0 +1,23 @@
+<svg width="200" height="100" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+    <!-- Body of the taxi -->
+    <path d="M20,70 L30,20 L170,20 L180,70 Z" fill="#FFD700" stroke="black" stroke-width="2"/>
+
+    <!-- Roof of the taxi -->
+    <path d="M35,20 L45,10 L155,10 L165,20 Z" fill="#FFD700" stroke="black" stroke-width="2"/>
+
+        <!-- Taxi sign -->
+        <rect x="85" y="0" width="30" height="10" fill="white" stroke="black" stroke-width="1"/>
+        <text x="90" y="8" font-size="8" text-anchor="middle" fill="black">TAXI</text>
+
+    <!-- Wheels -->
+    <circle cx="50" cy="80" r="10" fill="black" />
+    <circle cx="150" cy="80" r="10" fill="black" />
+
+        <!-- Windows -->
+        <rect x="40" y="30" width="40" height="30" fill="lightblue" />
+        <rect x="120" y="30" width="40" height="30" fill="lightblue" />
+
+    <!-- Door lines -->
+        <line x="80" y="20" x2="80" y2="70" stroke="black" stroke-width="1"/>
+        <line x="120" y="20" x2="120" y2="70" stroke="black" stroke-width="1"/>
+</svg>
