@@ -13,11 +13,14 @@
     }
     #preview {
       position: relative;
-      width: 100%;
-      height: 50vh;
-      padding-top: 50px;
-      margin-top: 40px;  /* Added this line */
+      width: 240px;
+      height: 320px;
+      padding-top: 0;
+      margin: 0 auto;
+      margin-top: 0; /* Changed from 40px */
       font-family: 'Roboto Condensed', Arial, sans-serif;
+      border: 1px solid #ccc;
+      background-color: white;
     }
     #editor {
       width: 100%;
@@ -122,11 +125,104 @@
     .editor-controls button {
       flex: 2;
     }
+    .frame-box {
+      width: 240px;
+      height: 20px;
+      background-color: #c5912b;
+      margin: 0 auto;
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+    }
+    .frame-segment {
+      height: 100%;
+      width: 95px;  /* increased to fill space */
+      background-color: inherit;
+      position: relative;
+    }
+    .black-square {
+      width: 40px;  /* doubled from 20px */
+      height: 20px;
+      background-color: black;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;  /* added to ensure solid black */
+    }
+    .white-space {
+      width: 5px;   /* reduced from 15px to make slim lines */
+      height: 20px;
+      background-color: white;
+      position: absolute;
+    }
+    .white-space-left {
+      right: 100%;
+    }
+    .white-space-right {
+      left: 100%;
+    }
+    .frame-hole {
+      width: 8px;
+      height: 8px;
+      background-color: #ecf0f1;
+      border-radius: 50%;
+      position: absolute;
+      top: 6px;
+    }
+    .frame-hole-left {
+      left: 6px;
+    }
+    .frame-hole-right {
+      right: 6px;
+    }
+    .preview-container {
+      margin-top: 40px;
+      width: 240px;
+      margin: 40px auto 0;
+    }
+    .center-section {
+      display: flex;
+      align-items: center;
+      height: 20px;
+    }
+    .white-line {
+      width: 5px;
+      height: 20px;
+      background-color: white;
+    }
+    .black-rect {
+      width: 40px;
+      height: 20px;
+      background-color: black;
+    }
   </style>
 </head>
 <body>
   <a href="/" style="position: fixed; top: 10px; left: 10px;">Back to Home</a>
-  <div id="preview"></div>
+  
+  <div class="preview-container">
+    <div class="frame-box">
+      <div class="frame-segment">
+        <div class="frame-hole frame-hole-left"></div>
+      </div>
+      <div class="center-section">
+        <div class="white-line"></div>
+        <div class="black-rect"></div>
+        <div class="white-line"></div>
+      </div>
+      <div class="frame-segment">
+        <div class="frame-hole frame-hole-right"></div>
+      </div>
+    </div>
+    
+    <div id="preview"></div>
+    
+    <div class="frame-box">
+      <div class="frame-hole frame-hole-left"></div>
+      <div class="frame-hole frame-hole-right"></div>
+    </div>
+  </div>
+
   <div id="editor">
     <div class="editor-controls">
       <select id="pageSelector" onchange="changePage()">
@@ -289,7 +385,7 @@
     }
     renderComponents(jsonLinesData);
   </script>
-  <div class="footer">Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos" style="color: #FFFFFF;">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot - Version 31</div>
+  <div class="footer">Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos" style="color: #FFFFFF;">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot - Version 32</div>
   <div style="margin-top: 20px; text-align: center;">
     This SPA demonstrates a simple UI rendering based on JSON data. It includes labels, buttons, and dropdowns positioned according to the provided coordinates.
   </div>
