@@ -130,9 +130,10 @@
   <div id="editor">
     <div class="editor-controls">
       <select id="pageSelector" onchange="changePage()">
-        <option value="0">Page 0</option>
+        <option value="0">Page 0 - components which show on every page</option>
         <option value="1">Page 1</option>
         <option value="2">Page 2</option>
+        <option value="2">Page 3</option>
       </select>
       <button onclick="updateJson()">Update Preview</button>
     </div>
@@ -141,7 +142,7 @@
   <script>
     let jsonLinesData = 
 `{"page":1,"id":4,"obj":"label","x":0,"y":0,"w":240,"h":30,"text":"Bedroom 1","value_font":22,"bg_color":"#2C3E50","text_color":"#FFFFFF","radius":0,"border_side":0}
-{"page":1,"id":2,"obj":"btn","x":10,"y":40,"w":105,"h":90,"toggle":true,"text":"\uE335","text_font":32,"mode":"break","align":1}
+{"page":1,"id":2,"obj":"btn","x":10,"y":40,"w":105,"h":90,"toggle":true,"text":"\\uE335","text_font":32,"mode":"break","align":1}
 {"page":1,"id":3,"obj":"btn","x":10,"y":150,"w":105,"h":90,"toggle":true,"text":"Blinds","text_font":16,"mode":"break","align":1}
 {"page":2,"id":4,"obj":"dropdown","x":10,"y":140,"w":170,"h":30,"options":"Apples\\nBananas\\nOranges\\nMelon"}
 {"page":0,"id":1,"obj":"label","x":175,"y":0,"h":30,"w":62,"text":"00.0°C","align":2,"bg_color":"#2C3E50","text_color":"#FFFFFF"}`;
