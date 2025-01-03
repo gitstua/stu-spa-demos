@@ -65,11 +65,22 @@ Displays the current time and updates every second in multiple timezones.
 2. The current time will be displayed and updated every second.
 
 ### Bingo
-An interactive 5x5 bingo card where:
+An interactive 5x5 bingo card `bingo.html` where:
 - Click cells to mark them as complete
 - Card state is stored in the URL for easy sharing
 - Works with browser navigation history
 - Responsive grid layout
+
+### OpenHASP Plate Editor
+Located at `/stu-openHASP-plate-ui.html`, this is a visual editor for designing user interfaces for [openHASP](https://www.openhasp.com) plates. 
+
+** Experimental - not tested with a broad range of json lines **
+
+It allows you to:
+- Create and edit UI components using JSON format
+- Preview components in real-time
+- Organize components across multiple pages
+- Design labels, buttons, and dropdowns with custom styling
 
 ## Installation
 To run these demos locally, you can simply clone the repository and open the HTML files in your browser.

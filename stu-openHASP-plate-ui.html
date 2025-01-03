@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drawing Tool</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #ecf0f1;
+    }
+    #preview {
+      position: relative;
+      width: 100%;
+      height: 50vh;
+      padding-top: 50px;
+      margin-top: 40px;  /* Added this line */
+      font-family: 'Roboto Condensed', Arial, sans-serif;
+    }
+    #editor {
+      width: 100%;
+      height: 40vh;
+      padding: 10px;
+      box-sizing: border-box;
+      background-color: #f7f7f7;
+      border-top: 1px solid #ccc;
+    }
+    textarea {
+      width: 100%;
+      height: calc(100% - 40px);
+      box-sizing: border-box;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #2C3E50;
+      color: #FFFFFF;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .label, .button, .dropdown {
+      position: absolute;
+      padding: 10px;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    .button {
+      cursor: pointer;
+      border: none;
+      outline: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .dropdown {
+      position: absolute;
+      padding: 0;
+      border-radius: 4px;
+      background-color: white;
+      border: 1px solid #ccc;
+    }
+    .dropdown select {
+      width: 100%;
+      height: 100%;
+      padding: 5px;
+      border: none;
+      outline: none;
+      background-color: transparent;
+      font-size: 14px;
+    }
+    .nav-dropdown {
+      position: absolute;
+      padding: 5px;
+      border-radius: 4px;
+      background-color: #34495e;
+      color: white;
+      border: 1px solid #2c3e50;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .nav-dropdown option {
+      background-color: #34495e;
+      color: white;
+    }
+    .fixed-label {
+      position: absolute;
+    }
+    .footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      text-align: center;
+      background-color: #2C3E50;
+      color: #FFFFFF;
+      padding: 10px;
+    }
+    .editor-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .editor-controls select,
+    .editor-controls button {
+      padding: 10px;
+      background-color: #2C3E50;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .editor-controls select {
+      flex: 1;
+    }
+    .editor-controls button {
+      flex: 2;
+    }
+  </style>
+</head>
+<body>
+  <a href="/" style="position: fixed; top: 10px; left: 10px;">Back to Home</a>
+  <div id="preview"></div>
+  <div id="editor">
+    <div class="editor-controls">
+      <select id="pageSelector" onchange="changePage()">
+        <option value="0">Page 0</option>
+        <option value="1">Page 1</option>
+        <option value="2">Page 2</option>
+      </select>
+      <button onclick="updateJson()">Update Preview</button>
+    </div>
+    <textarea id="jsonLinesInput"></textarea>
+  </div>
+  <script>
+    let jsonLinesData = 
+`{"page":1,"id":4,"obj":"label","x":0,"y":0,"w":240,"h":30,"text":"Bedroom 1","value_font":22,"bg_color":"#2C3E50","text_color":"#FFFFFF","radius":0,"border_side":0}
+{"page":1,"id":2,"obj":"btn","x":10,"y":40,"w":105,"h":90,"toggle":true,"text":"\uE335","text_font":32,"mode":"break","align":1}
+{"page":1,"id":3,"obj":"btn","x":10,"y":150,"w":105,"h":90,"toggle":true,"text":"Blinds","text_font":16,"mode":"break","align":1}
+{"page":2,"id":4,"obj":"dropdown","x":10,"y":140,"w":170,"h":30,"options":"Apples\\nBananas\\nOranges\\nMelon"}
+{"page":0,"id":1,"obj":"label","x":175,"y":0,"h":30,"w":62,"text":"00.0°C","align":2,"bg_color":"#2C3E50","text_color":"#FFFFFF"}`;
+
+    
+    function createLabel(item, index) {
+      const label = document.createElement('div');
+      label.className = 'label';
+      label.style.top = `${item.y}px`;
+      label.style.left = `${item.x}px`;
+      label.style.height = `${item.h}px`;
+      label.style.width = `${item.w}px`;
+      label.style.backgroundColor = item.bg_color;
+      label.style.color = item.text_color;
+      label.style.display = 'block';
+      label.style.zIndex = index;
+      label.textContent = parseToken(item.text);
+      return label;
+    }
+
+    function parseToken(text) {
+      // Map specific tokens to emojis
+      const iconMap = {
+        'E335': '💡',  // lightbulb
+        'F0AF': '🪟',  // blinds
+        // Add more mappings as needed
+      };
+
+      // First unescape the text if it contains raw \u sequences
+      const unescaped = text.replace(/\\u/g, '\\u');
+
+      // Then convert escaped sequences to icons
+      return unescaped.replace(/\\u([A-Fa-f0-9]{4})/g, (match, code) => {
+        return iconMap[code] || match; // Return the original match if no mapping found
+      });
+    }
+
+    function createButton(item, index) {
+      const button = document.createElement('button');
+      button.className = 'button';
+      button.style.top = `${item.y}px`;
+      button.style.left = `${item.x}px`;
+      button.style.height = `${item.h}px`;
+      button.style.width = `${item.w}px`;
+      button.style.backgroundColor = item.bg_color;
+      button.style.color = item.text_color;
+      button.style.fontSize = `${item.value_font || item.text_font}px`;
+      button.style.borderRadius = `${item.radius}px`;
+      button.style.zIndex = index;
+      button.textContent = parseToken(item.text);
+      return button;
+    }
+
+    function createDropdown(item, index) {
+      const select = document.createElement('select');
+      select.className = 'dropdown';
+      select.style.top = `${item.y}px`;
+      select.style.left = `${item.x}px`;
+      select.style.height = `${item.h}px`;
+      select.style.width = `${item.w}px`;
+      select.style.zIndex = index;
+
+      item.options.split('\n').forEach((option, index) => {
+        const opt = document.createElement('option');
+        opt.value = index;
+        opt.textContent = option;
+        select.appendChild(opt);
+      });
+
+      return select;
+    }
+
+    function renderComponents(data) {
+      const preview = document.getElementById('preview');
+      preview.innerHTML = '';
+      
+      // Set default to page 1 if it exists, otherwise use page 0
+      const hasPage1 = data.some(item => item.page === 1);
+      const defaultPage = hasPage1 ? 1 : 0;
+      
+      const selectedPage = parseInt(document.getElementById('pageSelector').value || defaultPage);
+      document.getElementById('pageSelector').value = selectedPage;
+      
+      // Render components in order, showing only page 0 and selected page
+      data.forEach((item, index) => {
+        if (item.page === 0 || item.page === selectedPage) {
+          let element;
+          switch (item.obj) {
+            case 'label':
+              element = createLabel(item, index);
+              break;
+            case 'btn':
+              element = createButton(item, index);
+              break;
+            case 'dropdown':
+              element = createDropdown(item, index);
+              break;
+          }
+          if (element) preview.appendChild(element);
+        }
+      });
+    }
+
+    function changePage() {
+      renderComponents(jsonLinesData);
+    }
+
+    function updateJson() {
+      try {
+        const rawInput = document.getElementById('jsonLinesInput').value;
+        
+        // Parse each line while handling tokens
+        const newData = rawInput
+          .split('\n')
+          .filter(line => line.trim())
+          .map(line => {
+            // Pre-process any raw \u sequences
+            if (line.includes('\\u')) {
+              const processedLine = line.replace(/"text":"([^"]*\\u[^"]*)"/, (match, text) => {
+                return `"text":"${parseToken(text)}"`;
+              });
+              return JSON.parse(processedLine);
+            }
+            return JSON.parse(line);
+          });
+
+        jsonLinesData = newData;
+        renderComponents(jsonLinesData);
+      } catch (e) {
+        console.error('JSON parsing failed', e);
+        alert('Invalid JSON. Each line must be a valid JSON object.');
+      }
+    }
+
+    // Show raw JSON Lines in textarea
+    document.getElementById('jsonLinesInput').value = jsonLinesData;
+
+    updateJson(); // Initial render
+
+    // Initialize with page 1 if it exists
+    const hasPage1 = jsonLinesData.some(item => item.page === 1);
+    if (hasPage1) {
+      document.getElementById('pageSelector').value = '1';
+    }
+    renderComponents(jsonLinesData);
+  </script>
+  <div class="footer">Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos" style="color: #FFFFFF;">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot - Version 31</div>
+  <div style="margin-top: 20px; text-align: center;">
+    This SPA demonstrates a simple UI rendering based on JSON data. It includes labels, buttons, and dropdowns positioned according to the provided coordinates.
+  </div>
+</body>
+</html>
