@@ -144,9 +144,9 @@
     <main>
         <div id="map"></div>
         <aside>
-            <h2>Favorites</h2>
-            <ul id="favorites-list"></ul>
-            <button id="add-favorite">Add Favorite</button>
+            <h2>Rides</h2>
+            <ul id="rides-list"></ul>
+            <p>Click the map to add a new ride</p>
         </aside>
     </main>
     <footer class="floating-footer">
@@ -158,7 +158,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const mapElement = document.getElementById('map');
-            const favoritesList = document.getElementById('favorites-list');
+            const ridesList = document.getElementById('rides-list');
             let map;
             let markers = [];
 
@@ -174,13 +174,13 @@
             function onMapClick(e) {
                 const trail = prompt('Enter trail name:');
                 if (trail) {
-                    addFavorite(trail, e.latlng.lat, e.latlng.lng);
+                    addRide(trail, e.latlng.lat, e.latlng.lng);
                     const marker = L.marker([e.latlng.lat, e.latlng.lng], { icon: L.divIcon({ className: 'trail-marker', html: '🚴' }) }).addTo(map);
                     markers.push(marker);
                 }
             }
 
-            function addFavorite(name, lat, lng) {
+            function addRide(name, lat, lng) {
                 const li = document.createElement('li');
                 const nameSpan = document.createElement('span');
                 nameSpan.textContent = name;
@@ -194,7 +194,7 @@
                     const newName = prompt('Edit trail name:', nameSpan.textContent);
                     if (newName) {
                         nameSpan.textContent = newName;
-                        saveFavorites();
+                        saveRides();
                     }
                 });
 
@@ -203,9 +203,9 @@
                 deleteButton.className = 'delete-button';
                 deleteButton.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    if (confirm('Are you sure you want to delete this favorite?')) {
+                    if (confirm('Are you sure you want to delete this ride?')) {
                         li.remove();
-                        saveFavorites();
+                        saveRides();
                     }
                 });
 
@@ -214,34 +214,34 @@
                 li.appendChild(nameSpan);
                 li.dataset.lat = lat;
                 li.dataset.lng = lng;
-                favoritesList.appendChild(li);
-                saveFavorites();
+                ridesList.appendChild(li);
+                saveRides();
             }
 
-            function loadFavorites() {
+            function loadRides() {
                 const fragment = window.location.hash.substring(1);
-                const favorites = fragment ? JSON.parse(decodeURIComponent(fragment)) : [];
-                favorites.forEach(trail => {
-                    addFavorite(trail.name, trail.lat, trail.lng);
+                const rides = fragment ? JSON.parse(decodeURIComponent(fragment)) : [];
+                rides.forEach(trail => {
+                    addRide(trail.name, trail.lat, trail.lng);
                 });
             }
 
-            function saveFavorites() {
-                const favorites = Array.from(favoritesList.children).map(li => ({
+            function saveRides() {
+                const rides = Array.from(ridesList.children).map(li => ({
                     name: li.querySelector('span').textContent,
                     lat: li.dataset.lat,
                     lng: li.dataset.lng
                 }));
-                window.location.hash = encodeURIComponent(JSON.stringify(favorites));
+                window.location.hash = encodeURIComponent(JSON.stringify(rides));
             }
 
-            favoritesList.addEventListener('click', (event) => {
+            ridesList.addEventListener('click', (event) => {
                 const li = event.target.closest('li');
                 if (li) {
                     const lat = li.dataset.lat;
                     const lng = li.dataset.lng;
                     map.setView([lat, lng], 13);
-                    document.querySelectorAll('#favorites-list li').forEach(li => li.classList.remove('selected'));
+                    document.querySelectorAll('#rides-list li').forEach(li => li.classList.remove('selected'));
                     li.classList.add('selected');
                     markers.forEach(marker => map.removeLayer(marker));
                     markers = [];
@@ -251,7 +251,7 @@
             });
 
             initializeMap();
-            loadFavorites();
+            loadRides();
         });
     </script>
 </body>
