@@ -441,12 +441,28 @@
                 min-height: 44px;
             }
         }
+
+        /* Add these styles for the layer control */
+        .leaflet-control-layers {
+            background: white;
+            padding: 6px;
+            border-radius: 4px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+        }
+
+        .leaflet-control-layers label {
+            margin: 2px 0;
+            display: block;
+        }
     </style>
 </head>
 <body>
     <header>
         <a href="/">Back to Home</a>
     </header>
+    <section>
+        <p>This SPA allows you to select a location on the map and view the trails you want to do. You can also save your favorite trails and view them in the side pane.</p>
+    </section>
     <main>
         <div id="map">
             <div class="map-hint">
@@ -486,11 +502,8 @@
         </button>
     </div>
     <footer class="floating-footer">
-        Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot - Version 25
+        Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot - Version 27
     </footer>
-    <section>
-        <p>This SPA allows you to select a location on the map and view the trails you want to do. You can also save your favorite trails and view them in the side pane.</p>
-    </section>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const mapElement = document.getElementById('map');
@@ -509,8 +522,37 @@
                     position: 'topright'
                 }).addTo(map);
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                // Define base layers
+                const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                });
+
+                const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Imagery &copy; Esri',
+                    maxZoom: 19
+                });
+
+                // Add cycling trails layer
+                const cyclingLayer = L.tileLayer('https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://cycling.waymarkedtrails.org">Waymarked Trails</a>',
+                    opacity: 0.7
+                });
+
+                // Set default layer
+                osmLayer.addTo(map);
+
+                // Add layer controls with both base and overlay layers
+                const baseLayers = {
+                    "Standard": osmLayer,
+                    "Satellite": satelliteLayer
+                };
+
+                const overlayLayers = {
+                    "Cycling Trails": cyclingLayer
+                };
+
+                L.control.layers(baseLayers, overlayLayers, {
+                    position: 'topright'
                 }).addTo(map);
 
                 map.on('click', onMapClick);
