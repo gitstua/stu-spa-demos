@@ -113,6 +113,15 @@
         .trail-marker {
             font-size: 24px;
             color: red;
+            text-shadow: 0 0 3px white;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.2);
         }
 
         ul {
@@ -477,7 +486,7 @@
         </button>
     </div>
     <footer class="floating-footer">
-        Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot - Version 24
+        Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot - Version 25
     </footer>
     <section>
         <p>This SPA allows you to select a location on the map and view the trails you want to do. You can also save your favorite trails and view them in the side pane.</p>
@@ -518,7 +527,14 @@
                 const trail = prompt('Enter trail name:');
                 if (trail) {
                     addRide(trail, e.latlng.lat, e.latlng.lng);
-                    const marker = L.marker([e.latlng.lat, e.latlng.lng], { icon: L.divIcon({ className: 'trail-marker', html: '🚴' }) }).addTo(map);
+                    const marker = L.marker([e.latlng.lat, e.latlng.lng], { 
+                        icon: L.divIcon({ 
+                            className: 'trail-marker', 
+                            html: '🚴',
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16]
+                        }) 
+                    }).addTo(map);
                     markers.push(marker);
                 }
             }
@@ -683,7 +699,14 @@
                     li.classList.add('selected');
                     markers.forEach(marker => map.removeLayer(marker));
                     markers = [];
-                    const marker = L.marker([lat, lng], { icon: L.divIcon({ className: 'trail-marker', html: '🚴' }) }).addTo(map);
+                    const marker = L.marker([lat, lng], { 
+                        icon: L.divIcon({ 
+                            className: 'trail-marker', 
+                            html: '🚴',
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16]
+                        }) 
+                    }).addTo(map);
                     markers.push(marker);
                 }
             });
