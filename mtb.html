@@ -137,23 +137,34 @@
             background-color: #e0e0e0;
         }
 
-        .edit-button, .delete-button {
+        .edit-button, .delete-button, .google-maps-button {
             margin-right: 10px;
             padding: 5px;
             border: none;
             cursor: pointer;
             font-size: 14px;
             border-radius: 4px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .edit-button:hover, .delete-button:hover, .google-maps-button:hover {
+            opacity: 1;
         }
 
         .edit-button {
-            background-color: #007bff;
-            color: white;
+            background-color: #90caf9;
+            color: #1565c0;
         }
 
         .delete-button {
-            background-color: #dc3545;
-            color: white;
+            background-color: #ef9a9a;
+            color: #c62828;
+        }
+
+        .google-maps-button {
+            background-color: #a5d6a7;
+            color: #2e7d32;
         }
 
         .name-span {
@@ -401,6 +412,26 @@
         section {
             margin-bottom: 60px; /* Space for floating footer */
         }
+
+        .google-maps-button {
+            background-color: #4285f4;
+            color: white;
+            margin-right: 10px;
+            padding: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+
+        /* Add to mobile styles */
+        @media (max-width: 768px) {
+            .google-maps-button {
+                padding: 8px;
+                min-width: 44px;
+                min-height: 44px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -446,7 +477,7 @@
         </button>
     </div>
     <footer class="floating-footer">
-        Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot - Version 22
+        Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot - Version 24
     </footer>
     <section>
         <p>This SPA allows you to select a location on the map and view the trails you want to do. You can also save your favorite trails and view them in the side pane.</p>
@@ -513,6 +544,16 @@
                 // Store country in dataset for saving
                 li.dataset.country = country;
                 
+                const googleMapsButton = document.createElement('button');
+                googleMapsButton.textContent = '🗺️';
+                googleMapsButton.className = 'google-maps-button';
+                googleMapsButton.title = 'Open in Google Maps';
+                googleMapsButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const mapUrl = `https://www.google.com/maps?q=${lat},${lng}&ll=${lat},${lng}&z=15`;
+                    window.open(mapUrl, '_blank');
+                });
+
                 const editButton = document.createElement('button');
                 editButton.textContent = '✏️';
                 editButton.className = 'edit-button';
@@ -536,6 +577,7 @@
                     }
                 });
 
+                li.appendChild(googleMapsButton);  // Add this line before other buttons
                 li.appendChild(editButton);
                 li.appendChild(deleteButton);
                 li.appendChild(nameSpan);
@@ -577,6 +619,16 @@
                             nameSpan.className = 'name-span';
                             
                             // Add edit and delete buttons as before
+                            const googleMapsButton = document.createElement('button');
+                            googleMapsButton.textContent = '🗺️';
+                            googleMapsButton.className = 'google-maps-button';
+                            googleMapsButton.title = 'Open in Google Maps';
+                            googleMapsButton.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const mapUrl = `https://www.google.com/maps?q=${trail.lat},${trail.lng}&ll=${trail.lat},${trail.lng}&z=15`;
+                                window.open(mapUrl, '_blank');
+                            });
+
                             const editButton = document.createElement('button');
                             editButton.textContent = '✏️';
                             editButton.className = 'edit-button';
@@ -600,6 +652,7 @@
                                 }
                             });
 
+                            li.appendChild(googleMapsButton);
                             li.appendChild(editButton);
                             li.appendChild(deleteButton);
                             li.appendChild(nameSpan);
