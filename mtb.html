@@ -41,6 +41,50 @@
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             float: left;
+            position: relative;
+            cursor: crosshair;
+        }
+
+        #map.grabbing {
+            cursor: grabbing;
+        }
+
+        .map-search-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            width: 300px;
+        }
+
+        .map-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+            white-space: nowrap;
+        }
+
+        .map-hint .action {
+            color: #5bf;
+            font-weight: bold;
+        }
+
+        #map:hover .map-hint {
+            opacity: 1;
         }
 
         aside {
@@ -135,6 +179,91 @@
         .leaflet-control-geocoder-form button:hover {
             background-color: #0056b3;
         }
+
+        .search-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: white;
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #007bff;
+            border-radius: 50%;
+            position: absolute;
+            right: 10px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            padding: 0;
+            margin: 0;
+            margin-top: 5px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-results div {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+        .search-results div:hover {
+            background-color: #f0f0f0;
+        }
+
+        .search-results div:focus,
+        .search-results div.focused {
+            background-color: #007bff;
+            color: white;
+            outline: none;
+        }
+
+        .search-status {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 4px;
+            min-height: 1.2em;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 8px 30px 8px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-container {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -142,15 +271,33 @@
         <a href="/">Back to Home</a>
     </header>
     <main>
-        <div id="map"></div>
+        <div id="map">
+            <div class="map-hint">
+                <span class="action">🎯 Click</span> to add a ride • <span class="action">✋ Drag</span> to move map
+            </div>
+            <div class="map-search-container">
+                <label for="search-input">Search for a location</label>
+                <div class="search-wrapper">
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        placeholder="Search location on map..." 
+                        aria-describedby="search-status"
+                        autocomplete="off"
+                    >
+                    <div class="spinner" id="search-spinner" role="status" aria-hidden="true"></div>
+                </div>
+                <div id="search-status" class="search-status" role="status"></div>
+                <div id="search-results" class="search-results" role="listbox" tabindex="-1"></div>
+            </div>
+        </div>
         <aside>
             <h2>Rides</h2>
             <ul id="rides-list"></ul>
-            <p>Click the map to add a new ride</p>
         </aside>
     </main>
     <footer class="floating-footer">
-        Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot - Version 11
+        Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot - Version 18
     </footer>
     <section>
         <p>This SPA allows you to select a location on the map and view the trails you want to do. You can also save your favorite trails and view them in the side pane.</p>
@@ -171,7 +318,14 @@
                 map.on('click', onMapClick);
             }
 
+            // Update map click handler to check if click is on search container
             function onMapClick(e) {
+                // Check if click target is search container or its children
+                const searchContainer = document.querySelector('.map-search-container');
+                if (e.originalEvent.target.closest('.map-search-container')) {
+                    return; // Exit if click is on search container
+                }
+
                 const trail = prompt('Enter trail name:');
                 if (trail) {
                     addRide(trail, e.latlng.lat, e.latlng.lng);
@@ -248,6 +402,139 @@
                     const marker = L.marker([lat, lng], { icon: L.divIcon({ className: 'trail-marker', html: '🚴' }) }).addTo(map);
                     markers.push(marker);
                 }
+            });
+
+            // Replace search functionality with location search
+            const searchInput = document.getElementById('search-input');
+            const searchResults = document.getElementById('search-results');
+            const searchStatus = document.getElementById('search-status');
+            const searchSpinner = document.getElementById('search-spinner');
+            let searchTimeout;
+            let selectedIndex = -1;
+
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchResults.innerHTML = '';
+                searchSpinner.style.display = 'none';
+                selectedIndex = -1;
+                
+                if (e.target.value.length < 3) {
+                    searchStatus.textContent = e.target.value.length > 0 ? 
+                        'Please enter at least 3 characters' : '';
+                    return;
+                }
+
+                searchSpinner.style.display = 'block';
+                searchStatus.textContent = 'Searching...';
+
+                searchTimeout = setTimeout(async () => {
+                    try {
+                        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(e.target.value)}`);
+                        const data = await response.json();
+                        
+                        searchSpinner.style.display = 'none';
+                        searchResults.innerHTML = '';
+                        
+                        if (data.length === 0) {
+                            searchStatus.textContent = 'No results found';
+                            return;
+                        }
+
+                        searchStatus.textContent = `${data.length} locations found`;
+                        
+                        data.slice(0, 5).forEach((place, index) => {
+                            const div = document.createElement('div');
+                            div.textContent = place.display_name;
+                            div.setAttribute('role', 'option');
+                            div.setAttribute('tabindex', '0');
+                            div.setAttribute('aria-selected', 'false');
+                            
+                            div.addEventListener('click', () => selectLocation(place));
+                            div.addEventListener('keydown', (e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    selectLocation(place);
+                                }
+                            });
+                            searchResults.appendChild(div);
+                        });
+                    } catch (error) {
+                        console.error('Error searching for location:', error);
+                        searchStatus.textContent = 'Error searching for location';
+                        searchSpinner.style.display = 'none';
+                    }
+                }, 500);
+            });
+
+            function selectLocation(place) {
+                map.setView([place.lat, place.lon], 13);
+                searchResults.innerHTML = '';
+                searchInput.value = place.display_name;
+                searchStatus.textContent = 'Location selected';
+            }
+
+            searchInput.addEventListener('keydown', (e) => {
+                const results = searchResults.children;
+                if (results.length === 0) return;
+
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    
+                    // Remove focus from current item
+                    if (selectedIndex >= 0) {
+                        results[selectedIndex].classList.remove('focused');
+                        results[selectedIndex].setAttribute('aria-selected', 'false');
+                    }
+
+                    // Calculate new index
+                    if (e.key === 'ArrowDown') {
+                        selectedIndex = selectedIndex < results.length - 1 ? selectedIndex + 1 : 0;
+                    } else {
+                        selectedIndex = selectedIndex > 0 ? selectedIndex - 1 : results.length - 1;
+                    }
+
+                    // Focus new item
+                    results[selectedIndex].classList.add('focused');
+                    results[selectedIndex].setAttribute('aria-selected', 'true');
+                    results[selectedIndex].scrollIntoView({ block: 'nearest' });
+                } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                    results[selectedIndex].click();
+                } else if (e.key === 'Escape') {
+                    searchResults.innerHTML = '';
+                    searchStatus.textContent = '';
+                    selectedIndex = -1;
+                }
+            });
+
+            // Hide search results when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!searchResults.contains(e.target) && e.target !== searchInput) {
+                    searchResults.innerHTML = '';
+                    searchStatus.textContent = '';
+                }
+            });
+
+            // Update search box event handlers to stop propagation
+            const searchContainer = document.querySelector('.map-search-container');
+            searchContainer.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+            });
+
+            searchInput.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
+            searchResults.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
+            // Add mousedown/mouseup handlers for grab cursor
+            mapElement.addEventListener('mousedown', () => {
+                mapElement.classList.add('grabbing');
+            });
+
+            document.addEventListener('mouseup', () => {
+                mapElement.classList.remove('grabbing');
             });
 
             initializeMap();
