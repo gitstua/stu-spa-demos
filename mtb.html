@@ -376,6 +376,10 @@
             .button-container {
                 bottom: 70px;
             }
+
+            section {
+                margin-bottom: 80px; /* More space on mobile */
+            }
         }
 
         /* Additional touch-friendly improvements */
@@ -392,6 +396,10 @@
             .icon-button:active {
                 transform: scale(0.95);
             }
+        }
+
+        section {
+            margin-bottom: 60px; /* Space for floating footer */
         }
     </style>
 </head>
@@ -438,7 +446,7 @@
         </button>
     </div>
     <footer class="floating-footer">
-        Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot - Version 19
+        Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot - Version 22
     </footer>
     <section>
         <p>This SPA allows you to select a location on the map and view the trails you want to do. You can also save your favorite trails and view them in the side pane.</p>
@@ -484,11 +492,26 @@
                 }
             }
 
-            function addRide(name, lat, lng) {
+            async function getCountryName(lat, lng) {
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+                    const data = await response.json();
+                    return data.address.country || 'Unknown';
+                } catch (error) {
+                    console.error('Error getting country:', error);
+                    return 'Unknown';
+                }
+            }
+
+            async function addRide(name, lat, lng) {
                 const li = document.createElement('li');
                 const nameSpan = document.createElement('span');
-                nameSpan.textContent = name;
+                const country = await getCountryName(lat, lng);
+                nameSpan.textContent = `${name} (${country})`;
                 nameSpan.className = 'name-span';
+                
+                // Store country in dataset for saving
+                li.dataset.country = country;
                 
                 const editButton = document.createElement('button');
                 editButton.textContent = '✏️';
@@ -522,6 +545,19 @@
                 saveRides();
             }
 
+            function saveRides() {
+                const rides = Array.from(ridesList.children).map(li => ({
+                    name: li.querySelector('.name-span').textContent.split(' (')[0], // Get name without country
+                    country: li.dataset.country,
+                    lat: li.dataset.lat,
+                    lng: li.dataset.lng
+                }));
+                
+                // Compress the rides data
+                const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(rides));
+                window.location.hash = compressed;
+            }
+
             function loadRides() {
                 try {
                     const fragment = window.location.hash.substring(1);
@@ -533,7 +569,48 @@
                     
                     const rides = JSON.parse(decompressed);
                     rides.forEach(trail => {
-                        addRide(trail.name, trail.lat, trail.lng);
+                        // If we have legacy data without country, it will be fetched again
+                        if (trail.country) {
+                            const li = document.createElement('li');
+                            const nameSpan = document.createElement('span');
+                            nameSpan.textContent = `${trail.name} (${trail.country})`;
+                            nameSpan.className = 'name-span';
+                            
+                            // Add edit and delete buttons as before
+                            const editButton = document.createElement('button');
+                            editButton.textContent = '✏️';
+                            editButton.className = 'edit-button';
+                            editButton.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const newName = prompt('Edit trail name:', trail.name);
+                                if (newName) {
+                                    nameSpan.textContent = `${newName} (${trail.country})`;
+                                    saveRides();
+                                }
+                            });
+
+                            const deleteButton = document.createElement('button');
+                            deleteButton.textContent = '🗑️';
+                            deleteButton.className = 'delete-button';
+                            deleteButton.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                if (confirm('Are you sure you want to delete this ride?')) {
+                                    li.remove();
+                                    saveRides();
+                                }
+                            });
+
+                            li.appendChild(editButton);
+                            li.appendChild(deleteButton);
+                            li.appendChild(nameSpan);
+                            li.dataset.lat = trail.lat;
+                            li.dataset.lng = trail.lng;
+                            li.dataset.country = trail.country;
+                            ridesList.appendChild(li);
+                        } else {
+                            // Handle legacy data
+                            addRide(trail.name, trail.lat, trail.lng);
+                        }
                     });
                 } catch (error) {
                     console.error('Error loading rides:', error);
@@ -541,18 +618,6 @@
                     alert('Error loading rides data. Starting fresh.');
                     window.location.hash = '';
                 }
-            }
-
-            function saveRides() {
-                const rides = Array.from(ridesList.children).map(li => ({
-                    name: li.querySelector('span').textContent,
-                    lat: li.dataset.lat,
-                    lng: li.dataset.lng
-                }));
-                
-                // Compress the rides data
-                const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(rides));
-                window.location.hash = compressed;
             }
 
             ridesList.addEventListener('click', (event) => {
