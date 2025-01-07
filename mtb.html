@@ -314,6 +314,85 @@
                 height: 35px;
             }
         }
+
+        /* Add these new mobile-friendly styles */
+        @media (max-width: 768px) {
+            main {
+                flex-direction: column;
+                padding: 10px;
+            }
+
+            #map {
+                width: 100%;
+                height: 60vh;
+                margin: 10px 0;
+            }
+
+            aside {
+                width: 100%;
+                height: auto;
+                max-height: 40vh;
+                margin: 10px 0;
+            }
+
+            .map-search-container {
+                width: calc(100% - 40px);
+                top: 10px;
+                right: 10px;
+                left: 10px;
+            }
+
+            #search-input {
+                font-size: 16px; /* Prevent zoom on iOS */
+                padding: 12px;
+            }
+
+            .map-hint {
+                font-size: 12px;
+                padding: 8px 16px;
+            }
+
+            .edit-button, .delete-button {
+                padding: 8px;
+                margin-right: 8px;
+                min-width: 44px; /* Minimum touch target size */
+                min-height: 44px;
+            }
+
+            li {
+                padding: 12px 8px;
+            }
+
+            .floating-footer {
+                font-size: 12px;
+                padding: 8px;
+            }
+
+            .icon-button {
+                width: 48px; /* Larger touch target */
+                height: 48px;
+            }
+
+            .button-container {
+                bottom: 70px;
+            }
+        }
+
+        /* Additional touch-friendly improvements */
+        @media (hover: none) {
+            .map-hint {
+                opacity: 1;
+                background: rgba(0, 0, 0, 0.9);
+            }
+
+            li:active {
+                background-color: #e0e0e0;
+            }
+
+            .icon-button:active {
+                transform: scale(0.95);
+            }
+        }
     </style>
 </head>
 <body>
@@ -372,7 +451,16 @@
             let markers = [];
 
             function initializeMap() {
-                map = L.map(mapElement).setView([51.505, -0.09], 13);
+                map = L.map(mapElement, {
+                    zoomControl: false, // Remove default zoom control
+                    tap: true // Enable tap handler for mobile
+                }).setView([51.505, -0.09], 13);
+
+                // Add zoom control to top-right
+                L.control.zoom({
+                    position: 'topright'
+                }).addTo(map);
+
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 }).addTo(map);
@@ -612,6 +700,19 @@
             });
 
             document.addEventListener('mouseup', () => {
+                mapElement.classList.remove('grabbing');
+            });
+
+            // Add touch event handlers
+            let touchTimeout;
+            mapElement.addEventListener('touchstart', () => {
+                touchTimeout = setTimeout(() => {
+                    mapElement.classList.add('grabbing');
+                }, 200);
+            });
+
+            mapElement.addEventListener('touchend', () => {
+                clearTimeout(touchTimeout);
                 mapElement.classList.remove('grabbing');
             });
 
