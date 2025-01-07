@@ -11,3 +11,5 @@ the file /index.html should include links to the html pages and descriptions of 
 add a floating footer to the bottom of the page that says "Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot"
 
 increment the version number in the footer every time a new prompt is requested
+
+provide all code responses

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTB Trails</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js" defer></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        main {
+            display: flex;
+            padding: 20px;
+        }
+
+        #map {
+            width: 70%;
+            height: 500px;
+            margin: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            float: left;
+        }
+
+        aside {
+            width: 30%;
+            height: 80vh;
+            margin: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            padding: 20px;
+            float: right;
+        }
+
+        .floating-footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: white;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        }
+
+        .trail-marker {
+            font-size: 24px;
+            color: red;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        li:hover {
+            background-color: #f0f0f0;
+        }
+
+        li.selected {
+            background-color: #e0e0e0;
+        }
+
+        .edit-button, .delete-button {
+            margin-right: 10px;
+            padding: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+
+        .edit-button {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .delete-button {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .name-span {
+            flex-grow: 1;
+        }
+
+        .leaflet-control-geocoder-form input {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .leaflet-control-geocoder-form button {
+            padding: 5px 10px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .leaflet-control-geocoder-form button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/">Back to Home</a>
+    </header>
+    <main>
+        <div id="map"></div>
+        <aside>
+            <h2>Favorites</h2>
+            <ul id="favorites-list"></ul>
+            <button id="add-favorite">Add Favorite</button>
+        </aside>
+    </main>
+    <footer class="floating-footer">
+        Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot - Version 11
+    </footer>
+    <section>
+        <p>This SPA allows you to select a location on the map and view the trails you want to do. You can also save your favorite trails and view them in the side pane.</p>
+    </section>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mapElement = document.getElementById('map');
+            const favoritesList = document.getElementById('favorites-list');
+            let map;
+            let markers = [];
+
+            function initializeMap() {
+                map = L.map(mapElement).setView([51.505, -0.09], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+
+                map.on('click', onMapClick);
+            }
+
+            function onMapClick(e) {
+                const trail = prompt('Enter trail name:');
+                if (trail) {
+                    addFavorite(trail, e.latlng.lat, e.latlng.lng);
+                    const marker = L.marker([e.latlng.lat, e.latlng.lng], { icon: L.divIcon({ className: 'trail-marker', html: '🚴' }) }).addTo(map);
+                    markers.push(marker);
+                }
+            }
+
+            function addFavorite(name, lat, lng) {
+                const li = document.createElement('li');
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = name;
+                nameSpan.className = 'name-span';
+                
+                const editButton = document.createElement('button');
+                editButton.textContent = '✏️';
+                editButton.className = 'edit-button';
+                editButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const newName = prompt('Edit trail name:', nameSpan.textContent);
+                    if (newName) {
+                        nameSpan.textContent = newName;
+                        saveFavorites();
+                    }
+                });
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = '🗑️';
+                deleteButton.className = 'delete-button';
+                deleteButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (confirm('Are you sure you want to delete this favorite?')) {
+                        li.remove();
+                        saveFavorites();
+                    }
+                });
+
+                li.appendChild(editButton);
+                li.appendChild(deleteButton);
+                li.appendChild(nameSpan);
+                li.dataset.lat = lat;
+                li.dataset.lng = lng;
+                favoritesList.appendChild(li);
+                saveFavorites();
+            }
+
+            function loadFavorites() {
+                const fragment = window.location.hash.substring(1);
+                const favorites = fragment ? JSON.parse(decodeURIComponent(fragment)) : [];
+                favorites.forEach(trail => {
+                    addFavorite(trail.name, trail.lat, trail.lng);
+                });
+            }
+
+            function saveFavorites() {
+                const favorites = Array.from(favoritesList.children).map(li => ({
+                    name: li.querySelector('span').textContent,
+                    lat: li.dataset.lat,
+                    lng: li.dataset.lng
+                }));
+                window.location.hash = encodeURIComponent(JSON.stringify(favorites));
+            }
+
+            favoritesList.addEventListener('click', (event) => {
+                const li = event.target.closest('li');
+                if (li) {
+                    const lat = li.dataset.lat;
+                    const lng = li.dataset.lng;
+                    map.setView([lat, lng], 13);
+                    document.querySelectorAll('#favorites-list li').forEach(li => li.classList.remove('selected'));
+                    li.classList.add('selected');
+                    markers.forEach(marker => map.removeLayer(marker));
+                    markers = [];
+                    const marker = L.marker([lat, lng], { icon: L.divIcon({ className: 'trail-marker', html: '🚴' }) }).addTo(map);
+                    markers.push(marker);
+                }
+            });
+
+            initializeMap();
+            loadFavorites();
+        });
+    </script>
+</body>
+</html>

@@ -14,6 +14,7 @@ This repository contains various single-page application (SPA) demos to showcase
    - Card state is stored in the URL for easy sharing
    - Works with browser navigation history
    - Responsive grid layout
+8. **MTB Trails**: Allows users to select a location on the map and view the trails they want to do. Users can save their favorite trails and view them in the side pane. The application stores data in the URL fragment, ensuring that favorites are preserved across sessions.
 
 ## Demos
 
@@ -81,6 +82,32 @@ It allows you to:
 - Preview components in real-time
 - Organize components across multiple pages
 - Design labels, buttons, and dropdowns with custom styling
+
+### MTB Trails
+The MTB Trails SPA allows users to select a location on the map and view the trails they want to do. Users can save their favorite trails and view them in the side pane. The application stores data in the URL fragment, ensuring that favorites are preserved across sessions.
+
+#### Features
+
+- Interactive map to select trail locations
+- Save favorite trails with names
+- Edit and delete favorite trails
+- View saved trails in the side pane
+- Data persistence using URL fragments
+
+#### Usage
+
+1. Click on the map to add a new trail.
+2. Enter the trail name when prompted.
+3. View and manage your favorite trails in the side pane.
+4. Click on a favorite trail to center the map on its location.
+
+#### Links
+
+- [MTB Trails](mtb.html) - View and manage your favorite MTB trails.
+
+#### Footer
+
+The footer of the application includes a floating message: "Made with ❤️ by Stu at [github.com/gitstua/stu-spa-demos](https://github.com/gitstua/stu-spa-demos) using GitHub Copilot - Version 11".
 
 ## Installation
 To run these demos locally, you can simply clone the repository and open the HTML files in your browser.
