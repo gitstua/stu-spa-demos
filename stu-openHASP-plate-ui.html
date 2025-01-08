@@ -21,6 +21,11 @@
       font-family: 'Roboto Condensed', Arial, sans-serif;
       border: 1px solid #ccc;
       background-color: white;
+      transition: all 0.3s ease;
+    }
+    #preview.landscape {
+      width: 320px;
+      height: 240px;
     }
     #editor {
       width: 100%;
@@ -133,12 +138,20 @@
       position: relative;
       display: flex;
       justify-content: space-between;
+      transition: all 0.3s ease;
+    }
+    .frame-box.landscape {
+      width: 320px;
     }
     .frame-segment {
       height: 100%;
       width: 95px;  /* increased to fill space */
       background-color: inherit;
       position: relative;
+      transition: all 0.3s ease;
+    }
+    .frame-segment.landscape {
+      width: 135px;
     }
     .black-square {
       width: 40px;  /* doubled from 20px */
@@ -179,6 +192,10 @@
       margin-top: 40px;
       width: 240px;
       margin: 40px auto 0;
+      transition: all 0.3s ease;
+    }
+    .preview-container.landscape {
+      width: 320px;
     }
     .center-section {
       display: flex;
@@ -231,6 +248,7 @@
         <option value="2">Page 2</option>
         <option value="2">Page 3</option>
       </select>
+      <button onclick="toggleOrientation()">Toggle Orientation</button>
       <button onclick="updateJson()">Update Preview</button>
     </div>
     <textarea id="jsonLinesInput"></textarea>
@@ -371,6 +389,20 @@
         console.error('JSON parsing failed', e);
         alert('Invalid JSON. Each line must be a valid JSON object.');
       }
+    }
+
+    function toggleOrientation() {
+      const preview = document.getElementById('preview');
+      const container = document.querySelector('.preview-container');
+      const frameBoxes = document.querySelectorAll('.frame-box');
+      const frameSegments = document.querySelectorAll('.frame-segment');
+      
+      preview.classList.toggle('landscape');
+      container.classList.toggle('landscape');
+      frameBoxes.forEach(box => box.classList.toggle('landscape'));
+      frameSegments.forEach(segment => segment.classList.toggle('landscape'));
+      
+      renderComponents(jsonLinesData);
     }
 
     // Show raw JSON Lines in textarea
