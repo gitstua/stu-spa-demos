@@ -454,6 +454,47 @@
             margin: 2px 0;
             display: block;
         }
+
+        .maps-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .maps-menu {
+            display: none;
+            position: absolute;
+            left: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border-radius: 4px;
+            z-index: 1;
+        }
+
+        .maps-menu.show {
+            display: block;
+        }
+
+        .maps-menu button {
+            width: 100%;
+            padding: 8px 12px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .maps-menu button:hover {
+            background-color: #f0f0f0;
+        }
+
+        .maps-menu button img {
+            width: 16px;
+            height: 16px;
+        }
     </style>
 </head>
 <body>
@@ -502,7 +543,7 @@
         </button>
     </div>
     <footer class="floating-footer">
-        Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot - Version 27
+        Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot - Version 29
     </footer>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -602,14 +643,60 @@
                 // Store country in dataset for saving
                 li.dataset.country = country;
                 
+                // Create maps dropdown
+                const mapsDropdown = document.createElement('div');
+                mapsDropdown.className = 'maps-dropdown';
+                
+                const mapsButton = document.createElement('button');
+                mapsButton.textContent = '🗺️';
+                mapsButton.className = 'google-maps-button';
+                mapsButton.title = 'Open in Maps';
+                
+                const mapsMenu = document.createElement('div');
+                mapsMenu.className = 'maps-menu';
+                
                 const googleMapsButton = document.createElement('button');
-                googleMapsButton.textContent = '🗺️';
-                googleMapsButton.className = 'google-maps-button';
-                googleMapsButton.title = 'Open in Google Maps';
+                googleMapsButton.innerHTML = '<img src="https://www.google.com/favicon.ico" alt="Google Maps"> Google Maps';
                 googleMapsButton.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const mapUrl = `https://www.google.com/maps?q=${lat},${lng}&ll=${lat},${lng}&z=15`;
                     window.open(mapUrl, '_blank');
+                    mapsMenu.classList.remove('show');
+                });
+                
+                const bingMapsButton = document.createElement('button');
+                bingMapsButton.innerHTML = '<img src="https://www.bing.com/favicon.ico" alt="Bing Maps"> Bing Maps';
+                bingMapsButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const mapUrl = `https://www.bing.com/maps?cp=${lat}~${lng}&lvl=15.9&style=g`;
+                    window.open(mapUrl, '_blank');
+                    mapsMenu.classList.remove('show');
+                });
+
+                const bingSatelliteButton = document.createElement('button');
+                bingSatelliteButton.innerHTML = '<img src="https://www.bing.com/favicon.ico" alt="Bing Satellite"> Bing Satellite';
+                bingSatelliteButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const mapUrl = `https://www.bing.com/maps?cp=${lat}~${lng}&lvl=15.9&style=h`;
+                    window.open(mapUrl, '_blank');
+                    mapsMenu.classList.remove('show');
+                });
+                
+                mapsMenu.appendChild(googleMapsButton);
+                mapsMenu.appendChild(bingMapsButton);
+                mapsMenu.appendChild(bingSatelliteButton);
+                mapsDropdown.appendChild(mapsButton);
+                mapsDropdown.appendChild(mapsMenu);
+                
+                // Toggle menu on button click
+                mapsButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    mapsMenu.classList.toggle('show');
+                });
+                
+                // Close menu when clicking outside
+                document.addEventListener('click', () => {
+                    mapsMenu.classList.remove('show');
                 });
 
                 const editButton = document.createElement('button');
@@ -635,7 +722,7 @@
                     }
                 });
 
-                li.appendChild(googleMapsButton);  // Add this line before other buttons
+                li.appendChild(mapsDropdown);  // Replace googleMapsButton with mapsDropdown
                 li.appendChild(editButton);
                 li.appendChild(deleteButton);
                 li.appendChild(nameSpan);
@@ -677,14 +764,59 @@
                             nameSpan.className = 'name-span';
                             
                             // Add edit and delete buttons as before
+                            const mapsDropdown = document.createElement('div');
+                            mapsDropdown.className = 'maps-dropdown';
+                            
+                            const mapsButton = document.createElement('button');
+                            mapsButton.textContent = '🗺️';
+                            mapsButton.className = 'google-maps-button';
+                            mapsButton.title = 'Open in Maps';
+                            
+                            const mapsMenu = document.createElement('div');
+                            mapsMenu.className = 'maps-menu';
+                            
                             const googleMapsButton = document.createElement('button');
-                            googleMapsButton.textContent = '🗺️';
-                            googleMapsButton.className = 'google-maps-button';
-                            googleMapsButton.title = 'Open in Google Maps';
+                            googleMapsButton.innerHTML = '<img src="https://www.google.com/favicon.ico" alt="Google Maps"> Google Maps';
                             googleMapsButton.addEventListener('click', (e) => {
                                 e.stopPropagation();
                                 const mapUrl = `https://www.google.com/maps?q=${trail.lat},${trail.lng}&ll=${trail.lat},${trail.lng}&z=15`;
                                 window.open(mapUrl, '_blank');
+                                mapsMenu.classList.remove('show');
+                            });
+                            
+                            const bingMapsButton = document.createElement('button');
+                            bingMapsButton.innerHTML = '<img src="https://www.bing.com/favicon.ico" alt="Bing Maps"> Bing Maps';
+                            bingMapsButton.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const mapUrl = `https://www.bing.com/maps?cp=${trail.lat}~${trail.lng}&lvl=15.9&style=g`;
+                                window.open(mapUrl, '_blank');
+                                mapsMenu.classList.remove('show');
+                            });
+
+                            const bingSatelliteButton = document.createElement('button');
+                            bingSatelliteButton.innerHTML = '<img src="https://www.bing.com/favicon.ico" alt="Bing Satellite"> Bing Satellite';
+                            bingSatelliteButton.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const mapUrl = `https://www.bing.com/maps?cp=${trail.lat}~${trail.lng}&lvl=15.9&style=h`;
+                                window.open(mapUrl, '_blank');
+                                mapsMenu.classList.remove('show');
+                            });
+                            
+                            mapsMenu.appendChild(googleMapsButton);
+                            mapsMenu.appendChild(bingMapsButton);
+                            mapsMenu.appendChild(bingSatelliteButton);
+                            mapsDropdown.appendChild(mapsButton);
+                            mapsDropdown.appendChild(mapsMenu);
+                            
+                            // Toggle menu on button click
+                            mapsButton.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                mapsMenu.classList.toggle('show');
+                            });
+                            
+                            // Close menu when clicking outside
+                            document.addEventListener('click', () => {
+                                mapsMenu.classList.remove('show');
                             });
 
                             const editButton = document.createElement('button');
@@ -710,7 +842,7 @@
                                 }
                             });
 
-                            li.appendChild(googleMapsButton);
+                            li.appendChild(mapsDropdown);
                             li.appendChild(editButton);
                             li.appendChild(deleteButton);
                             li.appendChild(nameSpan);
