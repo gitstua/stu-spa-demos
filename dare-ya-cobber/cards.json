@@ -358,5 +358,71 @@
         "title": "Pet Dance",
         "description": "Make up and perform a dance routine with your pet",
         "theme": "pets"
+    },
+    {
+        "id": 61,
+        "title": "Quick Plank",
+        "description": "Hold a plank position for 30 seconds during your next break",
+        "theme": "fitness"
+    },
+    {
+        "id": 62,
+        "title": "Stair Master",
+        "description": "Take the stairs instead of the elevator for the whole day",
+        "theme": "fitness"
+    },
+    {
+        "id": 63,
+        "title": "Desk Squats",
+        "description": "Do 10 squats every time you check your phone",
+        "theme": "fitness"
+    },
+    {
+        "id": 64,
+        "title": "Water Warrior",
+        "description": "Drink a glass of water and do 5 jumping jacks each hour",
+        "theme": "fitness"
+    },
+    {
+        "id": 65,
+        "title": "Mindful Minute",
+        "description": "Take a minute to focus on your breathing and clear your mind",
+        "theme": "mindfulness"
+    },
+    {
+        "id": 66,
+        "title": "Gratitude Break",
+        "description": "Write down three things you're grateful for right now",
+        "theme": "mindfulness"
+    },
+    {
+        "id": 67,
+        "title": "Nature Connect",
+        "description": "Take a 5-minute walk outside and notice 3 beautiful things",
+        "theme": "mindfulness"
+    },
+    {
+        "id": 68,
+        "title": "Digital Detox",
+        "description": "Turn off all notifications for the next hour",
+        "theme": "mindfulness"
+    },
+    {
+        "id": 69,
+        "title": "Stretch Break",
+        "description": "Do 3 different stretches for 30 seconds each",
+        "theme": "fitness"
+    },
+    {
+        "id": 70,
+        "title": "Mindful Tea",
+        "description": "Make a cup of tea and drink it without any distractions",
+        "theme": "mindfulness"
+    },
+    {
+        "id": 71,
+        "title": "Box Breathing",
+        "description": "Do 4 rounds of box breathing: inhale 4s, hold 4s, exhale 4s, hold 4s",
+        "theme": "mindfulness"
     }
 ]
