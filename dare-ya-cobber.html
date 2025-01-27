@@ -244,6 +244,188 @@
             transform: translateY(-1px);
         }
 
+        /* Print button styles */
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 70px; /* Position next to new game button */
+            background: #94a3b8;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 1000;
+        }
+        
+        .print-button:hover {
+            opacity: 1;
+            background: #64748b;
+            transform: translateY(-1px);
+        }
+
+        /* Add card header for print */
+        .card-header {
+            display: none;
+            font-size: 0.7rem;
+            font-weight: 900;
+            color: #ddd;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            text-shadow: none;
+        }
+
+        @media print {
+            /* Hide UI elements when printing */
+            .home-link, .new-game-button, .print-button, .footer, 
+            .button-container, #toast, .instructions {
+                display: none !important;
+            }
+
+            /* Reset body styles for print */
+            body {
+                padding: 0;
+                margin: 0;
+                background: none;
+            }
+
+            /* Adjust card grid for print */
+            .cards-container {
+                gap: 20px;  /* Increase gap for cutting space */
+                padding: 20px;
+                margin: 0;
+                page-break-inside: avoid;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr) !important;
+            }
+
+            /* Adjust card styles for print */
+            .card {
+                break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #000;
+                min-height: 200px;
+                margin-bottom: 10px;
+                position: relative;
+                padding: 20px 15px 0 15px;  /* Increased top padding for header */
+                margin: 10px;
+                /* Add cut marks */
+                background: 
+                    linear-gradient(45deg, #000 1px, transparent 1px) top left,
+                    linear-gradient(-45deg, #000 1px, transparent 1px) top right,
+                    linear-gradient(-135deg, #000 1px, transparent 1px) bottom right,
+                    linear-gradient(135deg, #000 1px, transparent 1px) bottom left;
+                background-size: 10px 10px;
+                background-repeat: no-repeat;
+                background-color: white;
+            }
+
+            /* Make text darker for better printing */
+            .card h3, .card p {
+                color: #000;
+            }
+
+            /* Show theme as text instead of colored badge */
+            .theme-badge {
+                background: none !important;
+                color: #000 !important;
+                border-top: 1px solid #000;
+                padding: 5px;
+            }
+
+            /* Hide interactive elements */
+            .dare-button, .used-badge {
+                display: none;
+            }
+
+            /* Add page breaks between groups of cards */
+            .cards-container > *:nth-child(9) {
+                page-break-after: always;
+            }
+
+            /* Show card numbers clearly */
+            .card-number {
+                color: #000 !important;
+                opacity: 1;
+            }
+
+            /* Add print header */
+            .logo-container {
+                text-align: center;
+                margin-bottom: 20px;
+                page-break-after: avoid;
+            }
+
+            .logo {
+                text-shadow: none;
+                color: #000;
+            }
+
+            .logo-subtext {
+                color: #000;
+                text-shadow: none;
+            }
+
+            /* Show card header in print */
+            .card-header {
+                display: block;
+            }
+
+            /* Adjust spacing for better cutting */
+            .card::before {
+                content: '';
+                position: absolute;
+                top: -10px;
+                left: -10px;
+                right: -10px;
+                bottom: -10px;
+                border: 1px dashed #ccc;
+                pointer-events: none;
+            }
+
+            /* Print layout adjustments */
+            @page {
+                margin: 0.5cm;
+            }
+
+            /* Force background colors and images in print */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Update card header print style */
+            .card-header {
+                display: block;
+                color: #000 !important;
+                opacity: 0.5;
+            }
+
+            /* Adjust card number position for print */
+            .card-number {
+                left: 8px !important;
+                color: #000 !important;
+                opacity: 0.5;
+            }
+
+            /* Reset used cards to look like unused cards */
+            .card.used {
+                opacity: 1 !important;
+                background: white !important;
+                border: 1px solid #000 !important;
+                box-shadow: none !important;
+            }
+
+            /* Hide used badge in print */
+            .used-badge {
+                display: none !important;
+            }
+        }
+
         @media (max-width: 600px) {
             .cards-container {
                 margin-bottom: 80px;
@@ -295,6 +477,7 @@
 <body>
     <a href="/" class="home-link">← Back to Home</a>
     <button class="new-game-button" onclick="confirmNewGame()">New Game</button>
+    <button class="print-button" onclick="window.print()">🖨️ Print Cards</button>
     
     <div class="logo-container">
         <h1 class="logo">Dare Ya Cobber</h1>
@@ -326,7 +509,7 @@
     <div id="dare-status"></div>
     <div id="cards-container" class="cards-container"></div>
     <div id="toast" class="toast"></div>
-    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot - v2.4</div>
+    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot - v2.7</div>
 
     <script>
         const cardsContainer = document.getElementById('cards-container');
@@ -418,6 +601,7 @@
             div.className = 'card';
             div.innerHTML = `
                 <span class="card-number">#${card.id}</span>
+                <span class="card-header">Dare Ya Cobber</span>
                 <div>
                     <h3>${card.title}</h3>
                     <p>${card.description}</p>
@@ -438,6 +622,7 @@
             
             div.innerHTML = `
                 <span class="card-number">#${card.id}</span>
+                <span class="card-header">Dare Ya Cobber</span>
                 <div>
                     <h3>${card.title}</h3>
                     <p>${card.description}</p>
