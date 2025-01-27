@@ -244,11 +244,48 @@
         }
 
         @media (max-width: 600px) {
-            .new-game-button {
-                top: 10px;
-                right: 10px;
-                padding: 6px 12px;
-                font-size: 0.7rem;
+            .cards-container {
+                margin-bottom: 80px;
+                gap: 10px;  /* Reduce gap between cards */
+                padding: 10px;  /* Reduce container padding */
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));  /* Smaller minimum width */
+            }
+
+            .card {
+                min-height: 200px;  /* Reduce minimum height */
+                max-width: 140px;  /* Reduce maximum width */
+                padding: 10px 10px 0 10px;  /* Reduce padding */
+                font-size: 0.9rem;  /* Slightly smaller font */
+            }
+
+            .card h3 {
+                font-size: 1rem;  /* Smaller title */
+                margin: 5px 0;  /* Reduce margins */
+            }
+
+            .card p {
+                font-size: 0.8rem;  /* Smaller description text */
+                margin: 5px 0;  /* Reduce margins */
+            }
+
+            .dare-button {
+                padding: 8px 12px;  /* Smaller button padding */
+                margin: 8px 12px;  /* Smaller button margins */
+            }
+
+            body {
+                padding-bottom: 100px;
+            }
+
+            .card-number {
+                font-size: 0.7rem;  /* Smaller card number */
+                top: 5px;
+                left: 5px;
+            }
+
+            .theme-badge {
+                padding: 5px 10px;  /* Smaller theme badge */
+                font-size: 0.75em;
             }
         }
     </style>
@@ -288,7 +325,7 @@
     <div id="dare-status"></div>
     <div id="cards-container" class="cards-container"></div>
     <div id="toast" class="toast"></div>
-    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot - v1.9</div>
+    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot - v2.1</div>
 
     <script>
         const cardsContainer = document.getElementById('cards-container');
