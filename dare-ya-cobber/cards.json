@@ -226,5 +226,137 @@
       "title": "Wild Card",
       "theme": "surprise",
       "description": "This can be ANY challenge from the list, or a brand-new one of my choice!"
+    },
+    {
+        "id": 39,
+        "title": "Coffee Challenge",
+        "description": "Order your coffee in your worst accent",
+        "theme": "social"
+    },
+    {
+        "id": 40,
+        "title": "Dance Move",
+        "description": "Do your best robot dance in a public place",
+        "theme": "social"
+    },
+    {
+        "id": 41,
+        "title": "Aussie Anthem",
+        "description": "Sing 'Waltzing Matilda' at your next meeting",
+        "theme": "work"
+    },
+    {
+        "id": 42,
+        "title": "Food Adventure",
+        "description": "Try Vegemite on your next three meals",
+        "theme": "food"
+    },
+    {
+        "id": 43,
+        "title": "Random Act",
+        "description": "Pay for a stranger's coffee",
+        "theme": "kindness"
+    },
+    {
+        "id": 44,
+        "title": "Active Challenge",
+        "description": "Do 10 kangaroo hops at your desk",
+        "theme": "fitness"
+    },
+    {
+        "id": 45,
+        "title": "Photo Fun",
+        "description": "Take a selfie with a random dog (ask owner's permission)",
+        "theme": "social"
+    },
+    {
+        "id": 46,
+        "title": "Creative Writing",
+        "description": "Write a haiku about Australian wildlife",
+        "theme": "creative"
+    },
+    {
+        "id": 47,
+        "title": "Meeting Fun",
+        "description": "Use 'fair dinkum' in your next work meeting",
+        "theme": "work"
+    },
+    {
+        "id": 48,
+        "title": "Food Share",
+        "description": "Share your lunch with a colleague",
+        "theme": "kindness"
+    },
+    {
+        "id": 49,
+        "title": "Active Break",
+        "description": "Take a 10-minute walk during lunch",
+        "theme": "fitness"
+    },
+    {
+        "id": 50,
+        "title": "Art Challenge",
+        "description": "Draw a kangaroo and share it with the team",
+        "theme": "creative"
+    },
+    {
+        "id": 51,
+        "title": "Aussie Slang",
+        "description": "Use 'mate' in every conversation today",
+        "theme": "social"
+    },
+    {
+        "id": 52,
+        "title": "Food Explorer",
+        "description": "Try a new local cafe you've never been to",
+        "theme": "food"
+    },
+    {
+        "id": 53,
+        "title": "Kind Message",
+        "description": "Send a thank you note to someone who helped you",
+        "theme": "kindness"
+    },
+    {
+        "id": 54,
+        "title": "Team Spirit",
+        "description": "Bring in homemade treats for your team",
+        "theme": "work"
+    },
+    {
+        "id": 55,
+        "title": "Pet Portrait",
+        "description": "Take a fancy portrait photo of your pet (or a friend's pet)",
+        "theme": "pets"
+    },
+    {
+        "id": 56,
+        "title": "Pet Talk",
+        "description": "Have a full conversation with a pet using only animal noises",
+        "theme": "pets"
+    },
+    {
+        "id": 57,
+        "title": "Pet Fashion",
+        "description": "Dress up your pet (or stuffed animal) in your clothes",
+        "theme": "pets"
+    },
+    {
+        "id": 58,
+        "title": "Pet Names",
+        "description": "Only refer to people by pet names (puppy, kitty, etc.) for the next hour",
+        "theme": "pets"
+    },
+    {
+        "id": 59,
+        "title": "Pet Stories",
+        "description": "Tell your best pet story to three different people today",
+        "theme": "pets"
+    },
+    {
+        "id": 60,
+        "title": "Pet Dance",
+        "description": "Make up and perform a dance routine with your pet",
+        "theme": "pets"
     }
-  ]
+]
