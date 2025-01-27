@@ -206,6 +206,7 @@
             text-shadow: 1px 1px 0 rgba(0,0,0,0.1);
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
 </head>
 <body>
     <a href="/" class="home-link">← Back to Home</a>
@@ -238,7 +239,7 @@
     <div id="dare-status"></div>
     <div id="cards-container" class="cards-container"></div>
     <div id="toast" class="toast"></div>
-    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot - v1.0</div>
+    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot - v1.1</div>
 
     <script>
         const cardsContainer = document.getElementById('cards-container');
@@ -249,16 +250,20 @@
         // Parse URL hash parameters
         function parseHash() {
             const hash = window.location.hash.substring(1);
-            const params = new URLSearchParams(hash);
-            const currentCard = params.get('card');
-            const usedCardsParam = params.get('used');
-            const timestamp = params.get('time');
+            if (!hash) return { cardId: null, timestamp: null };
             
-            usedCards = new Set(usedCardsParam ? usedCardsParam.split(',').map(Number) : []);
-            return {
-                cardId: currentCard ? parseInt(currentCard) : null,
-                timestamp: timestamp ? decodeURIComponent(timestamp) : null
-            };
+            try {
+                const decompressed = LZString.decompressFromEncodedURIComponent(hash);
+                const data = JSON.parse(decompressed);
+                usedCards = new Set(data.used || []);
+                return {
+                    cardId: data.card || null,
+                    timestamp: data.time || null
+                };
+            } catch (e) {
+                console.error('Error parsing hash:', e);
+                return { cardId: null, timestamp: null };
+            }
         }
 
         async function loadCards() {
@@ -354,15 +359,15 @@
 
         function handleDare(cardId) {
             usedCards.add(cardId);
-            const params = new URLSearchParams();
-            params.set('card', cardId.toString());
-            params.set('used', Array.from(usedCards).join(','));
+            const data = {
+                card: cardId,
+                used: Array.from(usedCards),
+                time: new Date().toLocaleString()
+            };
             
-            // Add local timestamp
-            const now = new Date().toLocaleString();
-            params.set('time', encodeURIComponent(now));
+            const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(data));
+            const newUrl = `${window.location.origin}${window.location.pathname}#${compressed}`;
             
-            const newUrl = `${window.location.origin}${window.location.pathname}#${params.toString()}`;
             navigator.clipboard.writeText(newUrl)
                 .then(() => {
                     showToast('Challenge URL copied! Send it to your mate! 🎮');
@@ -375,10 +380,11 @@
         }
 
         function showAvailableCardsForRecipient() {
-            // Keep the used cards but clear the current card
-            const params = new URLSearchParams();
-            params.set('used', Array.from(usedCards).join(','));
-            window.location.hash = params.toString();
+            const data = {
+                used: Array.from(usedCards)
+            };
+            const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(data));
+            window.location.hash = compressed;
             displayCards();
         }
 
