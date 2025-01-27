@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dare Ya Cobber - Card Game</title>
+    <title>Dare Ya Cobber  - an ongoing card game</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -288,7 +288,7 @@
     <div id="dare-status"></div>
     <div id="cards-container" class="cards-container"></div>
     <div id="toast" class="toast"></div>
-    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot - v1.8</div>
+    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot - v1.9</div>
 
     <script>
         const cardsContainer = document.getElementById('cards-container');
@@ -338,6 +338,9 @@
             cardsContainer.innerHTML = '';
             const { cardId, timestamp } = parseHash();
             const dareStatus = document.getElementById('dare-status');
+            
+            // Update page title based on whether it's a dare or not
+            document.title = cardId ? "😱 You've Been Dared, Cobber!" : "Dare Ya Cobber - an ongoing card game";
             
             updateRoundCounter();
             
