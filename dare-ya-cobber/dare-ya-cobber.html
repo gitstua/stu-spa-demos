@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dare Ya Cobber - Card Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f8ff; /* Light blue background */
+        }
+        .home-link {
+            display: block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #00008B; /* Navy blue */
+        }
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            padding: 20px 20px 0 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 200px;
+            border: 1px solid #00008B; /* Navy blue border */
+        }
+        .card > div:last-child {
+            margin: 0 -20px;
+        }
+        .dare-button {
+            background: #00008B; /* Navy blue */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 15px 20px;
+            display: inline-block;
+        }
+        .dare-button:hover {
+            background: #0000CD; /* Slightly lighter blue on hover */
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            border-top: 2px solid #FF0000; /* Red border */
+        }
+        .card.used {
+            opacity: 0.7;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+        }
+        .card.used .dare-button {
+            display: none;
+        }
+        .used-badge {
+            background: #FF0000; /* Red */
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin: 15px 20px;
+            display: inline-block;
+        }
+        .instructions {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: 1px solid #00008B; /* Navy blue border */
+        }
+        .instructions summary {
+            cursor: pointer;
+            font-weight: bold;
+            color: #00008B; /* Navy blue */
+        }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #00008B; /* Navy blue */
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: none;
+            animation: slideIn 0.5s, fadeOut 0.5s 2.5s;
+            z-index: 1000;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .theme-badge {
+            background: #f0f8ff; /* Light blue */
+            color: #00008B; /* Navy blue */
+            padding: 8px 15px;
+            margin-top: 15px;
+            display: block;
+            font-size: 0.85em;
+            font-style: italic;
+            border-top: 1px solid #FF0000; /* Red border */
+            text-align: right;
+            text-transform: lowercase;
+        }
+        .round-counter {
+            background: #FF0000; /* Red */
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-align: center;
+            margin: 0 0 20px 0;
+            font-size: 1.2em;
+            font-weight: bold;
+            border: 2px solid #00008B; /* Navy blue border */
+        }
+        .timestamp {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        .dare-success {
+            color: #FF0000; /* Red */
+            font-size: 1.4em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 0 #00008B; /* Navy blue shadow */
+        }
+        .dare-status {
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="home-link">← Back to Home</a>
+    
+    <div id="round-counter" class="round-counter">Round 1</div>
+    
+    <details class="instructions">
+        <summary>How to Play Dare Ya Cobber</summary>
+        <h3>Game Rules:</h3>
+        <ol>
+            <li>Choose a dare card to challenge your mate</li>
+            <li>Click "Dare a mate" to get a unique challenge URL</li>
+            <li>Share the URL with your friend</li>
+            <li>Your friend completes the dare and can dare you back</li>
+            <li>Used cards are greyed out and can't be reused</li>
+            <li>Keep the fun going by daring each other back and forth!</li>
+        </ol>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Cards are organized by themes like Fun, Food, and Challenges</li>
+            <li>All dares should be fun and safe - no harmful challenges!</li>
+        </ul>
+    </details>
+
+    <div id="cards-container" class="cards-container"></div>
+    <div id="toast" class="toast"></div>
+    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot - v1.0</div>
+
+    <script>
+        const cardsContainer = document.getElementById('cards-container');
+        const roundCounter = document.getElementById('round-counter');
+        let cards = [];
+        let usedCards = new Set();
+
+        // Parse URL hash parameters
+        function parseHash() {
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            const currentCard = params.get('card');
+            const usedCardsParam = params.get('used');
+            const timestamp = params.get('time');
+            
+            usedCards = new Set(usedCardsParam ? usedCardsParam.split(',').map(Number) : []);
+            return {
+                cardId: currentCard ? parseInt(currentCard) : null,
+                timestamp: timestamp ? decodeURIComponent(timestamp) : null
+            };
+        }
+
+        async function loadCards() {
+            const response = await fetch('cards.json');
+            cards = await response.json();
+            displayCards();
+        }
+
+        function updateRoundCounter() {
+            const round = Math.floor(usedCards.size / 2) + 1;
+            roundCounter.textContent = `Round ${round}`;
+        }
+
+        function displayCards() {
+            cardsContainer.innerHTML = '';
+            const { cardId, timestamp } = parseHash();
+            
+            updateRoundCounter();
+            
+            if (cardId) {
+                // Show single card for recipient
+                const card = cards.find(c => c.id === cardId);
+                if (card) {
+                    // Add dare status before the card
+                    const dareStatus = document.createElement('div');
+                    dareStatus.className = 'dare-status';
+                    dareStatus.innerHTML = `
+                        <div class="dare-success">You have been dared cobber!!</div>
+                        ${timestamp ? `<div class="timestamp">Dared on ${timestamp}</div>` : ''}
+                    `;
+                    cardsContainer.appendChild(dareStatus);
+                    
+                    const recipientView = createRecipientView(card);
+                    cardsContainer.appendChild(recipientView);
+                }
+            } else {
+                // Show all cards, including used ones
+                cards.forEach(card => {
+                    const cardElement = createCardElement(card, false);
+                    cardsContainer.appendChild(cardElement);
+                });
+            }
+        }
+
+        function createRecipientView(card) {
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.innerHTML = `
+                <div>
+                    <h3>${card.title}</h3>
+                    <p>${card.description}</p>
+                </div>
+                <div>
+                    <button class="dare-button" onclick="showAvailableCardsForRecipient()">
+                        I did it. back at ya mate
+                    </button>
+                    ${card.theme ? `<div class="theme-badge">${card.theme}</div>` : ''}
+                </div>
+            `;
+            return div;
+        }
+
+        function createCardElement(card, isRecipient) {
+            const div = document.createElement('div');
+            div.className = `card${usedCards.has(card.id) ? ' used' : ''}`;
+            
+            div.innerHTML = `
+                <div>
+                    <h3>${card.title}</h3>
+                    <p>${card.description}</p>
+                </div>
+                <div>
+                    ${!usedCards.has(card.id) 
+                        ? `<button class="dare-button" onclick="handleDare(${card.id})">
+                            Dare a mate
+                           </button>`
+                        : '<span class="used-badge">Already Used</span>'
+                    }
+                    ${card.theme ? `<div class="theme-badge">${card.theme}</div>` : ''}
+                </div>
+            `;
+            return div;
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function handleDare(cardId) {
+            usedCards.add(cardId);
+            const params = new URLSearchParams();
+            params.set('card', cardId.toString());
+            params.set('used', Array.from(usedCards).join(','));
+            
+            // Add local timestamp
+            const now = new Date().toLocaleString();
+            params.set('time', encodeURIComponent(now));
+            
+            const newUrl = `${window.location.origin}${window.location.pathname}#${params.toString()}`;
+            navigator.clipboard.writeText(newUrl)
+                .then(() => {
+                    showToast('Challenge URL copied! Send it to your mate! 🎮');
+                })
+                .catch(err => {
+                    showToast('Oops! Failed to copy URL 😅');
+                    console.error('Failed to copy URL:', err);
+                });
+            displayCards();
+        }
+
+        function showAvailableCardsForRecipient() {
+            // Keep the used cards but clear the current card
+            const params = new URLSearchParams();
+            params.set('used', Array.from(usedCards).join(','));
+            window.location.hash = params.toString();
+            displayCards();
+        }
+
+        function showUnusedCards() {
+            // Only keep the used cards parameter
+            const params = new URLSearchParams();
+            params.set('used', Array.from(usedCards).join(','));
+            window.location.hash = params.toString();
+            
+            const availableCards = cards.filter(card => !usedCards.has(card.id));
+            cardsContainer.innerHTML = '';
+            availableCards.forEach(card => {
+                const cardElement = createCardElement(card, false);
+                cardsContainer.appendChild(cardElement);
+            });
+        }
+
+        // Update window hash change handler
+        window.addEventListener('hashchange', displayCards);
+
+        loadCards();
+    </script>
+</body>
+</html>

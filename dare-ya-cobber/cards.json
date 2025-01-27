@@ -1,0 +1,230 @@
+[
+    {
+      "id": 1,
+      "title": "The Aussie Greeting",
+      "theme": "social",
+      "description": "Say 'G'day mate!' to the next 3 people you meet today"
+    },
+    {
+      "id": 2,
+      "title": "Vegemite Challenge",
+      "theme": "food",
+      "description": "Eat a spoonful of Vegemite and post your reaction"
+    },
+    {
+      "id": 3,
+      "title": "Thong Throw",
+      "theme": "challenge",
+      "description": "Play a game of thong (flip-flop) throwing with your mates"
+    },
+    {
+      "id": 4,
+      "title": "Fair Dinkum",
+      "theme": "fun",
+      "description": "Speak in Australian slang for the next hour"
+    },
+    {
+      "id": 5,
+      "title": "BBQ Master",
+      "theme": "food",
+      "description": "Cook something on the barbie and share it with a neighbor"
+    },
+    {
+      "id": 6,
+      "title": "Wake-Up Call",
+      "theme": "help",
+      "description": "Call or message me at a set time tomorrow to make sure I wake up on time."
+    },
+    {
+      "id": 7,
+      "title": "Surprise Snack",
+      "theme": "food",
+      "description": "Buy me a snack that you think I’ll love."
+    },
+    {
+      "id": 8,
+      "title": "The DJ",
+      "theme": "fun",
+      "description": "You must let me control the music for the next hour, no complaints."
+    },
+    {
+      "id": 9,
+      "title": "Power Hour",
+      "theme": "challenge",
+      "description": "You have one hour to complete any task I give you."
+    },
+    {
+      "id": 10,
+      "title": "Social Sabotage",
+      "theme": "social",
+      "description": "Post a funny (but not too embarrassing) status or story on your social media."
+    },
+    {
+      "id": 11,
+      "title": "Coffee Run",
+      "theme": "food",
+      "description": "Bring me my favorite coffee or tea."
+    },
+    {
+      "id": 12,
+      "title": "Cheers to That",
+      "theme": "fun",
+      "description": "Take a shot or drink of my choice with me right now."
+    },
+    {
+      "id": 13,
+      "title": "Clean Freak",
+      "theme": "help",
+      "description": "Tidy up a room or space I choose."
+    },
+    {
+      "id": 14,
+      "title": "The Chauffeur",
+      "theme": "help",
+      "description": "Drive me somewhere, no matter how inconvenient."
+    },
+    {
+      "id": 15,
+      "title": "Mystery Gift",
+      "theme": "surprise",
+      "description": "Buy me a small surprise gift."
+    },
+    {
+      "id": 16,
+      "title": "Shoutout",
+      "theme": "social",
+      "description": "Compliment me publicly in person or on social media."
+    },
+    {
+      "id": 17,
+      "title": "Flashback",
+      "theme": "fun",
+      "description": "Share a funny or embarrassing memory about us."
+    },
+    {
+      "id": 18,
+      "title": "Freestyle",
+      "theme": "challenge",
+      "description": "Perform a 30-second rap or poem about me."
+    },
+    {
+      "id": 19,
+      "title": "Swap It",
+      "theme": "strategy",
+      "description": "Trade one of your cards with one of mine."
+    },
+    {
+      "id": 20,
+      "title": "Sing It",
+      "theme": "fun",
+      "description": "Perform a song of my choice (or at least the chorus) out loud."
+    },
+    {
+      "id": 21,
+      "title": "Truth Bomb",
+      "theme": "social",
+      "description": "Answer one personal question honestly."
+    },
+    {
+      "id": 22,
+      "title": "Dare Me",
+      "theme": "challenge",
+      "description": "I get to dare you to do something within reason."
+    },
+    {
+      "id": 23,
+      "title": "Fast Food Run",
+      "theme": "food",
+      "description": "Go get food from a drive-thru of my choice."
+    },
+    {
+      "id": 24,
+      "title": "Gamer Mode",
+      "theme": "fun",
+      "description": "Play a video or board game of my choice with me."
+    },
+    {
+      "id": 25,
+      "title": "The Joker",
+      "theme": "fun",
+      "description": "Tell me your best joke. If I don’t laugh, you owe me a favor."
+    },
+    {
+      "id": 26,
+      "title": "The Decision Maker",
+      "theme": "strategy",
+      "description": "You have to make a tough decision for me."
+    },
+    {
+      "id": 27,
+      "title": "Good Vibes Only",
+      "theme": "social",
+      "description": "You have to hype me up and say five great things about me."
+    },
+    {
+      "id": 28,
+      "title": "Photo Op",
+      "theme": "fun",
+      "description": "Take a fun or ridiculous picture with me right now."
+    },
+    {
+      "id": 29,
+      "title": "Blindfold Challenge",
+      "theme": "challenge",
+      "description": "Try to complete a simple task blindfolded."
+    },
+    {
+      "id": 30,
+      "title": "Instant Party",
+      "theme": "fun",
+      "description": "You must play music and dance for at least 30 seconds."
+    },
+    {
+      "id": 31,
+      "title": "Movie Night",
+      "theme": "fun",
+      "description": "Watch a movie of my choice with me."
+    },
+    {
+      "id": 32,
+      "title": "Mystery Task",
+      "theme": "surprise",
+      "description": "I get to make up a brand-new challenge for you."
+    },
+    {
+      "id": 33,
+      "title": "Secret Keeper",
+      "theme": "social",
+      "description": "Tell me something you’ve never told me before."
+    },
+    {
+      "id": 34,
+      "title": "Random Act of Kindness",
+      "theme": "help",
+      "description": "Do something nice for a stranger."
+    },
+    {
+      "id": 35,
+      "title": "Insta Poll",
+      "theme": "social",
+      "description": "Let me create and post a poll on your social media."
+    },
+    {
+      "id": 36,
+      "title": "Story Time",
+      "theme": "fun",
+      "description": "Tell me a funny or embarrassing story from your past."
+    },
+    {
+      "id": 37,
+      "title": "Gourmet Chef",
+      "theme": "food",
+      "description": "Make me a fancy sandwich with whatever ingredients you have."
+    },
+    {
+      "id": 38,
+      "title": "Wild Card",
+      "theme": "surprise",
+      "description": "This can be ANY challenge from the list, or a brand-new one of my choice!"
+    }
+  ]
