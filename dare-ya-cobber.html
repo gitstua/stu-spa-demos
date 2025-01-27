@@ -585,9 +585,9 @@
 <body>
     <a href="/" class="home-link">← Back to Home</a>
     <div class="button-stack">
-        <button class="action-button" onclick="confirmNewGame()">🔄 New Game</button>
-        <button class="action-button" onclick="window.print()">🖨️ Print Cards</button>
-        <button class="action-button" onclick="handleRandomDare()">🎲 Random Dare</button>
+        <button class="action-button new-game-button" onclick="confirmNewGame()">🔄 New Game</button>
+        <button class="action-button print-button" onclick="window.print()">🖨️ Print Cards</button>
+        <button class="action-button random-button" onclick="handleRandomDare()">🎲 Random Dare</button>
     </div>
     
     <div class="logo-container">
@@ -620,7 +620,7 @@
     <div id="dare-status"></div>
     <div id="cards-container" class="cards-container"></div>
     <div id="toast" class="toast"></div>
-    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot - v3.6</div>
+    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot - v3.8</div>
 
     <script>
         const cardsContainer = document.getElementById('cards-container');
@@ -681,6 +681,7 @@
             updateRoundCounter();
             
             if (cardId) {
+                document.querySelector('.random-button').style.display = 'none';
                 // Show single card for recipient
                 const card = cards.find(c => c.id === cardId);
                 if (card) {
@@ -694,6 +695,7 @@
                     cardsContainer.appendChild(recipientView);
                 }
             } else {
+                document.querySelector('.random-button').style.display = '';
                 dareStatus.innerHTML = '';
                 
                 // Sort cards using initial random order
