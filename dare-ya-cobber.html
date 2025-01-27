@@ -224,11 +224,13 @@
         <ol>
             <li>Choose a dare card to challenge your mate</li>
             <li>Click "Dare a mate" to get a unique challenge URL</li>
-            <li>Share the URL with your friend</li>
+            <li>Share the URL with your friend using SMS, Telegram etc etc..</li>
             <li>Your friend completes the dare and can dare you back</li>
             <li>Used cards are greyed out and can't be reused</li>
             <li>Keep the fun going by daring each other back and forth!</li>
         </ol>
+        <p>Your progress is saved in the URL not stored on my server - you need to find the last one your share to continue the game!</p>
+
         <p><strong>Tips:</strong></p>
         <ul>
             <li>Cards are organized by themes like Fun, Food, and Challenges</li>
@@ -239,7 +241,7 @@
     <div id="dare-status"></div>
     <div id="cards-container" class="cards-container"></div>
     <div id="toast" class="toast"></div>
-    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot - v1.1</div>
+    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot - v1.3</div>
 
     <script>
         const cardsContainer = document.getElementById('cards-container');
@@ -357,12 +359,29 @@
             }, 3000);
         }
 
+        function getFormattedDateTime() {
+            const now = new Date();
+            const dateFormatter = new Intl.DateTimeFormat('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            const timeFormatter = new Intl.DateTimeFormat('en-US', {
+                hour: 'numeric',
+                minute: 'numeric',
+                second: 'numeric',
+                timeZoneName: 'short'
+            });
+            
+            return `${dateFormatter.format(now)} at ${timeFormatter.format(now)}`;
+        }
+
         function handleDare(cardId) {
             usedCards.add(cardId);
             const data = {
                 card: cardId,
                 used: Array.from(usedCards),
-                time: new Date().toLocaleString()
+                time: getFormattedDateTime()
             };
             
             const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(data));
