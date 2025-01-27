@@ -19,24 +19,41 @@
         }
         .cards-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
             padding: 20px;
+            margin: 0 auto;
+            max-width: 1200px;
         }
         .card {
             background: white;
-            padding: 20px 20px 0 20px;
+            padding: 15px 15px 0 15px;
             border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2);
             text-align: center;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-height: 200px;
+            min-height: 300px;
+            aspect-ratio: 2.5/3.5;
+            margin: 0 auto;
+            max-width: 200px;
             border: 1px solid #00008B; /* Navy blue border */
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.25);
+            transition: all 0.2s ease;
+        }
+        .card > div:first-child {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         .card > div:last-child {
-            margin: 0 -20px;
+            margin: 0 -15px;
         }
         .dare-button {
             background: #00008B; /* Navy blue */
@@ -45,7 +62,8 @@
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
-            margin: 15px 20px;
+            margin: 10px 15px;
+            width: calc(100% - 30px);
             display: inline-block;
         }
         .dare-button:hover {
@@ -66,6 +84,10 @@
             opacity: 0.7;
             background: #f0f0f0;
             border: 1px solid #ccc;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .card.used:hover {
+            transform: none;
         }
         .card.used .dare-button {
             display: none;
@@ -75,7 +97,8 @@
             color: white;
             padding: 5px 10px;
             border-radius: 3px;
-            margin: 15px 20px;
+            margin: 10px 15px;
+            width: calc(100% - 30px);
             display: inline-block;
         }
         .instructions {
@@ -115,14 +138,17 @@
         .theme-badge {
             background: #f0f8ff; /* Light blue */
             color: #00008B; /* Navy blue */
-            padding: 8px 15px;
-            margin-top: 15px;
+            padding: 8px 15px 10px;
+            margin-top: auto;
+            margin-bottom: 0;
             display: block;
             font-size: 0.85em;
             font-style: italic;
             border-top: 1px solid #FF0000; /* Red border */
             text-align: right;
             text-transform: lowercase;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
         }
         .round-counter {
             background: #FF0000; /* Red */
