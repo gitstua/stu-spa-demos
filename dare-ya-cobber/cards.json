@@ -424,5 +424,29 @@
         "title": "Box Breathing",
         "description": "Do 4 rounds of box breathing: inhale 4s, hold 4s, exhale 4s, hold 4s",
         "theme": "mindfulness"
+    },
+    {
+        "id": 72,
+        "title": "Fresh Air Break",
+        "description": "Take a 10-minute walk outside, no phone allowed",
+        "theme": "fitness"
+    },
+    {
+        "id": 73,
+        "title": "Office Olympics",
+        "description": "Do 10 chair squats, 10 desk pushups, and 10 office laps",
+        "theme": "fitness"
+    },
+    {
+        "id": 74,
+        "title": "Stretch Goals",
+        "description": "Do a 5-minute stretching routine at your desk",
+        "theme": "fitness"
+    },
+    {
+        "id": 75,
+        "title": "Stand Up Hour",
+        "description": "Work standing up for the next hour",
+        "theme": "fitness"
     }
 ]
