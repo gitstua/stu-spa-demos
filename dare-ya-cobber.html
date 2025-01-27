@@ -177,14 +177,44 @@
         }
         .dare-status {
             padding: 15px;
-            margin-bottom: 20px;
+            margin: 0 auto 20px;
             text-align: center;
+            max-width: 1200px;
+        }
+        .logo-container {
+            text-align: center;
+            margin: 20px auto 30px;
+            padding: 20px;
+            text-transform: uppercase;
+        }
+        .logo {
+            font-size: 3em;
+            font-weight: 900;
+            color: #00008B;
+            text-shadow: 
+                2px 2px 0 #FF0000,
+                4px 4px 0 rgba(0,0,0,0.2);
+            letter-spacing: 2px;
+            margin: 0;
+            line-height: 1;
+        }
+        .logo-subtext {
+            color: #FF0000;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 5px;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
     <a href="/" class="home-link">← Back to Home</a>
     
+    <div class="logo-container">
+        <h1 class="logo">Dare Ya Cobber</h1>
+        <div class="logo-subtext">🎮 The Aussie Challenge Game</div>
+    </div>
+
     <div id="round-counter" class="round-counter">Round 1</div>
     
     <details class="instructions">
@@ -205,6 +235,7 @@
         </ul>
     </details>
 
+    <div id="dare-status"></div>
     <div id="cards-container" class="cards-container"></div>
     <div id="toast" class="toast"></div>
     <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot - v1.0</div>
@@ -231,7 +262,7 @@
         }
 
         async function loadCards() {
-            const response = await fetch('cards.json');
+            const response = await fetch('./dare-ya-cobber/cards.json');
             cards = await response.json();
             displayCards();
         }
@@ -244,6 +275,7 @@
         function displayCards() {
             cardsContainer.innerHTML = '';
             const { cardId, timestamp } = parseHash();
+            const dareStatus = document.getElementById('dare-status');
             
             updateRoundCounter();
             
@@ -251,19 +283,18 @@
                 // Show single card for recipient
                 const card = cards.find(c => c.id === cardId);
                 if (card) {
-                    // Add dare status before the card
-                    const dareStatus = document.createElement('div');
+                    // Add dare status above cards container
                     dareStatus.className = 'dare-status';
                     dareStatus.innerHTML = `
                         <div class="dare-success">You have been dared cobber!!</div>
                         ${timestamp ? `<div class="timestamp">Dared on ${timestamp}</div>` : ''}
                     `;
-                    cardsContainer.appendChild(dareStatus);
                     
                     const recipientView = createRecipientView(card);
                     cardsContainer.appendChild(recipientView);
                 }
             } else {
+                dareStatus.innerHTML = '';
                 // Show all cards, including used ones
                 cards.forEach(card => {
                     const cardElement = createCardElement(card, false);
