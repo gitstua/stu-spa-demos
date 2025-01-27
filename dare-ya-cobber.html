@@ -248,7 +248,7 @@
         .print-button {
             position: fixed;
             top: 20px;
-            right: 70px; /* Position next to new game button */
+            right: 150px; /* Increased from 70px to 120px to prevent overlap */
             background: #94a3b8;
             color: white;
             border: none;
@@ -470,14 +470,125 @@
                 padding: 5px 10px;  /* Smaller theme badge */
                 font-size: 0.75em;
             }
+
+            .print-button {
+                right: 120px; /* Adjust for mobile */
+            }
+
+            .random-button {
+                right: 220px;
+            }
+        }
+
+        .random-button {
+            position: fixed;
+            top: 20px;
+            right: 280px; /* Position before print button */
+            background: #94a3b8;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 1000;
+        }
+        
+        .random-button:hover {
+            opacity: 1;
+            background: #64748b;
+            transform: translateY(-1px);
+        }
+
+        @keyframes highlight {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); background: #fff3dc; }
+        }
+
+        .card.highlighted {
+            animation: none;
+            background: #fff3dc;
+            border-color: #fbbf24;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+        }
+
+        @keyframes highlight {
+            0% { transform: scale(1); background: white; }
+            50% { transform: scale(1.05); background: #fff3dc; }
+            100% { transform: scale(1); background: #fff3dc; }
+        }
+
+        .button-stack {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .action-button {
+            background: #94a3b8;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .action-button:hover {
+            opacity: 1;
+            background: #64748b;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 600px) {
+            .button-stack {
+                top: 10px;
+                right: 10px;
+                gap: 5px;
+            }
+
+            .action-button {
+                padding: 6px 12px;
+                font-size: 0.7rem;
+            }
+        }
+
+        /* Remove old button positioning styles */
+        .new-game-button, .print-button, .random-button {
+            position: static;
+            right: auto;
+        }
+
+        .dare-button.copied {
+            background: #22c55e; /* Success green */
+            color: #ffffff;      /* Ensure text is visible */
+            pointer-events: none;
+            transition: background 0.3s ease;
+        }
+
+        @keyframes checkmark {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
 </head>
 <body>
     <a href="/" class="home-link">← Back to Home</a>
-    <button class="new-game-button" onclick="confirmNewGame()">New Game</button>
-    <button class="print-button" onclick="window.print()">🖨️ Print Cards</button>
+    <div class="button-stack">
+        <button class="action-button" onclick="handleRandomDare()">🎲 Random Dare</button>
+        <button class="action-button" onclick="window.print()">🖨️ Print Cards</button>
+        <button class="action-button" onclick="confirmNewGame()">🔄 New Game</button>
+    </div>
     
     <div class="logo-container">
         <h1 class="logo">Dare Ya Cobber</h1>
@@ -509,13 +620,14 @@
     <div id="dare-status"></div>
     <div id="cards-container" class="cards-container"></div>
     <div id="toast" class="toast"></div>
-    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot - v2.7</div>
+    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot - v3.6</div>
 
     <script>
         const cardsContainer = document.getElementById('cards-container');
         const roundCounter = document.getElementById('round-counter');
         let cards = [];
         let usedCards = new Set();
+        let initialCardOrder = []; // Add this at the top with other variables
 
         // Parse URL hash parameters
         function parseHash() {
@@ -539,6 +651,8 @@
         async function loadCards() {
             const response = await fetch('./dare-ya-cobber/cards.json');
             cards = await response.json();
+            // Randomize cards only once when loading
+            initialCardOrder = shuffleArray([...Array(cards.length).keys()]);
             displayCards();
         }
 
@@ -556,11 +670,12 @@
         }
 
         function displayCards() {
+            const highlightedCardId = document.querySelector('.card.highlighted')?.getAttribute('data-id');
+            
             cardsContainer.innerHTML = '';
             const { cardId, timestamp } = parseHash();
             const dareStatus = document.getElementById('dare-status');
             
-            // Update page title based on whether it's a dare or not
             document.title = cardId ? "😱 You've Been Dared, Cobber! 🇦🇺🦘" : "Dare Ya Cobber - an ongoing card game";
             
             updateRoundCounter();
@@ -581,18 +696,29 @@
             } else {
                 dareStatus.innerHTML = '';
                 
-                // Sort cards: used cards first, then randomize unused cards
-                const usedCardsList = cards.filter(card => usedCards.has(card.id));
-                const unusedCardsList = shuffleArray(cards.filter(card => !usedCards.has(card.id)));
-                
-                // Combine the lists: used cards at top, followed by randomized unused cards
-                const sortedCards = [...usedCardsList, ...unusedCardsList];
+                // Sort cards using initial random order
+                const sortedCards = initialCardOrder
+                    .map(index => cards[index])
+                    .sort((a, b) => {
+                        // Put used cards first, maintain initial order within used/unused groups
+                        if (usedCards.has(a.id) && !usedCards.has(b.id)) return -1;
+                        if (!usedCards.has(a.id) && usedCards.has(b.id)) return 1;
+                        return 0;
+                    });
                 
                 // Display all cards
                 sortedCards.forEach(card => {
                     const cardElement = createCardElement(card, false);
                     cardsContainer.appendChild(cardElement);
                 });
+            }
+
+            // Re-apply highlight if needed
+            if (highlightedCardId) {
+                const cardElement = document.querySelector(`.card[data-id="${highlightedCardId}"]`);
+                if (cardElement) {
+                    cardElement.classList.add('highlighted');
+                }
             }
         }
 
@@ -619,6 +745,7 @@
         function createCardElement(card, isRecipient) {
             const div = document.createElement('div');
             div.className = `card${usedCards.has(card.id) ? ' used' : ''}`;
+            div.setAttribute('data-id', card.id); // Add data-id attribute
             
             div.innerHTML = `
                 <span class="card-number">#${card.id}</span>
@@ -646,7 +773,7 @@
             toast.style.display = 'block';
             setTimeout(() => {
                 toast.style.display = 'none';
-            }, 3000);
+            }, 4000);
         }
 
         function getFormattedDateTime() {
@@ -677,8 +804,20 @@
             const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(data));
             const newUrl = `${window.location.origin}${window.location.pathname}#${compressed}`;
             
+            // Find the button that was clicked
+            const button = document.querySelector(`.card[data-id="${cardId}"] .dare-button`);
+            
             navigator.clipboard.writeText(newUrl)
                 .then(() => {
+                    if (button) {
+                        button.classList.add('copied');
+                        const originalText = button.textContent;
+                        button.textContent = '✓ URL Copied!';
+                        setTimeout(() => {
+                            button.classList.remove('copied');
+                            button.textContent = originalText;
+                        }, 2000);
+                    }
                     showToast('Challenge URL copied! Send it to your mate! 🎮');
                 })
                 .catch(err => {
@@ -686,6 +825,16 @@
                     console.error('Failed to copy URL:', err);
                 });
             displayCards();
+
+            // Highlight the selected card just like the random button
+            setTimeout(() => {
+                const cardElement = document.querySelector(`.card[data-id="${cardId}"]`);
+                if (cardElement) {
+                    cardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    cardElement.style.animation = 'highlight 1s ease forwards';
+                    cardElement.classList.add('highlighted');
+                }
+            }, 100);
         }
 
         function showAvailableCardsForRecipient() {
@@ -718,6 +867,37 @@
                 displayCards();
                 showToast('Started new game! 🎮');
             }
+        }
+
+        function getRandomUnusedCard() {
+            const unusedCards = cards.filter(card => !usedCards.has(card.id));
+            if (unusedCards.length === 0) {
+                showToast('No more unused cards available!');
+                return null;
+            }
+            return unusedCards[Math.floor(Math.random() * unusedCards.length)];
+        }
+
+        function handleRandomDare() {
+            // Remove previous highlights
+            document.querySelectorAll('.card.highlighted').forEach(card => {
+                card.classList.remove('highlighted');
+            });
+
+            const randomCard = getRandomUnusedCard();
+            if (!randomCard) return;
+            
+            handleDare(randomCard.id);
+            
+            // Show and highlight the selected card
+            setTimeout(() => {
+                const cardElement = document.querySelector(`.card[data-id="${randomCard.id}"]`);
+                if (cardElement) {
+                    cardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    cardElement.style.animation = 'highlight 1s ease forwards';
+                    cardElement.classList.add('highlighted');
+                }
+            }, 100);
         }
 
         // Update window hash change handler
