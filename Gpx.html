@@ -3,52 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPX Viewer</title>
+    <title>GPX Viewer with Elevation Graph</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; text-align: center; }
-        #map { height: 90vh; width: 100vw; }
+        #map { height: 60vh; width: 100vw; }
         #fileInput { margin: 10px; }
+        #chart-container { width: 80vw; height: 30vh; margin: auto; }
     </style>
 </head>
 <body>
-    <h2>GPX Viewer</h2>
+    <h2>GPX Viewer with Elevation Graph</h2>
     <input type="file" id="fileInput" multiple accept=".gpx">
     <div id="map"></div>
+    <div id="chart-container">
+        <canvas id="elevationChart"></canvas>
+    </div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/togpx/0.5.4/togpx.min.js"></script>
     <script>
-        const map = L.map('map').setView([-33.8688, 151.2093], 10); // Sydney by default
+        const map = L.map('map').setView([-33.8688, 151.2093], 10); // Sydney default
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+
+        const elevationChartCtx = document.getElementById('elevationChart').getContext('2d');
+        let elevationChart = new Chart(elevationChartCtx, {
+            type: 'line',
+            data: { labels: [], datasets: [] },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: true } },
+                scales: {
+                    x: { title: { display: true, text: "Distance (km)" } },
+                    y: { title: { display: true, text: "Elevation (m)" } }
+                }
+            }
+        });
 
         document.getElementById('fileInput').addEventListener('change', (event) => {
             const files = event.target.files;
             if (!files.length) return;
 
-            Array.from(files).forEach(file => {
+            Array.from(files).forEach((file, index) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const parser = new DOMParser();
                     const xml = parser.parseFromString(e.target.result, "application/xml");
                     const track = xml.querySelectorAll("trkpt");
-                    
+
                     if (track.length === 0) {
                         alert(`No track points in ${file.name}`);
                         return;
                     }
 
-                    const latlngs = Array.from(track).map(pt => [
-                        parseFloat(pt.getAttribute("lat")), 
-                        parseFloat(pt.getAttribute("lon"))
-                    ]);
+                    let latlngs = [];
+                    let elevations = [];
+                    let distances = [];
+                    let totalDistance = 0;
 
-                    L.polyline(latlngs, { color: 'blue' }).addTo(map);
+                    track.forEach((pt, i) => {
+                        const lat = parseFloat(pt.getAttribute("lat"));
+                        const lon = parseFloat(pt.getAttribute("lon"));
+                        const eleTag = pt.querySelector("ele");
+                        const ele = eleTag ? parseFloat(eleTag.textContent) : 0;
+                        latlngs.push([lat, lon]);
+                        elevations.push(ele);
+
+                        // Calculate cumulative distance
+                        if (i > 0) {
+                            const prev = latlngs[i - 1];
+                            const d = getDistanceFromLatLon(prev[0], prev[1], lat, lon);
+                            totalDistance += d;
+                        }
+                        distances.push(totalDistance.toFixed(2));
+                    });
+
+                    L.polyline(latlngs, { color: getColor(index) }).addTo(map);
                     map.fitBounds(L.polyline(latlngs).getBounds());
+
+                    elevationChart.data.datasets.push({
+                        label: file.name,
+                        data: elevations,
+                        borderColor: getColor(index),
+                        fill: false
+                    });
+                    elevationChart.data.labels = distances;
+                    elevationChart.update();
                 };
                 reader.readAsText(file);
             });
         });
+
+        function getDistanceFromLatLon(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of the Earth in km
+            const dLat = (lat2 - lat1) * (Math.PI / 180);
+            const dLon = (lon2 - lon1) * (Math.PI / 180);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function getColor(index) {
+            const colors = ['blue', 'red', 'green', 'purple', 'orange', 'brown', 'cyan', 'magenta'];
+            return colors[index % colors.length];
+        }
     </script>
 </body>
 </html>
