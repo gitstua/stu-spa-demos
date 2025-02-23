@@ -31,6 +31,9 @@
             attribution: '&copy; OpenStreetMap contributors' 
         }).addTo(map);
 
+        // Add a feature group to track our layers
+        const trackGroup = L.featureGroup().addTo(map);
+
         const elevationChartCtx = document.getElementById('elevationChart').getContext('2d');
         let elevationChart = new Chart(elevationChartCtx, {
             type: 'line',
@@ -56,12 +59,8 @@
             elevationChart.data.datasets = [];
             elevationChart.update();
             
-            // Clear only polylines, preserve the base map layer
-            map.eachLayer((layer) => {
-                if (layer !== baseLayer && layer instanceof L.Polyline) {
-                    map.removeLayer(layer);
-                }
-            });
+            // Clear all tracks and markers
+            trackGroup.clearLayers();
 
             Array.from(files).forEach((file, index) => {
                 const reader = new FileReader();
@@ -195,7 +194,8 @@
             });
 
             // Add track to map and center on first point
-            const polyline = L.polyline(latlngs, { color: getColor(index) }).addTo(map);
+            const polyline = L.polyline(latlngs, { color: getColor(index) });
+            trackGroup.addLayer(polyline);
             
             if (latlngs.length > 0) {
                 if (index === 0) {
@@ -203,20 +203,20 @@
                     map.setView(latlngs[0], 13);
                 }
                 // Add marker for start point
-                L.marker(latlngs[0], {
+                const marker = L.marker(latlngs[0], {
                     title: `Start - ${fileName}`,
                     icon: L.divIcon({
                         className: 'start-marker',
                         html: '⭐',
                         iconSize: [20, 20]
                     })
-                }).addTo(map);
+                });
+                trackGroup.addLayer(marker);
             }
 
             // Fit bounds to show all tracks
-            const allLayers = map.getLayers().filter(layer => layer instanceof L.Polyline);
-            if (allLayers.length > 0) {
-                map.fitBounds(L.featureGroup(allLayers).getBounds());
+            if (trackGroup.getLayers().length > 0) {
+                map.fitBounds(trackGroup.getBounds());
             }
 
             // Add elevation data
