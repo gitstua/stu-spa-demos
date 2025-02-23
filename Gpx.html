@@ -15,7 +15,10 @@
 </head>
 <body>
     <h2>GPX Viewer with Elevation Graph</h2>
-    <input type="file" id="fileInput" multiple accept=".gpx">
+    <div class="file-upload">
+        <input type="file" id="fileInput" multiple accept=".gpx,.kml" />
+        <label for="fileInput">Upload GPX or KML files</label>
+    </div>
     <div id="map"></div>
     <div id="chart-container">
         <canvas id="elevationChart"></canvas>
@@ -24,7 +27,9 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         const map = L.map('map').setView([-33.8688, 151.2093], 10); // Sydney default
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+        const baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+            attribution: '&copy; OpenStreetMap contributors' 
+        }).addTo(map);
 
         const elevationChartCtx = document.getElementById('elevationChart').getContext('2d');
         let elevationChart = new Chart(elevationChartCtx, {
@@ -40,59 +45,190 @@
             }
         });
 
-        document.getElementById('fileInput').addEventListener('change', (event) => {
+        // Add the event listener
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(event) {
             const files = event.target.files;
             if (!files.length) return;
+
+            // Clear previous data
+            elevationChart.data.datasets = [];
+            elevationChart.update();
+            
+            // Clear only polylines, preserve the base map layer
+            map.eachLayer((layer) => {
+                if (layer !== baseLayer && layer instanceof L.Polyline) {
+                    map.removeLayer(layer);
+                }
+            });
 
             Array.from(files).forEach((file, index) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const parser = new DOMParser();
-                    const xml = parser.parseFromString(e.target.result, "application/xml");
-                    const track = xml.querySelectorAll("trkpt");
-
-                    if (track.length === 0) {
-                        alert(`No track points in ${file.name}`);
-                        return;
+                    const content = e.target.result;
+                    
+                    if (file.name.toLowerCase().endsWith('.gpx')) {
+                        parseGPXFile(content, file.name, index);
+                    } else if (file.name.toLowerCase().endsWith('.kml')) {
+                        parseKMLFile(content, file.name, index);
                     }
-
-                    let latlngs = [];
-                    let elevations = [];
-                    let distances = [];
-                    let totalDistance = 0;
-
-                    track.forEach((pt, i) => {
-                        const lat = parseFloat(pt.getAttribute("lat"));
-                        const lon = parseFloat(pt.getAttribute("lon"));
-                        const eleTag = pt.querySelector("ele");
-                        const ele = eleTag ? parseFloat(eleTag.textContent) : 0;
-                        latlngs.push([lat, lon]);
-                        elevations.push(ele);
-
-                        // Calculate cumulative distance
-                        if (i > 0) {
-                            const prev = latlngs[i - 1];
-                            const d = getDistanceFromLatLon(prev[0], prev[1], lat, lon);
-                            totalDistance += d;
-                        }
-                        distances.push(totalDistance.toFixed(2));
-                    });
-
-                    L.polyline(latlngs, { color: getColor(index) }).addTo(map);
-                    map.fitBounds(L.polyline(latlngs).getBounds());
-
-                    elevationChart.data.datasets.push({
-                        label: file.name,
-                        data: elevations,
-                        borderColor: getColor(index),
-                        fill: false
-                    });
-                    elevationChart.data.labels = distances;
-                    elevationChart.update();
                 };
                 reader.readAsText(file);
             });
-        });
+        }
+
+        function parseKMLFile(content, fileName, index) {
+            const parser = new DOMParser();
+            const kml = parser.parseFromString(content, "text/xml");
+            
+            const coordinates = [];
+            const placemarks = kml.getElementsByTagName('Placemark');
+            
+            for (const placemark of placemarks) {
+                // Try different coordinate containers
+                const coordContainers = [
+                    ...placemark.getElementsByTagName('LineString'),
+                    ...placemark.getElementsByTagName('Track'),
+                    ...placemark.getElementsByTagName('gx:Track'),
+                    ...placemark.getElementsByTagName('Point')
+                ];
+
+                for (const container of coordContainers) {
+                    // Try standard coordinates tag
+                    let coords = container.getElementsByTagName('coordinates')[0];
+                    
+                    if (!coords) {
+                        // Try gx:coord tags (used in some KML files)
+                        const gxCoords = container.getElementsByTagName('gx:coord');
+                        if (gxCoords.length > 0) {
+                            for (const gxCoord of gxCoords) {
+                                const coordStr = gxCoord.textContent.trim();
+                                const [lon, lat, ele] = coordStr.split(' ').map(parseFloat);
+                                if (lat && lon) {
+                                    coordinates.push([lat, lon, ele || 0]);
+                                }
+                            }
+                            continue;
+                        }
+                    }
+
+                    if (coords) {
+                        const coordStr = coords.textContent.trim();
+                        // Split on whitespace and filter out empty strings
+                        const coordArray = coordStr.split(/\s+/).filter(coord => coord.trim());
+                        
+                        coordArray.forEach(coord => {
+                            const [lon, lat, ele] = coord.split(',').map(parseFloat);
+                            if (lat && lon) {
+                                coordinates.push([lat, lon, ele || 0]);
+                            }
+                        });
+                    }
+                }
+            }
+
+            if (coordinates.length > 0) {
+                displayTrack(coordinates, fileName, index);
+            } else {
+                // Try to find coordinates in a different format
+                const when = kml.getElementsByTagName('when');
+                const coord = kml.getElementsByTagName('gx:coord');
+                
+                if (when.length > 0 && coord.length > 0) {
+                    for (let i = 0; i < coord.length; i++) {
+                        const coordStr = coord[i].textContent.trim();
+                        const [lon, lat, ele] = coordStr.split(' ').map(parseFloat);
+                        if (lat && lon) {
+                            coordinates.push([lat, lon, ele || 0]);
+                        }
+                    }
+                }
+                
+                if (coordinates.length > 0) {
+                    displayTrack(coordinates, fileName, index);
+                } else {
+                    alert(`No valid coordinates found in KML file: ${fileName}`);
+                }
+            }
+        }
+
+        function parseGPXFile(content, fileName, index) {
+            const parser = new DOMParser();
+            const xml = parser.parseFromString(content, "application/xml");
+            const track = xml.querySelectorAll("trkpt");
+
+            if (track.length === 0) {
+                alert(`No track points in file: ${fileName}`);
+                return;
+            }
+
+            let coordinates = [];
+            track.forEach((pt) => {
+                const lat = parseFloat(pt.getAttribute("lat"));
+                const lon = parseFloat(pt.getAttribute("lon"));
+                const eleTag = pt.querySelector("ele");
+                const ele = eleTag ? parseFloat(eleTag.textContent) : 0;
+                coordinates.push([lat, lon, ele]);
+            });
+
+            displayTrack(coordinates, fileName, index);
+        }
+
+        function displayTrack(coordinates, fileName, index) {
+            let latlngs = [];
+            let elevations = [];
+            let distances = [];
+            let totalDistance = 0;
+
+            coordinates.forEach((coord, i) => {
+                const [lat, lon, ele] = coord;
+                latlngs.push([lat, lon]);
+                elevations.push(ele);
+
+                if (i > 0) {
+                    const prev = coordinates[i - 1];
+                    const d = getDistanceFromLatLon(prev[0], prev[1], lat, lon);
+                    totalDistance += d;
+                }
+                distances.push(totalDistance.toFixed(2));
+            });
+
+            // Add track to map and center on first point
+            const polyline = L.polyline(latlngs, { color: getColor(index) }).addTo(map);
+            
+            if (latlngs.length > 0) {
+                if (index === 0) {
+                    // Center on first point of first track
+                    map.setView(latlngs[0], 13);
+                }
+                // Add marker for start point
+                L.marker(latlngs[0], {
+                    title: `Start - ${fileName}`,
+                    icon: L.divIcon({
+                        className: 'start-marker',
+                        html: '⭐',
+                        iconSize: [20, 20]
+                    })
+                }).addTo(map);
+            }
+
+            // Fit bounds to show all tracks
+            const allLayers = map.getLayers().filter(layer => layer instanceof L.Polyline);
+            if (allLayers.length > 0) {
+                map.fitBounds(L.featureGroup(allLayers).getBounds());
+            }
+
+            // Add elevation data
+            elevationChart.data.datasets.push({
+                label: fileName,
+                data: elevations,
+                borderColor: getColor(index),
+                fill: false
+            });
+            elevationChart.data.labels = distances;
+            elevationChart.update();
+        }
 
         function getDistanceFromLatLon(lat1, lon1, lat2, lon2) {
             const R = 6371; // Radius of the Earth in km
