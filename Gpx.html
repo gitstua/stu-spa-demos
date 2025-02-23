@@ -16,13 +16,23 @@
             padding: 5px;
             border-radius: 4px;
         }
+        h2 { 
+            margin: 10px 0;
+            font-size: 24px;
+        }
+        @media (max-width: 600px) {
+            h2 { 
+                font-size: 18px;
+                margin: 5px 0;
+            }
+        }
     </style>
 </head>
 <body>
     <h2>GPX Viewer with Elevation Graph</h2>
     <div class="file-upload">
         <input type="file" id="fileInput" multiple accept=".gpx,.kml" />
-        <label for="fileInput">Upload GPX or KML files</label>
+        <label for="fileInput">Upload GPX/KML</label>
     </div>
     <select id="layerSelect" class="layer-select">
         <option value="osm">OpenStreetMap</option>
