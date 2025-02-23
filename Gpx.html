@@ -6,6 +6,7 @@
     <title>GPX Viewer with Elevation Graph</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -53,6 +54,15 @@
                 gap: 5px;
                 padding: 0 5px;
             }
+        }
+        .note {
+            font-size: 12px;
+            color: #666;
+            margin: 2px 0;
+            font-style: italic;
+        }
+        #chart-container.hidden {
+            display: none;
         }
     </style>
 </head>
@@ -137,22 +147,61 @@
             // Clear all tracks and markers
             trackGroup.clearLayers();
 
+            // Keep track of loaded files
+            let loadedFiles = 0;
+            const allTracks = [];
+
             Array.from(files).forEach((file, index) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const content = e.target.result;
                     
                     if (file.name.toLowerCase().endsWith('.gpx')) {
-                        parseGPXFile(content, file.name, index);
+                        parseGPXFile(content, file.name, index, allTracks);
                     } else if (file.name.toLowerCase().endsWith('.kml')) {
-                        parseKMLFile(content, file.name, index);
+                        parseKMLFile(content, file.name, index, allTracks);
+                    }
+
+                    loadedFiles++;
+                    // Update URL hash only after all files are loaded
+                    if (loadedFiles === files.length) {
+                        updateUrlHashWithAllTracks(allTracks);
                     }
                 };
                 reader.readAsText(file);
             });
         }
 
-        function parseKMLFile(content, fileName, index) {
+        function updateUrlHashWithAllTracks(tracks) {
+            const compressedTracks = tracks.map(track => compressCoordinates(track));
+            const allTracks = LZString.compressToEncodedURIComponent(compressedTracks.join('|'));
+            window.location.hash = `t=${allTracks}`;
+        }
+
+        function parseGPXFile(content, fileName, index, allTracks) {
+            const parser = new DOMParser();
+            const xml = parser.parseFromString(content, "application/xml");
+            const track = xml.querySelectorAll("trkpt");
+
+            if (track.length === 0) {
+                alert(`No track points in file: ${fileName}`);
+                return;
+            }
+
+            let coordinates = [];
+            track.forEach((pt) => {
+                const lat = parseFloat(pt.getAttribute("lat"));
+                const lon = parseFloat(pt.getAttribute("lon"));
+                const eleTag = pt.querySelector("ele");
+                const ele = eleTag ? parseFloat(eleTag.textContent) : 0;
+                coordinates.push([lat, lon, ele]);
+            });
+
+            allTracks[index] = coordinates;
+            displayTrack(coordinates, fileName, index, false);
+        }
+
+        function parseKMLFile(content, fileName, index, allTracks) {
             const parser = new DOMParser();
             const kml = parser.parseFromString(content, "text/xml");
             
@@ -203,7 +252,8 @@
             }
 
             if (coordinates.length > 0) {
-                displayTrack(coordinates, fileName, index);
+                allTracks[index] = coordinates;
+                displayTrack(coordinates, fileName, index, false);
             } else {
                 // Try to find coordinates in a different format
                 const when = kml.getElementsByTagName('when');
@@ -220,36 +270,112 @@
                 }
                 
                 if (coordinates.length > 0) {
-                    displayTrack(coordinates, fileName, index);
+                    allTracks[index] = coordinates;
+                    displayTrack(coordinates, fileName, index, false);
                 } else {
                     alert(`No valid coordinates found in KML file: ${fileName}`);
                 }
             }
         }
 
-        function parseGPXFile(content, fileName, index) {
-            const parser = new DOMParser();
-            const xml = parser.parseFromString(content, "application/xml");
-            const track = xml.querySelectorAll("trkpt");
-
-            if (track.length === 0) {
-                alert(`No track points in file: ${fileName}`);
-                return;
+        function compressCoordinates(coordinates) {
+            // Calculate target number of points based on track length
+            const distance = coordinates.reduce((total, coord, i) => {
+                if (i === 0) return 0;
+                return total + getDistanceFromLatLon(
+                    coordinates[i-1][0], coordinates[i-1][1],
+                    coord[0], coord[1]
+                );
+            }, 0);
+            
+            // Use fewer points for longer tracks
+            // 1 point per ~500m for tracks under 10km
+            // 1 point per ~1km for tracks over 10km
+            const targetPoints = distance < 10 ? 
+                Math.min(50, Math.ceil(distance * 2)) : 
+                Math.min(100, Math.ceil(distance));
+            
+            const skipPoints = Math.max(1, Math.floor(coordinates.length / targetPoints));
+            
+            // Take important points (start, end, and evenly spaced points)
+            const reduced = [coordinates[0]];
+            for (let i = skipPoints; i < coordinates.length - 1; i += skipPoints) {
+                reduced.push(coordinates[i]);
             }
-
-            let coordinates = [];
-            track.forEach((pt) => {
-                const lat = parseFloat(pt.getAttribute("lat"));
-                const lon = parseFloat(pt.getAttribute("lon"));
-                const eleTag = pt.querySelector("ele");
-                const ele = eleTag ? parseFloat(eleTag.textContent) : 0;
-                coordinates.push([lat, lon, ele]);
-            });
-
-            displayTrack(coordinates, fileName, index);
+            reduced.push(coordinates[coordinates.length - 1]);
+            
+            // Convert to compact string format with reduced precision
+            // 3 decimal places ≈ 111m accuracy
+            const packed = reduced.map(coord => {
+                return [
+                    (+coord[0]).toFixed(3), // lat
+                    (+coord[1]).toFixed(3), // lon
+                ].join(',');
+            }).join(';');
+            
+            return LZString.compressToEncodedURIComponent(packed);
         }
 
-        function displayTrack(coordinates, fileName, index) {
+        function decompressCoordinates(compressed) {
+            try {
+                // Decompress with LZ-String
+                const packed = LZString.decompressFromEncodedURIComponent(compressed);
+                if (!packed) return null;
+                
+                return packed.split(';').map(point => {
+                    const [lat, lon] = point.split(',').map(Number);
+                    return [lat, lon, 0];
+                });
+            } catch (e) {
+                console.error('Failed to decompress coordinates:', e);
+                return null;
+            }
+        }
+
+        function loadFromHash() {
+            if (!window.location.hash) return;
+            
+            const params = new URLSearchParams(window.location.hash.slice(1));
+            const compressed = params.get('t');
+            if (!compressed) return;
+            
+            try {
+                // Clear previous data
+                elevationChart.data.datasets = [];
+                elevationChart.update();
+                trackGroup.clearLayers();
+                
+                // Hide elevation chart for shared URLs
+                document.getElementById('chart-container').classList.add('hidden');
+                
+                // Decompress all tracks
+                const tracksData = LZString.decompressFromEncodedURIComponent(compressed);
+                const tracks = tracksData.split('|');
+                
+                let hasValidTracks = false;
+                tracks.forEach((trackData, i) => {
+                    const coordinates = decompressCoordinates(trackData);
+                    if (coordinates) {
+                        hasValidTracks = true;
+                        displayTrack(coordinates, `Track ${i + 1}`, i, true);
+                    }
+                });
+                
+                if (hasValidTracks) {
+                    const existingNote = document.querySelector('.note');
+                    if (!existingNote) {
+                        const note = document.createElement('div');
+                        note.className = 'note';
+                        note.textContent = 'Note: Shared routes are approximate and elevation data is not included';
+                        document.querySelector('.controls-container').appendChild(note);
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load tracks from URL:', e);
+            }
+        }
+
+        function displayTrack(coordinates, fileName, index, isSharedUrl = false) {
             let latlngs = [];
             let elevations = [];
             let distances = [];
@@ -274,10 +400,8 @@
             
             if (latlngs.length > 0) {
                 if (index === 0) {
-                    // Center on first point of first track
                     map.setView(latlngs[0], 13);
                 }
-                // Add marker for start point
                 const marker = L.marker(latlngs[0], {
                     title: `Start - ${fileName}`,
                     icon: L.divIcon({
@@ -289,20 +413,28 @@
                 trackGroup.addLayer(marker);
             }
 
-            // Fit bounds to show all tracks
             if (trackGroup.getLayers().length > 0) {
                 map.fitBounds(trackGroup.getBounds());
             }
 
-            // Add elevation data
-            elevationChart.data.datasets.push({
-                label: fileName,
-                data: elevations,
-                borderColor: getColor(index),
-                fill: false
-            });
-            elevationChart.data.labels = distances;
-            elevationChart.update();
+            // Only update elevation chart for uploaded files
+            if (!isSharedUrl) {
+                elevationChart.data.datasets.push({
+                    label: fileName,
+                    data: elevations,
+                    borderColor: getColor(index),
+                    fill: false
+                });
+                elevationChart.data.labels = distances;
+                elevationChart.update();
+
+                document.getElementById('chart-container').classList.remove('hidden');
+                
+                const existingNote = document.querySelector('.note');
+                if (existingNote) {
+                    existingNote.remove();
+                }
+            }
         }
 
         function getDistanceFromLatLon(lat1, lon1, lat2, lon2) {
@@ -320,6 +452,9 @@
             const colors = ['blue', 'red', 'green', 'purple', 'orange', 'brown', 'cyan', 'magenta'];
             return colors[index % colors.length];
         }
+
+        // Add this line at the end of your script to load from URL hash on page load
+        window.addEventListener('load', loadFromHash);
     </script>
 </body>
 </html>
