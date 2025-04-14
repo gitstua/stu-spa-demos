@@ -200,12 +200,55 @@
             text-align: center;
             padding: 20px;
         }
+        
+        .back-to-home {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            text-decoration: none;
+            color: var(--primary-color);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .back-to-home svg {
+            margin-right: 5px;
+        }
+        
+        .app-info {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            max-width: 600px;
+        }
+        
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #eee;
+        }
     </style>
 </head>
 <body>
+    <a href="/" class="back-to-home">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm3.5 7.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
+        </svg>
+        Back to Home
+    </a>
+    
     <header>
         <h1>日本語 Flash Cards</h1>
-        <p>Click on cards to reveal the meaning. Press the audio button to hear pronunciation.</p>
+        <p>Click on cards to reveal the meaning. Audio plays automatically.</p>
     </header>
     
     <div class="container">
@@ -263,6 +306,15 @@
             const cardCount = document.getElementById('card-count');
             const loading = document.getElementById('loading');
             const errorElement = document.getElementById('error');
+            
+            // Fisher-Yates shuffle algorithm
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
             
             // Function to parse CSV
             async function fetchCardData() {
@@ -376,7 +428,18 @@
                 // Update card count
                 cardCount.textContent = `Card ${index + 1} of ${cards.length}`;
                 
-                // Set the audio source
+                // Auto-play audio if available
+                if (card.audioFile) {
+                    audio.src = `japanese/audio_files/${card.audioFile}`;
+                    // Small delay to ensure UI updates first
+                    setTimeout(() => {
+                        audio.play().catch(err => {
+                            console.log('Auto-play prevented:', err);
+                        });
+                    }, 300);
+                }
+                
+                // Update audio button click handler
                 frontAudio.onclick = () => {
                     if (card.audioFile) {
                         audio.src = `japanese/audio_files/${card.audioFile}`;
@@ -397,6 +460,9 @@
                 cards = await fetchCardData();
                 
                 if (cards.length > 0) {
+                    // Shuffle cards
+                    cards = shuffleArray(cards);
+                    
                     loading.style.display = 'none';
                     cardContainer.style.display = 'block';
                     displayCard(currentCardIndex);
@@ -438,6 +504,25 @@
                         }
                     });
                     
+                    // Save current state in URL fragment
+                    function updateUrlFragment() {
+                        window.location.hash = `card=${currentCardIndex}`;
+                    }
+                    
+                    // Check if there's a card index in the URL fragment
+                    const hashMatch = window.location.hash.match(/card=(\d+)/);
+                    if (hashMatch && hashMatch[1]) {
+                        const savedIndex = parseInt(hashMatch[1], 10);
+                        if (savedIndex >= 0 && savedIndex < cards.length) {
+                            currentCardIndex = savedIndex;
+                            displayCard(currentCardIndex);
+                        }
+                    }
+                    
+                    // Update URL when changing cards
+                    prevButton.addEventListener('click', updateUrlFragment);
+                    nextButton.addEventListener('click', updateUrlFragment);
+                    
                     // Add audio playback on card display
                     audio.addEventListener('ended', () => {
                         console.log('Audio playback completed');
@@ -448,5 +533,14 @@
             init();
         });
     </script>
+    
+    <div class="app-info">
+        <p>This is a Japanese language learning application that displays flash cards with Japanese text, romaji, and English translations. 
+        It features audio pronunciation and randomized card order to help users learn Japanese vocabulary more effectively.</p>
+    </div>
+    
+    <div class="footer">
+        Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot | Version 1.0
+    </div>
 </body>
 </html>
