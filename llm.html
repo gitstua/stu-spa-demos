@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Studio</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #0f172a;
+            --panel: rgba(15, 23, 42, 0.82);
+            --panel-border: rgba(148, 163, 184, 0.35);
+            --soft: rgba(59, 130, 246, 0.18);
+            --highlight: #38bdf8;
+            --text: #e2e8f0;
+            --muted: rgba(226, 232, 240, 0.7);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 96px 22px 140px;
+            font-family: "Inter", "Segoe UI", Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.08), transparent 50%),
+                radial-gradient(circle at bottom right, rgba(244, 114, 182, 0.08), transparent 55%),
+                var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+        }
+
+        main {
+            width: min(1120px, 100%);
+            display: grid;
+            gap: 26px;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        header {
+            display: flex;
+            gap: 22px;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 32px 70px rgba(15, 23, 42, 0.45);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: clamp(32px, 5vw, 44px);
+        }
+
+        header p {
+            margin: 0;
+            max-width: 560px;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+
+        .back-home {
+            font-weight: 600;
+            text-decoration: none;
+            color: var(--highlight);
+        }
+
+        .panels {
+            display: grid;
+            gap: 24px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 22px;
+            padding: 26px;
+            display: grid;
+            gap: 18px;
+        }
+
+        .panel h2 {
+            margin: 0;
+            font-size: 26px;
+        }
+
+        .panel p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .explainers {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        .explainer-card {
+            border-radius: 18px;
+            padding: 18px;
+            background: rgba(148, 163, 184, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .explainer-card h3 {
+            margin: 0 0 8px;
+            font-size: 18px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            border-radius: 16px;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            background: rgba(15, 23, 42, 0.6);
+            color: inherit;
+            padding: 16px;
+            font-size: 16px;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: 2px solid rgba(56, 189, 248, 0.4);
+            outline-offset: 2px;
+        }
+
+        .token-methods {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .token-methods button {
+            border-radius: 999px;
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            background: transparent;
+            color: inherit;
+            padding: 8px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.18s ease;
+        }
+
+        .token-methods button.active,
+        .token-methods button:hover {
+            background: rgba(56, 189, 248, 0.22);
+        }
+
+        .token-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 14px;
+        }
+
+        .token-stats span {
+            border-radius: 12px;
+            padding: 8px 12px;
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.22);
+        }
+
+        .tokens-view {
+            border-radius: 18px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            padding: 18px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .token-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            padding: 8px 12px;
+            margin: 4px;
+            background: rgba(56, 189, 248, 0.18);
+            border: 1px solid rgba(56, 189, 248, 0.28);
+            font-size: 14px;
+        }
+
+        .token-chip small {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .llm-console {
+            display: grid;
+            gap: 16px;
+        }
+
+        .sliders {
+            display: grid;
+            gap: 12px;
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--highlight);
+        }
+
+        .conversation {
+            border-radius: 18px;
+            padding: 18px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            display: grid;
+            gap: 12px;
+            max-height: 280px;
+            overflow-y: auto;
+            font-size: 15px;
+        }
+
+        .message {
+            display: grid;
+            gap: 4px;
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.24);
+            border-radius: 14px;
+            padding: 12px 14px;
+        }
+
+        .message.user {
+            background: rgba(96, 165, 250, 0.2);
+            border-color: rgba(96, 165, 250, 0.35);
+        }
+
+        .message strong {
+            font-size: 12px;
+            letter-spacing: 0.04em;
+            opacity: 0.6;
+        }
+
+        form {
+            display: flex;
+            gap: 12px;
+        }
+
+        .prompt-input {
+            flex: 1;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            background: rgba(15, 23, 42, 0.6);
+            color: inherit;
+            padding: 14px 16px;
+            font-size: 15px;
+        }
+
+        .primary-btn {
+            border-radius: 14px;
+            border: none;
+            background: rgba(56, 189, 248, 0.9);
+            color: #0b1120;
+            font-weight: 600;
+            padding: 14px 20px;
+            cursor: pointer;
+        }
+
+        .pipeline {
+            border-radius: 18px;
+            padding: 18px;
+            background: rgba(148, 163, 184, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            display: grid;
+            gap: 12px;
+        }
+
+        .pipeline-step {
+            display: grid;
+            gap: 4px;
+            border-radius: 14px;
+            padding: 14px;
+            background: rgba(15, 23, 42, 0.55);
+            border: 1px solid transparent;
+        }
+
+        .pipeline-step.active {
+            border-color: rgba(56, 189, 248, 0.5);
+            background: rgba(56, 189, 248, 0.16);
+        }
+
+        .pipeline-step strong {
+            font-size: 13px;
+            letter-spacing: 0.04em;
+            opacity: 0.7;
+        }
+
+        .pipeline-step span {
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        footer {
+            text-align: center;
+            color: rgba(226, 232, 240, 0.55);
+            font-size: 13px;
+        }
+
+        @media (max-width: 920px) {
+            body {
+                padding: 72px 16px 120px;
+            }
+
+            form {
+                flex-direction: column;
+            }
+
+            .primary-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <header>
+            <div>
+                <h1>LLM Studio</h1>
+                <p>This single-page workshop helps teammates see how language models break text into tokens and how a generation loop stitches them back together. Swap strategies, follow the pipeline, and narrate what each stage does.</p>
+            </div>
+            <a class="back-home" href="/">← back to home</a>
+        </header>
+
+        <section class="panel">
+            <h2>Foundations</h2>
+            <p>Tokens are the morsels a model can actually understand. They are rarely whole words; instead, think characters, chunks, and punctuation cooked into a consistent vocabulary. The mock pipeline below mirrors the rhythm production teams rely on: tokenize → embed → attend → sample → decode.</p>
+            <div class="explainers">
+                <article class="explainer-card">
+                    <h3>Why tokenize?</h3>
+                    <p>Neural nets cannot ingest raw text. Tokenization converts text into numeric IDs aligned with a training vocabulary so the network can look up embeddings.</p>
+                </article>
+                <article class="explainer-card">
+                    <h3>Vocabulary trade-offs</h3>
+                    <p>More tokens mean shorter sequences but a heavier model head. Fewer tokens mean longer sequences but cheaper embeddings. Modern LLMs strike a balance with Byte Pair or SentencePiece.</p>
+                </article>
+                <article class="explainer-card">
+                    <h3>Inference loop</h3>
+                    <p>Each generated token feeds back into the context. Temperature nudges randomness; top-k limits options to the most likely candidates to keep responses on task.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Tokenization Playground</h2>
+            <p>Paste any text, then flip between strategies to see how the same thought becomes model-ready tokens. The mock Byte Pair encoder uses a tiny merge table so the rules stay transparent.</p>
+            <textarea id="token-input" placeholder="Example: Large language models reason over tokens, not raw characters."></textarea>
+            <div class="token-methods" id="token-methods"></div>
+            <div class="token-stats" id="token-stats"></div>
+            <div class="tokens-view" id="tokens-view"></div>
+        </section>
+
+        <section class="panel">
+            <h2>Mock LLM Console</h2>
+            <p>Send a prompt and watch the scripted model walk through each stage. The response is deterministic when temperature is 0 and becomes more exploratory as you dial it up.</p>
+            <div class="llm-console">
+                <div class="sliders">
+                    <div class="slider-row">
+                        <label for="temperature">Temperature</label>
+                        <input type="range" id="temperature" min="0" max="1" step="0.05" value="0.3">
+                        <span id="temperature-value">0.30</span>
+                    </div>
+                    <div class="slider-row">
+                        <label for="top-k">Top-k</label>
+                        <input type="range" id="top-k" min="1" max="8" step="1" value="4">
+                        <span id="top-k-value">4</span>
+                    </div>
+                </div>
+                <div class="conversation" id="conversation">
+                    <div class="message">
+                        <strong>system</strong>
+                        <span>Welcome! Ask about tokens, embeddings, or LLM behaviour to see how the mock model responds.</span>
+                    </div>
+                </div>
+                <form id="prompt-form">
+                    <input class="prompt-input" id="prompt" placeholder="Ask the model something" autocomplete="off">
+                    <button class="primary-btn" type="submit">Send</button>
+                </form>
+                <div class="pipeline" id="pipeline">
+                    <div class="pipeline-step" data-step="tokenize">
+                        <strong>1. Tokenize</strong>
+                        <span>Split the prompt into vocabulary units. We reuse the playground strategy so you can reference the same tokens.</span>
+                    </div>
+                    <div class="pipeline-step" data-step="embed">
+                        <strong>2. Embed</strong>
+                        <span>Look up vector representations. Embeddings hold semantic meaning and let similar ideas cluster together.</span>
+                    </div>
+                    <div class="pipeline-step" data-step="attend">
+                        <strong>3. Attend</strong>
+                        <span>Self-attention mixes context. The model weighs each token against the others to see which details matter most.</span>
+                    </div>
+                    <div class="pipeline-step" data-step="sample">
+                        <strong>4. Sample</strong>
+                        <span>Sample the next token using temperature and top-k. Higher temperature injects randomness; smaller k keeps answers tight.</span>
+                    </div>
+                    <div class="pipeline-step" data-step="decode">
+                        <strong>5. Decode</strong>
+                        <span>Convert token IDs back to user-facing text. Repeat until we hit an end token or length limit.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer>Tip: narrate each slider move aloud so the audience connects the UI with how production models behave.</footer>
+    </main>
+
+    <script>
+        const tokenInput = document.getElementById('token-input');
+        const tokenMethods = document.getElementById('token-methods');
+        const tokenStats = document.getElementById('token-stats');
+        const tokenView = document.getElementById('tokens-view');
+
+        const defaultText = 'Large language models reason over tokens, not raw characters. Temperature and top-k shape the story.';
+
+        const tokenStrategies = {
+            words: {
+                label: 'Whitespace + Punctuation',
+                description: 'Split on spaces, but keep punctuation so you can see stop tokens show up.',
+                tokenize(text) {
+                    return text.match(/[A-Za-z0-9']+|[^\sA-Za-z0-9']+/g) || [];
+                }
+            },
+            characters: {
+                label: 'Character',
+                description: 'Treat every visible symbol as its own token. Useful for Asian languages or fallbacks.',
+                tokenize(text) {
+                    return Array.from(text);
+                }
+            },
+            bytepair: {
+                label: 'Toy Byte Pair',
+                description: 'Merge frequent pairs with a tiny table. Real models learn thousands of merges.',
+                tokenize(text) {
+                    const merges = ['language', 'model', 'token', 'tokens', 'reason', 'temper', 'ature', 'context', 'story'];
+                    const parts = text.match(/[A-Za-z0-9']+|[^\sA-Za-z0-9']+/g) || [];
+                    const pieces = [];
+
+                    const sliceWord = (word) => {
+                        let remaining = word.toLowerCase();
+                        const original = word;
+                        const wordPieces = [];
+                        while (remaining.length) {
+                            const match = merges
+                                .filter(pair => remaining.startsWith(pair))
+                                .sort((a, b) => b.length - a.length)[0];
+                            if (match) {
+                                const prefix = wordPieces.length === 0 ? '' : '##';
+                                const fragment = original.substr(original.length - remaining.length, match.length);
+                                wordPieces.push(prefix + fragment);
+                                remaining = remaining.slice(match.length);
+                            } else {
+                                const prefix = wordPieces.length === 0 ? '' : '##';
+                                wordPieces.push(prefix + original.substr(original.length - remaining.length, 1));
+                                remaining = remaining.slice(1);
+                            }
+                        }
+                        return wordPieces;
+                    };
+
+                    parts.forEach(part => {
+                        if (/^[A-Za-z0-9']+$/.test(part)) {
+                            pieces.push(...sliceWord(part));
+                        } else if (/^\s+$/.test(part)) {
+                            // skip whitespace tokens; spacing is implied
+                        } else {
+                            pieces.push(part);
+                        }
+                    });
+
+                    return pieces;
+                }
+            }
+        };
+
+        let activeStrategy = 'bytepair';
+
+        const renderTokenButtons = () => {
+            tokenMethods.innerHTML = '';
+            Object.entries(tokenStrategies).forEach(([key, config]) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = config.label;
+                if (key === activeStrategy) button.classList.add('active');
+                button.addEventListener('click', () => {
+                    if (activeStrategy !== key) {
+                        activeStrategy = key;
+                        renderTokens();
+                    }
+                });
+                tokenMethods.appendChild(button);
+            });
+        };
+
+        const renderTokens = () => {
+            const text = tokenInput.value.trim() ? tokenInput.value : defaultText;
+            const strategy = tokenStrategies[activeStrategy];
+            const tokens = strategy.tokenize(text);
+
+            tokenStats.innerHTML = '';
+            const stats = [
+                `${tokens.length} tokens`,
+                `${text.length} characters`,
+                `average ${(text.length / Math.max(tokens.length, 1)).toFixed(1)} chars/token`
+            ];
+            stats.forEach(label => {
+                const span = document.createElement('span');
+                span.textContent = label;
+                tokenStats.appendChild(span);
+            });
+
+            tokenView.innerHTML = '';
+            const description = document.createElement('p');
+            description.textContent = tokenStrategies[activeStrategy].description;
+            description.style.margin = '0';
+            description.style.opacity = '0.75';
+            tokenView.appendChild(description);
+
+            const tokensWrap = document.createElement('div');
+            tokens.forEach((value, index) => {
+                const chip = document.createElement('span');
+                chip.className = 'token-chip';
+                const idx = document.createElement('small');
+                idx.textContent = `#${index}`;
+                chip.appendChild(idx);
+                chip.appendChild(document.createTextNode(value));
+                tokensWrap.appendChild(chip);
+            });
+            tokenView.appendChild(tokensWrap);
+        };
+
+        tokenInput.addEventListener('input', renderTokens);
+
+        renderTokenButtons();
+        tokenInput.value = defaultText;
+        renderTokens();
+
+        const conversation = document.getElementById('conversation');
+        const promptForm = document.getElementById('prompt-form');
+        const promptInput = document.getElementById('prompt');
+        const pipelineSteps = Array.from(document.querySelectorAll('.pipeline-step'));
+        const temperatureSlider = document.getElementById('temperature');
+        const temperatureValue = document.getElementById('temperature-value');
+        const topkSlider = document.getElementById('top-k');
+        const topkValue = document.getElementById('top-k-value');
+
+        const scriptedReplies = [
+            {
+                intent: /token/i,
+                base: 'Think of tokens as lego bricks. We look them up in the vocabulary, turn them into vectors, attend over the context, then sample the next brick.',
+                extras: [
+                    'Changing tokenizers changes the bricks, which changes how much context fits into the context window.',
+                    'Production systems often visualise token counts so teams do not blow past context limits mid-call.'
+                ]
+            },
+            {
+                intent: /temperature|random/i,
+                base: 'Temperature rescales probabilities before sampling. 0 locks in the highest-probability path, while higher values flatten the distribution.',
+                extras: [
+                    'Teams often pair temperature with top-k or nucleus sampling to keep language fluid yet on-message.',
+                    'For customer support flows we keep temperature small so responses stay predictable.'
+                ]
+            },
+            {
+                intent: /embedding|vector/i,
+                base: 'Embeddings translate tokens into high-dimensional vectors. Similar ideas land close together, which improves retrieval and grounding.',
+                extras: [
+                    'We continually evaluate embedding drift to make sure new fine-tunes still line up with search indexes.',
+                    'When the embed step fails, downstream stages struggle because attention has nothing semantic to work with.'
+                ]
+            },
+            {
+                intent: /attention|context/i,
+                base: 'Self-attention lets every token weigh every other token. That is how the model focuses on the relevant instructions before sampling.',
+                extras: [
+                    'Long-context models segment inputs so each block can attend efficiently without blowing out compute.',
+                    'During fine-tuning we add targeted examples so attention learns to prioritise safety signals.'
+                ]
+            }
+        ];
+
+        const fallbackReplies = [
+            'Great question! The pipeline runs tokenize → embed → attend → sample → decode for each new token we emit.',
+            'LLMs juggle stateless probabilities; our mock model simply narrates what the real system would do next.',
+            'Every token we add feeds back into the prompt, so keeping prompts short buys us more room for conversation.'
+        ];
+
+        const setPipelineActive = (step) => {
+            pipelineSteps.forEach(panel => {
+                if (panel.dataset.step === step) {
+                    panel.classList.add('active');
+                } else {
+                    panel.classList.remove('active');
+                }
+            });
+        };
+
+        const appendMessage = (role, content) => {
+            const message = document.createElement('div');
+            message.className = 'message' + (role === 'user' ? ' user' : '');
+            const strong = document.createElement('strong');
+            strong.textContent = role;
+            const span = document.createElement('span');
+            span.textContent = content;
+            message.appendChild(strong);
+            message.appendChild(span);
+            conversation.appendChild(message);
+            conversation.scrollTop = conversation.scrollHeight;
+        };
+
+        const runMockPipeline = async (prompt) => {
+            const steps = ['tokenize', 'embed', 'attend', 'sample', 'decode'];
+            for (const step of steps) {
+                setPipelineActive(step);
+                await new Promise(resolve => setTimeout(resolve, 320));
+            }
+            setPipelineActive('decode');
+
+            const temp = Number(temperatureSlider.value);
+            const k = Number(topkSlider.value);
+
+            const matched = scriptedReplies.find(entry => entry.intent.test(prompt));
+            const base = matched ? matched.base : fallbackReplies[0];
+            const extras = matched ? matched.extras : fallbackReplies.slice(1);
+
+            const choices = extras.slice(0, k);
+            const randomness = Math.min(temp * 3, 0.95);
+            const pick = choices[Math.floor(Math.random() * choices.length * (0.5 + randomness)) % choices.length] || choices[0] || '';
+
+            const response = [base, pick].filter(Boolean).join(' ');
+            appendMessage('assistant', response);
+            setPipelineActive('');
+        };
+
+        promptForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const value = promptInput.value.trim();
+            if (!value) return;
+            appendMessage('user', value);
+            promptInput.value = '';
+            await runMockPipeline(value);
+        });
+
+        temperatureSlider.addEventListener('input', () => {
+            temperatureValue.textContent = Number(temperatureSlider.value).toFixed(2);
+        });
+
+        topkSlider.addEventListener('input', () => {
+            topkValue.textContent = topkSlider.value;
+        });
+    </script>
+</body>
+</html>
