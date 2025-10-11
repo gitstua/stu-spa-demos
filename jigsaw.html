@@ -235,6 +235,52 @@
             animation: celebration 0.5s ease-out;
         }
 
+        .fullscreen-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #f9f9f9;
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fullscreen-puzzle-area {
+            width: 90vw;
+            height: 80vh;
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            background: #f9f9f9;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .fullscreen-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        .exit-fullscreen-btn {
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+        }
+
+        .exit-fullscreen-btn:hover {
+            background: rgba(0,0,0,0.9);
+        }
+
         @keyframes celebration {
             0% { transform: translate(-50%, -50%) scale(0); }
             50% { transform: translate(-50%, -50%) scale(1.2); }
@@ -331,15 +377,16 @@
             <div class="controls">
                 <div class="control-group">
                     <label for="rows">Rows:</label>
-                    <input type="range" id="rows" min="2" max="8" value="4">
+                    <input type="range" id="rows" min="2" max="30" value="4">
                     <span id="rowsValue">4</span>
                 </div>
                 <div class="control-group">
                     <label for="cols">Columns:</label>
-                    <input type="range" id="cols" min="2" max="8" value="4">
+                    <input type="range" id="cols" min="2" max="30" value="4">
                     <span id="colsValue">4</span>
                 </div>
                 <button id="generateBtn" disabled>Generate Puzzle</button>
+                <button id="fullscreenBtn" disabled>Fullscreen</button>
                 <button id="resetBtn" disabled>Reset</button>
             </div>
         </div>
@@ -362,6 +409,14 @@
 
     <div class="completion-message" id="completionMessage">
         🎉 Congratulations! You completed the puzzle! 🎉
+    </div>
+
+    <div class="fullscreen-mode" id="fullscreenMode">
+        <div class="fullscreen-controls">
+            <button class="exit-fullscreen-btn" id="exitFullscreenBtn">Exit Fullscreen</button>
+        </div>
+        <div class="fullscreen-puzzle-area" id="fullscreenPuzzleArea">
+        </div>
     </div>
 
     <script>
@@ -387,6 +442,7 @@
                 this.rowsValue = document.getElementById('rowsValue');
                 this.colsValue = document.getElementById('colsValue');
                 this.generateBtn = document.getElementById('generateBtn');
+                this.fullscreenBtn = document.getElementById('fullscreenBtn');
                 this.resetBtn = document.getElementById('resetBtn');
                 this.puzzleArea = document.getElementById('puzzleArea');
                 this.originalImageContainer = document.getElementById('originalImageContainer');
@@ -395,6 +451,9 @@
                 this.placedCount = document.getElementById('placedCount');
                 this.totalCount = document.getElementById('totalCount');
                 this.completionMessage = document.getElementById('completionMessage');
+                this.fullscreenMode = document.getElementById('fullscreenMode');
+                this.fullscreenPuzzleArea = document.getElementById('fullscreenPuzzleArea');
+                this.exitFullscreenBtn = document.getElementById('exitFullscreenBtn');
             }
 
             setupEventListeners() {
@@ -402,7 +461,9 @@
                 this.rowsSlider.addEventListener('input', (e) => this.updateSliderValue(e, this.rowsValue));
                 this.colsSlider.addEventListener('input', (e) => this.updateSliderValue(e, this.colsValue));
                 this.generateBtn.addEventListener('click', () => this.generatePuzzle());
+                this.fullscreenBtn.addEventListener('click', () => this.enterFullscreen());
                 this.resetBtn.addEventListener('click', () => this.resetPuzzle());
+                this.exitFullscreenBtn.addEventListener('click', () => this.exitFullscreen());
                 
                 // Add event listeners for sample image buttons
                 document.querySelectorAll('.sample-btn').forEach(btn => {
@@ -483,6 +544,7 @@
                 // Update UI
                 this.updateStats();
                 this.resetBtn.disabled = false;
+                this.fullscreenBtn.disabled = false;
             }
 
             createPuzzlePieces() {
@@ -743,6 +805,27 @@
                 }
             }
 
+            enterFullscreen() {
+                if (this.pieces.length === 0) return;
+                
+                // Copy pieces to fullscreen area
+                this.fullscreenPuzzleArea.innerHTML = '';
+                this.pieces.forEach(piece => {
+                    const clonedPiece = piece.cloneNode(true);
+                    this.fullscreenPuzzleArea.appendChild(clonedPiece);
+                    this.setupPieceDragAndDrop(clonedPiece);
+                });
+                
+                // Show fullscreen mode
+                this.fullscreenMode.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+
+            exitFullscreen() {
+                this.fullscreenMode.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+
             resetPuzzle() {
                 this.puzzleArea.innerHTML = '<p style="text-align: center; margin-top: 180px; color: #999;">Upload an image and click "Generate Puzzle" to start!</p>';
                 this.originalImageContainer.style.display = 'none';
@@ -753,6 +836,14 @@
                 this.imageInput.value = '';
                 this.generateBtn.disabled = true;
                 this.resetBtn.disabled = true;
+                this.fullscreenBtn.disabled = true;
+                
+                // Reset sliders to 4x4
+                this.rowsSlider.value = 4;
+                this.colsSlider.value = 4;
+                this.rowsValue.textContent = '4';
+                this.colsValue.textContent = '4';
+                
                 this.updateStats();
             }
         }
