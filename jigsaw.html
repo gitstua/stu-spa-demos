@@ -250,8 +250,8 @@
         }
 
         .fullscreen-puzzle-area {
-            width: 90vw;
-            height: 80vh;
+            width: 400px;
+            height: 400px;
             border: 3px dashed #ddd;
             border-radius: 15px;
             background: #f9f9f9;
@@ -816,8 +816,15 @@
                 setTimeout(() => {
                     // Calculate scale factor to use more available space
                     const originalAreaSize = 400; // Original puzzle area size
-                    const fullscreenAreaSize = Math.min(this.fullscreenPuzzleArea.offsetWidth, this.fullscreenPuzzleArea.offsetHeight);
-                    const scaleFactor = Math.max(1, fullscreenAreaSize / originalAreaSize);
+                    const availableWidth = window.innerWidth * 0.9;
+                    const availableHeight = window.innerHeight * 0.8;
+                    const maxScale = Math.min(availableWidth, availableHeight) / originalAreaSize;
+                    const scaleFactor = Math.max(1, maxScale);
+                    
+                    // Resize the fullscreen puzzle area to match the scaled puzzle
+                    const scaledAreaSize = originalAreaSize * scaleFactor;
+                    this.fullscreenPuzzleArea.style.width = scaledAreaSize + 'px';
+                    this.fullscreenPuzzleArea.style.height = scaledAreaSize + 'px';
                     
                     // Copy pieces to fullscreen area with scaled dimensions and positions
                     this.fullscreenPuzzleArea.innerHTML = '';
