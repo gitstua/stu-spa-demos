@@ -71,6 +71,57 @@
             box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
 
+        .sample-images {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .sample-images h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .sample-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .sample-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+
+        .sample-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .sample-btn img {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 8px;
+        }
+
+        .sample-btn span {
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #555;
+        }
+
         .controls {
             display: flex;
             justify-content: center;
@@ -212,6 +263,24 @@
                 flex-direction: column;
                 align-items: center;
             }
+            
+            .sample-buttons {
+                gap: 10px;
+            }
+            
+            .sample-btn {
+                min-width: 80px;
+                padding: 8px;
+            }
+            
+            .sample-btn img {
+                width: 60px;
+                height: 45px;
+            }
+            
+            .sample-btn span {
+                font-size: 0.8em;
+            }
         }
     </style>
 </head>
@@ -223,6 +292,36 @@
             <div class="file-input-wrapper">
                 <input type="file" id="imageInput" class="file-input" accept="image/*">
                 <label for="imageInput" class="file-input-label">Choose Image</label>
+            </div>
+            
+            <div class="sample-images">
+                <h3>Or try these sample images:</h3>
+                <div class="sample-buttons">
+                    <button class="sample-btn" data-url="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop">
+                        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=150&h=100&fit=crop" alt="Mountain Landscape">
+                        <span>Mountain</span>
+                    </button>
+                    <button class="sample-btn" data-url="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop">
+                        <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=150&h=100&fit=crop" alt="Forest">
+                        <span>Forest</span>
+                    </button>
+                    <button class="sample-btn" data-url="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop">
+                        <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150&h=100&fit=crop" alt="Ocean">
+                        <span>Ocean</span>
+                    </button>
+                    <button class="sample-btn" data-url="https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&h=600&fit=crop">
+                        <img src="https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=150&h=100&fit=crop" alt="City Skyline">
+                        <span>City</span>
+                    </button>
+                    <button class="sample-btn" data-url="https://images.unsplash.com/photo-1519904981063-e0f6c7c2c5a5?w=800&h=600&fit=crop">
+                        <img src="https://images.unsplash.com/photo-1519904981063-e0f6c7c2c5a5?w=150&h=100&fit=crop" alt="Space">
+                        <span>Space</span>
+                    </button>
+                    <button class="sample-btn" data-url="https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800&h=600&fit=crop">
+                        <img src="https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=150&h=100&fit=crop" alt="Flowers">
+                        <span>Flowers</span>
+                    </button>
+                </div>
             </div>
             
             <div class="controls">
@@ -300,10 +399,39 @@
                 this.colsSlider.addEventListener('input', (e) => this.updateSliderValue(e, this.colsValue));
                 this.generateBtn.addEventListener('click', () => this.generatePuzzle());
                 this.resetBtn.addEventListener('click', () => this.resetPuzzle());
+                
+                // Add event listeners for sample image buttons
+                document.querySelectorAll('.sample-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => this.loadSampleImage(e.target.closest('.sample-btn').dataset.url));
+                });
             }
 
             updateSliderValue(e, valueElement) {
                 valueElement.textContent = e.target.value;
+            }
+
+            loadSampleImage(imageUrl) {
+                // Show loading state
+                this.generateBtn.disabled = true;
+                this.generateBtn.textContent = 'Loading...';
+                
+                this.image = new Image();
+                this.image.crossOrigin = 'anonymous'; // Enable CORS for external images
+                
+                this.image.onload = () => {
+                    this.originalImage.src = imageUrl;
+                    this.originalImageContainer.style.display = 'block';
+                    this.generateBtn.disabled = false;
+                    this.generateBtn.textContent = 'Generate Puzzle';
+                };
+                
+                this.image.onerror = () => {
+                    alert('Failed to load the sample image. Please try another one.');
+                    this.generateBtn.disabled = false;
+                    this.generateBtn.textContent = 'Generate Puzzle';
+                };
+                
+                this.image.src = imageUrl;
             }
 
             handleImageUpload(e) {

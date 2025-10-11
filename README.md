@@ -15,6 +15,7 @@ This repository contains various single-page application (SPA) demos to showcase
    - Works with browser navigation history
    - Responsive grid layout
 8. **MTB Trails**: Allows users to select a location on the map and view the trails they want to do. Users can save their favorite trails and view them in the side pane. The application stores data in the URL fragment, ensuring that favorites are preserved across sessions.
+9. **Jigsaw Puzzle Maker**: An interactive jigsaw puzzle application that allows users to upload images or choose from sample images, then split them into puzzle pieces with realistic interlocking tabs. Users can drag and drop pieces to solve the puzzle.
 
 ## Demos
 
@@ -104,6 +105,41 @@ The MTB Trails SPA allows users to select a location on the map and view the tra
 #### Links
 
 - [MTB Trails](mtb.html) - View and manage your favorite MTB trails.
+
+### Jigsaw Puzzle Maker
+An interactive jigsaw puzzle application that creates realistic puzzle pieces from uploaded images or sample images.
+
+#### Features
+
+- Upload custom images or choose from 6 sample images (Mountain, Forest, Ocean, City, Space, Flowers)
+- Customizable puzzle difficulty (2-8 rows and columns)
+- Realistic jigsaw pieces with interlocking tabs and slots
+- Drag and drop functionality for both mouse and touch devices
+- Smart piece snapping when placed near correct positions
+- Progress tracking showing pieces placed vs total pieces
+- Completion celebration animation
+- Responsive design for desktop and mobile
+
+#### Usage
+
+1. Open `jigsaw.html` in your browser
+2. Either upload your own image using "Choose Image" or click one of the sample image buttons
+3. Adjust the rows and columns sliders to set puzzle difficulty
+4. Click "Generate Puzzle" to create the jigsaw pieces
+5. Drag pieces around to solve the puzzle
+6. Pieces will snap into place when dragged near their correct positions
+7. Celebrate when you complete the puzzle!
+
+#### Technical Details
+
+- Uses HTML5 Canvas for creating jigsaw piece shapes
+- Implements proper CORS handling for external sample images
+- Touch and mouse event handling for mobile compatibility
+- Canvas-based image masking for realistic piece shapes
+
+#### Links
+
+- [Jigsaw Puzzle Maker](jigsaw.html) - Create and solve interactive jigsaw puzzles.
 
 #### Footer
 
