@@ -139,8 +139,7 @@
             cursor: grab;
             user-select: none;
             transition: transform 0.2s ease;
-            border: 2px solid #333;
-            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
 
         .puzzle-piece:hover {
@@ -336,11 +335,12 @@
                 this.puzzleArea.innerHTML = '';
                 this.pieces = [];
 
-                // Calculate piece dimensions
+                // Calculate piece dimensions with small gaps
+                const gap = 2;
                 const areaWidth = this.puzzleArea.offsetWidth - 20;
                 const areaHeight = this.puzzleArea.offsetHeight - 20;
-                this.pieceWidth = areaWidth / this.cols;
-                this.pieceHeight = areaHeight / this.rows;
+                this.pieceWidth = (areaWidth - gap * (this.cols - 1)) / this.cols;
+                this.pieceHeight = (areaHeight - gap * (this.rows - 1)) / this.rows;
 
                 // Create puzzle pieces
                 this.createPuzzlePieces();
@@ -378,19 +378,24 @@
                 const sourceWidth = sourceCanvas.width / this.cols;
                 const sourceHeight = sourceCanvas.height / this.rows;
 
-                pieceCanvas.width = sourceWidth;
-                pieceCanvas.height = sourceHeight;
+                // Make canvas larger to accommodate jigsaw tabs
+                const tabSize = Math.min(sourceWidth, sourceHeight) * 0.15;
+                const padding = tabSize * 2;
+                pieceCanvas.width = sourceWidth + padding;
+                pieceCanvas.height = sourceHeight + padding;
 
-                // Create jigsaw piece shape
-                this.drawJigsawShape(ctx, sourceWidth, sourceHeight);
-                ctx.clip();
-
-                // Draw the image portion
+                // Draw the image portion first
                 ctx.drawImage(
                     sourceCanvas,
                     sourceX, sourceY, sourceWidth, sourceHeight,
-                    0, 0, sourceWidth, sourceHeight
+                    padding/2, padding/2, sourceWidth, sourceHeight
                 );
+
+                // Create jigsaw shape mask
+                ctx.globalCompositeOperation = 'destination-in';
+                ctx.beginPath();
+                this.drawJigsawPieceShape(ctx, padding/2, padding/2, sourceWidth, sourceHeight, row, col);
+                ctx.fill();
 
                 // Create piece element
                 const pieceElement = document.createElement('div');
@@ -402,11 +407,12 @@
                 pieceElement.style.backgroundPosition = 'center';
 
                 // Store piece data
+                const gap = 2;
                 pieceElement.pieceData = {
                     row,
                     col,
-                    correctX: col * this.pieceWidth,
-                    correctY: row * this.pieceHeight,
+                    correctX: col * (this.pieceWidth + gap),
+                    correctY: row * (this.pieceHeight + gap),
                     isPlaced: false
                 };
 
@@ -414,50 +420,85 @@
                 return pieceElement;
             }
 
-            drawJigsawShape(ctx, width, height) {
-                const tabSize = Math.min(width, height) * 0.15;
-                const tabRadius = tabSize * 0.3;
+            drawJigsawPieceShape(ctx, x, y, width, height, row, col) {
+                const tabSize = Math.min(width, height) * 0.2;
                 
                 ctx.beginPath();
-                ctx.moveTo(0, height * 0.3);
                 
-                // Top side with tabs
-                this.drawTab(ctx, width * 0.3, 0, tabSize, tabRadius, 'out');
-                this.drawTab(ctx, width * 0.7, 0, tabSize, tabRadius, 'in');
-                ctx.lineTo(width, height * 0.3);
+                // Start from top-left corner
+                ctx.moveTo(x, y + height * 0.1);
+                
+                // Top side
+                if (row > 0) {
+                    // Has piece above - create tab
+                    ctx.lineTo(x + width * 0.3, y);
+                    this.drawJigsawTab(ctx, x + width * 0.5, y, tabSize, 'out');
+                    ctx.lineTo(x + width * 0.7, y);
+                    ctx.lineTo(x + width, y + height * 0.1);
+                } else {
+                    // Edge piece - straight line
+                    ctx.lineTo(x + width, y + height * 0.1);
+                }
                 
                 // Right side
-                ctx.lineTo(width * 0.7, height);
-                this.drawTab(ctx, width, height * 0.7, tabSize, tabRadius, 'out');
-                this.drawTab(ctx, width, height * 0.3, tabSize, tabRadius, 'in');
-                ctx.lineTo(width * 0.7, 0);
+                if (col < this.cols - 1) {
+                    // Has piece to the right - create tab
+                    ctx.lineTo(x + width, y + height * 0.3);
+                    this.drawJigsawTab(ctx, x + width, y + height * 0.5, tabSize, 'out');
+                    ctx.lineTo(x + width, y + height * 0.7);
+                    ctx.lineTo(x + width * 0.9, y + height);
+                } else {
+                    // Edge piece - straight line
+                    ctx.lineTo(x + width * 0.9, y + height);
+                }
                 
                 // Bottom side
-                ctx.lineTo(0, height * 0.7);
-                this.drawTab(ctx, width * 0.3, height, tabSize, tabRadius, 'in');
-                this.drawTab(ctx, width * 0.7, height, tabSize, tabRadius, 'out');
-                ctx.lineTo(0, height * 0.3);
+                if (row < this.rows - 1) {
+                    // Has piece below - create tab
+                    ctx.lineTo(x + width * 0.7, y + height);
+                    this.drawJigsawTab(ctx, x + width * 0.5, y + height, tabSize, 'in');
+                    ctx.lineTo(x + width * 0.3, y + height);
+                    ctx.lineTo(x, y + height * 0.9);
+                } else {
+                    // Edge piece - straight line
+                    ctx.lineTo(x, y + height * 0.9);
+                }
                 
                 // Left side
-                ctx.lineTo(width * 0.3, 0);
-                this.drawTab(ctx, 0, height * 0.3, tabSize, tabRadius, 'in');
-                this.drawTab(ctx, 0, height * 0.7, tabSize, tabRadius, 'out');
+                if (col > 0) {
+                    // Has piece to the left - create tab
+                    ctx.lineTo(x, y + height * 0.7);
+                    this.drawJigsawTab(ctx, x, y + height * 0.5, tabSize, 'in');
+                    ctx.lineTo(x, y + height * 0.3);
+                    ctx.lineTo(x + width * 0.1, y);
+                } else {
+                    // Edge piece - straight line
+                    ctx.lineTo(x + width * 0.1, y);
+                }
+                
                 ctx.closePath();
             }
 
-            drawTab(ctx, x, y, size, radius, type) {
+            drawJigsawTab(ctx, x, y, size, type) {
                 const offset = type === 'out' ? size : -size;
-                const controlOffset = size * 0.5;
+                const halfSize = size * 0.5;
                 
+                // Create a proper jigsaw tab shape
                 ctx.quadraticCurveTo(
-                    x + (type === 'out' ? controlOffset : -controlOffset),
-                    y + offset,
+                    x + halfSize,
+                    y + offset * 0.2,
                     x + offset,
-                    y + offset
+                    y + offset * 0.4
                 );
                 ctx.quadraticCurveTo(
                     x + offset,
-                    y + offset + (type === 'out' ? controlOffset : -controlOffset),
+                    y + offset * 0.6,
+                    x + halfSize,
+                    y + offset
+                );
+                ctx.quadraticCurveTo(
+                    x,
+                    y + offset * 0.8,
                     x,
                     y + size
                 );
