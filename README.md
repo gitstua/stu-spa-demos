@@ -111,7 +111,7 @@ An interactive jigsaw puzzle application that creates realistic puzzle pieces fr
 
 #### Features
 
-- Upload custom images or choose from 5 sample images (Mountain, Forest, Ocean, City, Flowers)
+- Upload custom images or choose from 7 sample images (Mountain, Forest, Ocean, City, Flowers, Bamboo, Kyoto)
 - Customizable puzzle difficulty (2-8 rows and columns)
 - Realistic jigsaw pieces with interlocking tabs and slots
 - Drag and drop functionality for both mouse and touch devices
