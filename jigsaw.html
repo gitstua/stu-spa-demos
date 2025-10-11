@@ -808,17 +808,47 @@
             enterFullscreen() {
                 if (this.pieces.length === 0) return;
                 
-                // Copy pieces to fullscreen area
-                this.fullscreenPuzzleArea.innerHTML = '';
-                this.pieces.forEach(piece => {
-                    const clonedPiece = piece.cloneNode(true);
-                    this.fullscreenPuzzleArea.appendChild(clonedPiece);
-                    this.setupPieceDragAndDrop(clonedPiece);
-                });
-                
-                // Show fullscreen mode
+                // Show fullscreen mode first to get proper dimensions
                 this.fullscreenMode.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
+                
+                // Wait for layout to update, then calculate scale factor
+                setTimeout(() => {
+                    // Calculate scale factor to use more available space
+                    const originalAreaSize = 400; // Original puzzle area size
+                    const fullscreenAreaSize = Math.min(this.fullscreenPuzzleArea.offsetWidth, this.fullscreenPuzzleArea.offsetHeight);
+                    const scaleFactor = Math.max(1, fullscreenAreaSize / originalAreaSize);
+                    
+                    // Copy pieces to fullscreen area with scaled dimensions and positions
+                    this.fullscreenPuzzleArea.innerHTML = '';
+                    this.pieces.forEach(piece => {
+                        const clonedPiece = piece.cloneNode(true);
+                        
+                        // Scale up piece size
+                        const originalWidth = parseFloat(piece.style.width) || this.pieceWidth;
+                        const originalHeight = parseFloat(piece.style.height) || this.pieceHeight;
+                        clonedPiece.style.width = (originalWidth * scaleFactor) + 'px';
+                        clonedPiece.style.height = (originalHeight * scaleFactor) + 'px';
+                        
+                        // Scale up position
+                        const originalLeft = parseFloat(piece.style.left) || 0;
+                        const originalTop = parseFloat(piece.style.top) || 0;
+                        clonedPiece.style.left = (originalLeft * scaleFactor) + 'px';
+                        clonedPiece.style.top = (originalTop * scaleFactor) + 'px';
+                        
+                        // Update piece data with scaled correct positions
+                        const pieceData = piece.pieceData;
+                        const gap = 2;
+                        clonedPiece.pieceData = {
+                            ...pieceData,
+                            correctX: pieceData.col * (this.pieceWidth * scaleFactor + gap * scaleFactor),
+                            correctY: pieceData.row * (this.pieceHeight * scaleFactor + gap * scaleFactor)
+                        };
+                        
+                        this.fullscreenPuzzleArea.appendChild(clonedPiece);
+                        this.setupPieceDragAndDrop(clonedPiece);
+                    });
+                }, 100);
             }
 
             exitFullscreen() {
