@@ -181,19 +181,27 @@
         }
 
         .cheating-piece {
-            border: 3px solid #ff6b6b !important;
-            animation: cheatPulse 0.5s ease-in-out infinite alternate;
+            border: 4px solid #ff6b6b !important;
+            animation: cheatPulse 0.8s ease-in-out infinite alternate;
             z-index: 1000 !important;
+            transform: scale(1.05) !important;
         }
 
         @keyframes cheatPulse {
             0% { 
                 border-color: #ff6b6b;
-                box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+                box-shadow: 0 0 15px rgba(255, 107, 107, 0.7), 0 0 30px rgba(255, 107, 107, 0.3);
+                transform: scale(1.05) rotate(1deg);
+            }
+            50% {
+                border-color: #ff5252;
+                box-shadow: 0 0 25px rgba(255, 107, 107, 0.9), 0 0 50px rgba(255, 107, 107, 0.5);
+                transform: scale(1.08) rotate(-1deg);
             }
             100% { 
-                border-color: #ff5252;
-                box-shadow: 0 0 20px rgba(255, 107, 107, 0.8);
+                border-color: #ff1744;
+                box-shadow: 0 0 35px rgba(255, 107, 107, 1), 0 0 70px rgba(255, 107, 107, 0.7);
+                transform: scale(1.05) rotate(1deg);
             }
         }
 
@@ -265,8 +273,24 @@
         }
 
         .puzzle-piece.placed {
-            border-color: #4CAF50;
-            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+            border: 3px solid #4CAF50;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+            animation: placedPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes placedPulse {
+            0% {
+                border-color: #4CAF50;
+                box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+            }
+            50% {
+                border-color: #45a049;
+                box-shadow: 0 0 25px rgba(76, 175, 80, 0.8);
+            }
+            100% {
+                border-color: #4CAF50;
+                box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+            }
         }
 
         .original-image {
@@ -340,6 +364,14 @@
             background: rgba(0,0,0,0.9);
         }
 
+        #fullscreenCheatBtn {
+            background: #ff6b6b !important;
+        }
+
+        #fullscreenCheatBtn:hover {
+            background: #ff5252 !important;
+        }
+
         .fullscreen-stats {
             position: absolute;
             bottom: 20px;
@@ -376,6 +408,38 @@
             0% { transform: translate(-50%, -50%) scale(0); }
             50% { transform: translate(-50%, -50%) scale(1.2); }
             100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .piece-just-placed {
+            animation: piecePlacementCelebration 0.8s ease-out;
+        }
+
+        @keyframes piecePlacementCelebration {
+            0% {
+                transform: scale(1);
+                border-color: #4CAF50;
+                box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+            }
+            25% {
+                transform: scale(1.15) rotate(2deg);
+                border-color: #45a049;
+                box-shadow: 0 0 40px rgba(76, 175, 80, 1);
+            }
+            50% {
+                transform: scale(1.1) rotate(-1deg);
+                border-color: #4CAF50;
+                box-shadow: 0 0 30px rgba(76, 175, 80, 0.9);
+            }
+            75% {
+                transform: scale(1.05) rotate(0.5deg);
+                border-color: #45a049;
+                box-shadow: 0 0 25px rgba(76, 175, 80, 0.8);
+            }
+            100% {
+                transform: scale(1);
+                border-color: #4CAF50;
+                box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+            }
         }
 
         .stats {
@@ -896,8 +960,13 @@
                         // Snap to correct position
                         piece.style.left = piece.pieceData.correctX + 'px';
                         piece.style.top = piece.pieceData.correctY + 'px';
-                        piece.classList.add('placed');
+                        piece.classList.add('placed', 'piece-just-placed');
                         piece.pieceData.isPlaced = true;
+                        
+                        // Remove celebration animation after it completes
+                        setTimeout(() => {
+                            piece.classList.remove('piece-just-placed');
+                        }, 800);
                         
                         // Check if we're in fullscreen mode
                         const isFullscreen = piece.parentElement.id === 'fullscreenPuzzleArea';
@@ -1133,8 +1202,13 @@
                         // Clean up after animation
                         setTimeout(() => {
                             piece.classList.remove('cheating-piece', 'piece-moving', 'piece-dragging-animation');
-                            piece.classList.add('placed');
+                            piece.classList.add('placed', 'piece-just-placed');
                             piece.pieceData.isPlaced = true;
+                            
+                            // Remove celebration animation after it completes
+                            setTimeout(() => {
+                                piece.classList.remove('piece-just-placed');
+                            }, 800);
                             
                             // Check if we're in fullscreen mode and update accordingly
                             const isFullscreen = piece.parentElement.id === 'fullscreenPuzzleArea';
