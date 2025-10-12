@@ -168,6 +168,65 @@
             transform: none;
         }
 
+        #cheatBtn {
+            background: #ff6b6b;
+        }
+
+        #cheatBtn:hover {
+            background: #ff5252;
+        }
+
+        #cheatBtn:disabled {
+            background: #ccc;
+        }
+
+        .cheating-piece {
+            border: 3px solid #ff6b6b !important;
+            animation: cheatPulse 0.5s ease-in-out infinite alternate;
+            z-index: 1000 !important;
+        }
+
+        @keyframes cheatPulse {
+            0% { 
+                border-color: #ff6b6b;
+                box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+            }
+            100% { 
+                border-color: #ff5252;
+                box-shadow: 0 0 20px rgba(255, 107, 107, 0.8);
+            }
+        }
+
+        .piece-moving {
+            transition: none;
+            cursor: grabbing !important;
+        }
+
+        .piece-dragging-animation {
+            animation: dragToPosition 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes dragToPosition {
+            0% {
+                transform: scale(1);
+            }
+            20% {
+                transform: scale(1.1) rotate(2deg);
+            }
+            40% {
+                transform: scale(1.05) rotate(-1deg);
+            }
+            60% {
+                transform: scale(1.08) rotate(1deg);
+            }
+            80% {
+                transform: scale(1.02) rotate(-0.5deg);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
         .puzzle-container {
             display: flex;
             gap: 30px;
@@ -281,6 +340,38 @@
             background: rgba(0,0,0,0.9);
         }
 
+        .fullscreen-stats {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            font-weight: bold;
+            z-index: 100;
+        }
+
+        #fullscreenCompletionMessage {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            z-index: 10000;
+            display: none;
+            animation: celebration 0.5s ease-out;
+        }
+
         @keyframes celebration {
             0% { transform: translate(-50%, -50%) scale(0); }
             50% { transform: translate(-50%, -50%) scale(1.2); }
@@ -387,6 +478,7 @@
                 </div>
                 <button id="generateBtn" disabled>Generate Puzzle</button>
                 <button id="fullscreenBtn" disabled>Fullscreen</button>
+                <button id="cheatBtn" disabled>😬</button>
                 <button id="resetBtn" disabled>Reset</button>
             </div>
         </div>
@@ -414,9 +506,17 @@
     <div class="fullscreen-mode" id="fullscreenMode">
         <div class="fullscreen-controls">
             <button class="exit-fullscreen-btn" id="exitFullscreenBtn">Exit Fullscreen</button>
+            <button class="exit-fullscreen-btn" id="fullscreenCheatBtn" style="margin-left: 10px;">😬</button>
         </div>
         <div class="fullscreen-puzzle-area" id="fullscreenPuzzleArea">
         </div>
+        <div class="fullscreen-stats" id="fullscreenStats">
+            <p>Pieces placed: <span id="fullscreenPlacedCount">0</span> / <span id="fullscreenTotalCount">0</span></p>
+        </div>
+    </div>
+
+    <div class="completion-message" id="fullscreenCompletionMessage">
+        🎉 Congratulations! You completed the puzzle! 🎉
     </div>
 
     <script>
@@ -443,6 +543,7 @@
                 this.colsValue = document.getElementById('colsValue');
                 this.generateBtn = document.getElementById('generateBtn');
                 this.fullscreenBtn = document.getElementById('fullscreenBtn');
+                this.cheatBtn = document.getElementById('cheatBtn');
                 this.resetBtn = document.getElementById('resetBtn');
                 this.puzzleArea = document.getElementById('puzzleArea');
                 this.originalImageContainer = document.getElementById('originalImageContainer');
@@ -454,6 +555,11 @@
                 this.fullscreenMode = document.getElementById('fullscreenMode');
                 this.fullscreenPuzzleArea = document.getElementById('fullscreenPuzzleArea');
                 this.exitFullscreenBtn = document.getElementById('exitFullscreenBtn');
+                this.fullscreenCheatBtn = document.getElementById('fullscreenCheatBtn');
+                this.fullscreenStats = document.getElementById('fullscreenStats');
+                this.fullscreenPlacedCount = document.getElementById('fullscreenPlacedCount');
+                this.fullscreenTotalCount = document.getElementById('fullscreenTotalCount');
+                this.fullscreenCompletionMessage = document.getElementById('fullscreenCompletionMessage');
             }
 
             setupEventListeners() {
@@ -462,6 +568,16 @@
                 this.colsSlider.addEventListener('input', (e) => this.updateSliderValue(e, this.colsValue));
                 this.generateBtn.addEventListener('click', () => this.generatePuzzle());
                 this.fullscreenBtn.addEventListener('click', () => this.enterFullscreen());
+                this.cheatBtn.addEventListener('mousedown', () => this.startCheat());
+                this.cheatBtn.addEventListener('mouseup', () => this.stopCheat());
+                this.cheatBtn.addEventListener('mouseleave', () => this.stopCheat());
+                this.cheatBtn.addEventListener('touchstart', () => this.startCheat());
+                this.cheatBtn.addEventListener('touchend', () => this.stopCheat());
+                this.fullscreenCheatBtn.addEventListener('mousedown', () => this.startCheat());
+                this.fullscreenCheatBtn.addEventListener('mouseup', () => this.stopCheat());
+                this.fullscreenCheatBtn.addEventListener('mouseleave', () => this.stopCheat());
+                this.fullscreenCheatBtn.addEventListener('touchstart', () => this.startCheat());
+                this.fullscreenCheatBtn.addEventListener('touchend', () => this.stopCheat());
                 this.resetBtn.addEventListener('click', () => this.resetPuzzle());
                 this.exitFullscreenBtn.addEventListener('click', () => this.exitFullscreen());
                 
@@ -545,6 +661,7 @@
                 this.updateStats();
                 this.resetBtn.disabled = false;
                 this.fullscreenBtn.disabled = false;
+                this.cheatBtn.disabled = false;
             }
 
             createPuzzlePieces() {
@@ -782,16 +899,72 @@
                         piece.classList.add('placed');
                         piece.pieceData.isPlaced = true;
                         
-                        puzzle.updateStats();
-                        puzzle.checkCompletion();
+                        // Check if we're in fullscreen mode
+                        const isFullscreen = piece.parentElement.id === 'fullscreenPuzzleArea';
+                        const puzzleInstance = isFullscreen ? 
+                            document.querySelector('#fullscreenMode').puzzleInstance : puzzle;
+                        
+                        if (isFullscreen) {
+                            puzzleInstance.updateFullscreenStats();
+                            puzzleInstance.checkFullscreenCompletion();
+                        } else {
+                            puzzleInstance.updateStats();
+                            puzzleInstance.checkCompletion();
+                        }
                     }
                 }
             }
 
             updateStats() {
-                this.placedPieces = this.pieces.filter(piece => piece.pieceData.isPlaced).length;
+                // Check if we're in fullscreen mode
+                const isFullscreen = this.fullscreenMode.style.display === 'flex';
+                const puzzleArea = isFullscreen ? this.fullscreenPuzzleArea : this.puzzleArea;
+                const pieces = Array.from(puzzleArea.querySelectorAll('.puzzle-piece'));
+                
+                this.placedPieces = pieces.filter(piece => piece.pieceData.isPlaced).length;
                 this.placedCount.textContent = this.placedPieces;
                 this.totalCount.textContent = this.totalPieces;
+            }
+
+            updateFullscreenStats() {
+                const pieces = Array.from(this.fullscreenPuzzleArea.querySelectorAll('.puzzle-piece'));
+                const placedPieces = pieces.filter(piece => piece.pieceData.isPlaced).length;
+                this.fullscreenPlacedCount.textContent = placedPieces;
+                this.fullscreenTotalCount.textContent = this.totalPieces;
+            }
+
+            syncPositionsFromFullscreen() {
+                if (!this.fullscreenMode.puzzleInstance) return;
+                
+                const fullscreenPieces = Array.from(this.fullscreenPuzzleArea.querySelectorAll('.puzzle-piece'));
+                const scaleFactor = this.fullscreenMode.scaleFactor || 1;
+                
+                fullscreenPieces.forEach(fullscreenPiece => {
+                    // Find corresponding regular piece by row/col
+                    const pieceData = fullscreenPiece.pieceData;
+                    const regularPiece = this.pieces.find(piece => 
+                        piece.pieceData.row === pieceData.row && 
+                        piece.pieceData.col === pieceData.col
+                    );
+                    
+                    if (regularPiece) {
+                        // Scale down position
+                        const scaledLeft = parseFloat(fullscreenPiece.style.left) || 0;
+                        const scaledTop = parseFloat(fullscreenPiece.style.top) || 0;
+                        
+                        regularPiece.style.left = (scaledLeft / scaleFactor) + 'px';
+                        regularPiece.style.top = (scaledTop / scaleFactor) + 'px';
+                        
+                        // Sync placed state
+                        if (fullscreenPiece.classList.contains('placed')) {
+                            regularPiece.classList.add('placed');
+                            regularPiece.pieceData.isPlaced = true;
+                        } else {
+                            regularPiece.classList.remove('placed');
+                            regularPiece.pieceData.isPlaced = false;
+                        }
+                    }
+                });
             }
 
             checkCompletion() {
@@ -805,8 +978,25 @@
                 }
             }
 
+            checkFullscreenCompletion() {
+                const pieces = Array.from(this.fullscreenPuzzleArea.querySelectorAll('.puzzle-piece'));
+                const placedPieces = pieces.filter(piece => piece.pieceData.isPlaced).length;
+                
+                if (placedPieces === this.totalPieces) {
+                    setTimeout(() => {
+                        this.fullscreenCompletionMessage.style.display = 'block';
+                        setTimeout(() => {
+                            this.fullscreenCompletionMessage.style.display = 'none';
+                        }, 3000);
+                    }, 500);
+                }
+            }
+
             enterFullscreen() {
-                if (this.pieces.length === 0) return;
+                if (!this.pieces || this.pieces.length === 0) {
+                    console.log('No pieces available for fullscreen mode');
+                    return;
+                }
                 
                 // Show fullscreen mode first to get proper dimensions
                 this.fullscreenMode.style.display = 'flex';
@@ -828,6 +1018,11 @@
                     
                     // Copy pieces to fullscreen area with scaled dimensions and positions
                     this.fullscreenPuzzleArea.innerHTML = '';
+                    
+                    // Store reference to puzzle instance and scale factor for drag and drop
+                    this.fullscreenMode.puzzleInstance = this;
+                    this.fullscreenMode.scaleFactor = scaleFactor;
+                    
                     this.pieces.forEach(piece => {
                         const clonedPiece = piece.cloneNode(true);
                         
@@ -852,15 +1047,144 @@
                             correctY: pieceData.row * (this.pieceHeight * scaleFactor + gap * scaleFactor)
                         };
                         
+                        // Copy the placed state
+                        if (piece.classList.contains('placed')) {
+                            clonedPiece.classList.add('placed');
+                        }
+                        
                         this.fullscreenPuzzleArea.appendChild(clonedPiece);
                         this.setupPieceDragAndDrop(clonedPiece);
                     });
+                    
+                    // Update fullscreen stats
+                    this.updateFullscreenStats();
                 }, 100);
             }
 
             exitFullscreen() {
+                // Sync positions back to regular puzzle
+                this.syncPositionsFromFullscreen();
+                
                 this.fullscreenMode.style.display = 'none';
                 document.body.style.overflow = 'auto';
+                
+                // Update regular stats
+                this.updateStats();
+            }
+
+            startCheat() {
+                // Determine which puzzle area we're working with
+                const isFullscreen = this.fullscreenMode.style.display === 'flex';
+                const puzzleArea = isFullscreen ? this.fullscreenPuzzleArea : this.puzzleArea;
+                const pieces = Array.from(puzzleArea.querySelectorAll('.puzzle-piece'));
+                
+                if (pieces.length === 0) return;
+                
+                // Find all unplaced pieces
+                const unplacedPieces = pieces.filter(piece => !piece.pieceData.isPlaced);
+                if (unplacedPieces.length === 0) return;
+                
+                // Select a random unplaced piece
+                const randomPiece = unplacedPieces[Math.floor(Math.random() * unplacedPieces.length)];
+                this.animatePieceToCorrectPosition(randomPiece);
+                
+                // Start auto-solve if button is held down
+                this.cheatInterval = setInterval(() => {
+                    const remainingUnplacedPieces = pieces.filter(piece => !piece.pieceData.isPlaced);
+                    if (remainingUnplacedPieces.length > 0) {
+                        const randomPiece = remainingUnplacedPieces[Math.floor(Math.random() * remainingUnplacedPieces.length)];
+                        this.animatePieceToCorrectPosition(randomPiece);
+                    } else {
+                        this.stopCheat();
+                    }
+                }, 600); // Slower interval to allow animation to complete
+            }
+
+            animatePieceToCorrectPosition(piece) {
+                // Add cheating animation class
+                piece.classList.add('cheating-piece');
+                piece.classList.add('piece-moving');
+                
+                // Get current and target positions
+                const currentLeft = parseFloat(piece.style.left) || 0;
+                const currentTop = parseFloat(piece.style.top) || 0;
+                const targetLeft = piece.pieceData.correctX;
+                const targetTop = piece.pieceData.correctY;
+                
+                // Calculate distance for realistic movement
+                const deltaX = targetLeft - currentLeft;
+                const deltaY = targetTop - currentTop;
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                
+                // Create realistic dragging path with slight overshoot
+                const steps = Math.max(20, Math.floor(distance / 10));
+                const stepSize = 1 / steps;
+                
+                let currentStep = 0;
+                const animateStep = () => {
+                    if (currentStep >= 1) {
+                        // Final position
+                        piece.style.left = targetLeft + 'px';
+                        piece.style.top = targetTop + 'px';
+                        
+                        // Add dragging animation effect
+                        piece.classList.add('piece-dragging-animation');
+                        
+                        // Clean up after animation
+                        setTimeout(() => {
+                            piece.classList.remove('cheating-piece', 'piece-moving', 'piece-dragging-animation');
+                            piece.classList.add('placed');
+                            piece.pieceData.isPlaced = true;
+                            
+                            // Check if we're in fullscreen mode and update accordingly
+                            const isFullscreen = piece.parentElement.id === 'fullscreenPuzzleArea';
+                            const puzzleInstance = isFullscreen ? 
+                                document.querySelector('#fullscreenMode').puzzleInstance : this;
+                            
+                            if (isFullscreen) {
+                                puzzleInstance.updateFullscreenStats();
+                                puzzleInstance.checkFullscreenCompletion();
+                            } else {
+                                puzzleInstance.updateStats();
+                                puzzleInstance.checkCompletion();
+                            }
+                        }, 1000);
+                        return;
+                    }
+                    
+                    // Easing function for natural movement
+                    const easedStep = this.easeInOutCubic(currentStep);
+                    
+                    // Add slight overshoot and correction
+                    let overshootFactor = 1;
+                    if (currentStep > 0.7) {
+                        overshootFactor = 1 + (0.1 * Math.sin((currentStep - 0.7) * Math.PI * 3.33));
+                    }
+                    
+                    // Calculate intermediate position
+                    const intermediateX = currentLeft + (deltaX * easedStep * overshootFactor);
+                    const intermediateY = currentTop + (deltaY * easedStep * overshootFactor);
+                    
+                    // Apply position
+                    piece.style.left = intermediateX + 'px';
+                    piece.style.top = intermediateY + 'px';
+                    
+                    currentStep += stepSize;
+                    requestAnimationFrame(animateStep);
+                };
+                
+                animateStep();
+            }
+
+            easeInOutCubic(t) {
+                return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            }
+
+            stopCheat() {
+                if (this.cheatInterval) {
+                    clearInterval(this.cheatInterval);
+                    this.cheatInterval = null;
+                }
             }
 
             resetPuzzle() {
@@ -874,6 +1198,10 @@
                 this.generateBtn.disabled = true;
                 this.resetBtn.disabled = true;
                 this.fullscreenBtn.disabled = true;
+                this.cheatBtn.disabled = true;
+                
+                // Stop any active cheat
+                this.stopCheat();
                 
                 // Reset sliders to 4x4
                 this.rowsSlider.value = 4;
