@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('test dummy chatbot', async ({ page }) => {
-  await page.goto('http://127.0.0.1:5500/dummy-chatbot.html');
+  await page.goto('http://127.0.0.1:8080/dummy-chatbot.html');
   await page.getByRole('textbox', { name: 'Type your message...' }).click();
   await page.getByRole('textbox', { name: 'Type your message...' }).fill('test prompt from user... how much can i spend??');
   await page.getByRole('button', { name: 'Send' }).click();
