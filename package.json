@@ -1,26 +1,24 @@
 {
   "name": "stu-spa-demos",
   "version": "1.0.0",
-<<<<<<< HEAD
   "description": "Collection of single-page app demos",
+  "main": "index.js",
   "scripts": {
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui"
   },
-  "devDependencies": {
-    "@playwright/test": "^1.40.0",
-    "serve": "^14.2.1"
-=======
-  "description": "## Description This repository contains various single-page application (SPA) demos to showcase different functionalities. Below are the current demos included in this repository:",
-  "main": "index.js",
-  "scripts": {},
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.56.0",
+    "@types/node": "^24.7.2",
+    "serve": "^14.2.1"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
     "@types/node": "^24.7.2"
->>>>>>> 8eca291 (Add Playwright testing framework and initial test for dummy chatbot functionality)
-  }
+    }
 }
