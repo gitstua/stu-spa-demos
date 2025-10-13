@@ -7,14 +7,16 @@
     "pretest": "node test-setup.js",
     "test": "playwright test",
     "test:headed": "playwright test --headed",
-    "test:ui": "playwright test --ui"
+    "test:ui": "playwright test --ui",
+    "serve": "http-server . -p 3000"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "^1.56.0",
+    "@playwright/test": "^1.40.0",
     "@types/node": "^24.7.2",
+    "http-server": "^14.1.1",
     "serve": "^14.2.1"
   }
 }

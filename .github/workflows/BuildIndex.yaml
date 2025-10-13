@@ -1,14 +1,7 @@
 name: Build Index
 
 on:
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - 'index.html'
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   contents: write

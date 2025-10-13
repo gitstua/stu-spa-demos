@@ -17,6 +17,11 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:8080',
     trace: 'on-first-retry',
+    // Enable video recording for all test runs with 800x600 resolution
+    video: {
+      mode: 'on',
+      size: { width: 800, height: 600 },
+    },
   },
   projects: [
     {
