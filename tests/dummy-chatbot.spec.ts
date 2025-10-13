@@ -113,4 +113,24 @@ test.describe('Dummy Chatbot SPA', () => {
     await expect(explanation).toContainText('How it works');
     await expect(explanation).toContainText('typewriter effect');
   });
+
+  test.describe.parallel('Load testing', () => {
+    // Create multiple separate tests that will run in parallel
+    for (let user = 0; user < 5; user++) {
+      test(`parallel load test - user ${user}`, async ({ page }) => {
+        await page.goto('/dummy-chatbot.html');
+        
+        // Each "user" sends different messages
+        for (let i = 0; i < 5; i++) {
+          await page.locator('#prompt').fill(`User ${user} Message ${i}`);
+          await page.locator('button.send-btn').click();
+          await page.waitForTimeout(300); // Reduced wait time
+        }
+        
+        const allMessages = page.locator('.chat-msg');
+        const messageCount = await allMessages.count();
+        expect(messageCount).toBeGreaterThan(10); // 5 user messages + 5 bot replies + welcome
+      });
+    }
+  });
 });

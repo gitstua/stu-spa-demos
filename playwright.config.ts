@@ -37,11 +37,13 @@ export default defineConfig({
     command: 'npx serve .',
     url: 'http://localhost:8080',
     reuseExistingServer: !process.env.CI,
-    // Add caching support for CI environments
+    timeout: 30000, // Increase timeout to 30 seconds for slower machines
     cwd: process.cwd(),
     env: {
       // Add cache control headers for CI
       SERVE_CACHE_CONTROL: process.env.CI ? 'public, max-age=3600' : 'no-cache',
+      // Ensure consistent port usage
+      PORT: '8080',
     },
   },
 });
