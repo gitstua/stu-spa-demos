@@ -20,32 +20,28 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
     },
-    /* Test against mobile viewports. */
+    // Uncomment for additional browsers when needed
     // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'] },
     // },
     // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'] },
     // },
   ],
   webServer: {
     command: 'npx serve .',
     url: 'http://localhost:8080',
     reuseExistingServer: !process.env.CI,
+    // Add caching support for CI environments
+    cwd: process.cwd(),
+    env: {
+      // Add cache control headers for CI
+      SERVE_CACHE_CONTROL: process.env.CI ? 'public, max-age=3600' : 'no-cache',
+    },
   },
 });
