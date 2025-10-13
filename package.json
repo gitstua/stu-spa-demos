@@ -1,0 +1,14 @@
+{
+  "name": "stu-spa-demos",
+  "version": "1.0.0",
+  "description": "Collection of single-page app demos",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "serve": "^14.2.1"
+  }
+}
