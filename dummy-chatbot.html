@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dummy Chatbot</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #0f172a;
+            --panel: rgba(15, 23, 42, 0.82);
+            --panel-border: rgba(148, 163, 184, 0.35);
+            --highlight: #38bdf8;
+            --text: #e2e8f0;
+            --muted: rgba(226, 232, 240, 0.7);
+        }
+        body {
+            margin: 0;
+            padding: 96px 22px 140px;
+            font-family: "Inter", "Segoe UI", Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+        }
+        main {
+            width: min(520px, 100%);
+            display: grid;
+            gap: 28px;
+        }
+        .back-home {
+            font-weight: 600;
+            text-decoration: none;
+            color: var(--highlight);
+            margin-bottom: 18px;
+            display: inline-block;
+        }
+        .chat-panel {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 22px;
+            padding: 28px;
+            display: grid;
+            gap: 18px;
+        }
+        .chat-window {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 16px;
+            border: 1px solid var(--panel-border);
+            padding: 18px;
+            min-height: 180px;
+            max-height: 320px;
+            overflow-y: auto;
+            display: grid;
+            gap: 10px;
+            font-size: 15px;
+        }
+        .chat-msg {
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(56, 189, 248, 0.18);
+            border: 1px solid rgba(56, 189, 248, 0.28);
+            margin-right: auto;
+            max-width: 80%;
+        }
+        .chat-msg.user {
+            background: rgba(96, 165, 250, 0.2);
+            border-color: rgba(96, 165, 250, 0.35);
+            margin-left: auto;
+            margin-right: 0;
+        }
+        form {
+            display: flex;
+            gap: 10px;
+        }
+        .prompt-input {
+            flex: 1;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            background: rgba(15, 23, 42, 0.6);
+            color: inherit;
+            padding: 14px 16px;
+            font-size: 15px;
+        }
+        .send-btn {
+            border-radius: 14px;
+            border: none;
+            background: rgba(56, 189, 248, 0.9);
+            color: #0b1120;
+            font-weight: 600;
+            padding: 14px 20px;
+            cursor: pointer;
+        }
+        footer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--panel);
+            color: var(--muted);
+            font-size: 13px;
+            padding: 18px 0 12px;
+            text-align: center;
+            box-shadow: 0 -2px 18px rgba(15, 23, 42, 0.18);
+        }
+        .explanation {
+            margin-top: 32px;
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.7;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <a class="back-home" href="/">← back to home</a>
+        <section class="chat-panel">
+            <h2>Dummy Chatbot</h2>
+            <div class="chat-window" id="chat-window">
+                <div class="chat-msg">Welcome! Type a message and I'll reply word by word.</div>
+            </div>
+            <form id="chat-form">
+                <input class="prompt-input" id="prompt" placeholder="Type your message..." autocomplete="off">
+                <button class="send-btn" type="submit">Send</button>
+            </form>
+        </section>
+        <div class="explanation">
+            <strong>How it works:</strong><br>
+            This SPA mimics a chatbot interface. When you send a prompt, the bot replies with a canned response, revealing each word one at a time for a typewriter effect. All state is stored in the URL fragment. No real AI is involved.
+        </div>
+    </main>
+    <footer id="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot &mdash; v1</footer>
+    <script>
+        let version = 1;
+        const footer = document.getElementById('footer');
+        function bumpVersion() {
+            version++;
+            footer.innerHTML = `Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot &mdash; v${version}`;
+        }
+
+        const chatWindow = document.getElementById('chat-window');
+        const chatForm = document.getElementById('chat-form');
+        const promptInput = document.getElementById('prompt');
+
+        const cannedReplies = [
+            "I'm just a dummy bot, but I can pretend to chat!",
+            "This is a canned response, delivered word by word.",
+            "Try asking me anything, and I'll reply in slow motion.",
+            "Bots like me are great for demos, not for advice!"
+        ];
+        function getReply(prompt) {
+            // Pick a reply based on prompt length for variety
+            const idx = prompt.length % cannedReplies.length;
+            return cannedReplies[idx];
+        }
+        function appendMsg(text, role) {
+            const msg = document.createElement('div');
+            msg.className = 'chat-msg' + (role === 'user' ? ' user' : '');
+            msg.textContent = text;
+            chatWindow.appendChild(msg);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+        async function typeReply(reply) {
+            let words = reply.split(/\s+/);
+            let current = '';
+            for (let i = 0; i < words.length; i++) {
+                current += (i > 0 ? ' ' : '') + words[i];
+                if (i === 0) appendMsg('', 'bot');
+                chatWindow.lastChild.textContent = current;
+                await new Promise(r => setTimeout(r, 220));
+            }
+        }
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const value = promptInput.value.trim();
+            if (!value) return;
+            appendMsg(value, 'user');
+            promptInput.value = '';
+            bumpVersion();
+            // Store last prompt in URL fragment
+            window.location.hash = encodeURIComponent(value);
+            const reply = getReply(value);
+            await typeReply(reply);
+        });
+        // Restore last prompt from hash
+        window.addEventListener('load', () => {
+            const hash = decodeURIComponent(window.location.hash.slice(1));
+            if (hash) {
+                appendMsg(hash, 'user');
+                const reply = getReply(hash);
+                typeReply(reply);
+            }
+        });
+    </script>
+</body>
+</html>
