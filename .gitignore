@@ -1,6 +1,17 @@
 .DS_Store
+<<<<<<< HEAD
 node_modules/
 package-lock.json
 playwright-report/
 test-results/
 
+=======
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+>>>>>>> 8eca291 (Add Playwright testing framework and initial test for dummy chatbot functionality)
