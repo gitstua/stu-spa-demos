@@ -1,0 +1,14 @@
+{
+  "name": "stu-spa-demos",
+  "version": "1.0.0",
+  "description": "## Description This repository contains various single-page application (SPA) demos to showcase different functionalities. Below are the current demos included in this repository:",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@types/node": "^24.7.2"
+  }
+}
