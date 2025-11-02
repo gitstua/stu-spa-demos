@@ -1,0 +1,18 @@
+{
+  "name": "electricity-analyzer",
+  "version": "1.0.0",
+  "description": "ActewAGL EvoEnergy electricity usage analyzer",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "serve": "node server.js"
+  },
+  "keywords": [
+    "electricity",
+    "energy",
+    "analyzer",
+    "actewagl"
+  ],
+  "author": "",
+  "license": "MIT"
+}

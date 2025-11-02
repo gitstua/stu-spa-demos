@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electricity Usage Analyzer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 0.95em;
+        }
+
+        .upload-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .file-upload {
+            border: 3px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f7fafc;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+
+        .file-upload.active {
+            border-color: #667eea;
+            background: #e6f2ff;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .rate-plan-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .rate-plan-section.visible {
+            display: block;
+        }
+
+        .rate-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .input-group input {
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .peak-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e0;
+            transition: 0.4s;
+            border-radius: 26px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .dashboard {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .dashboard.visible {
+            display: grid;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 0.9em;
+        }
+
+        .cost-breakdown {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .cost-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            color: #4a5568;
+        }
+
+        .cost-item .label {
+            font-weight: 500;
+        }
+
+        .cost-item .value {
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .chart-container.visible {
+            display: block;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            margin-top: 20px;
+        }
+
+        .info-section {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .info-section.visible {
+            display: block;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .info-item {
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-item strong {
+            display: block;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .info-item span {
+            color: #4a5568;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5a67d8;
+        }
+
+        .peak-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .peak-indicator.peak {
+            background: #f56565;
+        }
+
+        .peak-indicator.offpeak {
+            background: #48bb78;
+        }
+
+        .peak-indicator.shoulder {
+            background: #ed8936;
+        }
+
+        @media (max-width: 768px) {
+            .rate-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Toast notification styles */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            border-left: 4px solid #667eea;
+            transform: translateX(400px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            max-width: 350px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast-content #toast-icon {
+            font-size: 1.2em;
+        }
+
+        .toast-content #toast-message {
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .toast.success {
+            border-left-color: #48bb78;
+        }
+
+        .toast.error {
+            border-left-color: #f56565;
+        }
+
+        /* CSV Data Grid Section */
+        .data-grid-section {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .data-grid-section.visible {
+            display: block;
+        }
+
+        .data-grid-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .data-grid-header h3 {
+            color: #2d3748;
+            margin: 0;
+        }
+
+        .toggle-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .toggle-btn:hover {
+            background: #5a67d8;
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s;
+        }
+
+        .data-grid-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .data-grid-content.expanded {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .data-grid-table-container {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .data-grid-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+
+        .data-grid-table th,
+        .data-grid-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .data-grid-table th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-grid-table tr:nth-child(even) {
+            background: #f7fafc;
+        }
+
+        .data-grid-table tr:hover {
+            background: #edf2f7;
+        }
+
+        .data-grid-table td {
+            color: #2d3748;
+        }
+
+        .data-grid-table td:nth-child(1) {
+            font-weight: 500;
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .data-grid-table {
+                font-size: 0.75em;
+            }
+
+            .data-grid-table th,
+            .data-grid-table td {
+                padding: 6px 8px;
+            }
+
+            .data-grid-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ Electricity Usage Analyzer</h1>
+            <p class="subtitle">Upload your EvoEnergy / ActewAGL CSV file to analyze usage patterns and calculate costs. NOTE: This tool performs all calculations in your browser - no data is sent to any server. </p>
+        </div>
+
+        <div class="upload-section">
+            <div class="file-upload" id="fileUpload">
+                <div class="upload-icon">📁</div>
+                <h3>Drop your CSV file here or click to browse</h3>
+                <p class="subtitle">Supports EvoEnergy / ActewAGL SUMMARY CSV format</p>
+                <input type="file" id="fileInput" accept=".csv">
+            </div>
+        </div>
+
+        <div class="rate-plan-section" id="ratePlanSection">
+            <h3>⚙️ ActewAGL EvoEnergy Saver Plan</h3>
+            <p class="subtitle" style="margin-bottom: 15px;">Effective from 1 July 2025</p>
+
+            <div style="background: #f7fafc; padding: 20px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid #667eea;">
+                <h4 style="margin-bottom: 12px; color: #2d3748;">Time Periods</h4>
+                <div style="display: grid; gap: 8px; font-size: 0.9em;">
+                    <div><span class="peak-indicator peak"></span> <strong>Peak:</strong> 6:00 AM - 11:59 PM (all days except weekend charging window)</div>
+                    <div><span class="peak-indicator offpeak"></span> <strong>Off-Peak:</strong> 12:00 AM - 5:59 AM (every day)</div>
+                    <div style="background: #e6fffa; padding: 8px; border-radius: 6px; margin-top: 4px;">
+                        <span class="peak-indicator" style="background: #38b2ac;"></span> <strong>FREE Charging Window:</strong> 12:00 PM - 2:00 PM (weekends only)
+                    </div>
+                </div>
+            </div>
+
+            <div class="peak-toggle">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="peakOffPeakToggle" checked>
+                    <span class="slider"></span>
+                </label>
+                <label for="peakOffPeakToggle">Enable Time-of-Use Rates</label>
+            </div>
+            <div class="rate-inputs" id="rateInputs">
+                <div class="input-group">
+                    <label>Peak Rate ($/kWh) <span class="peak-indicator peak"></span></label>
+                    <input type="number" id="peakRate" value="0.301897" step="0.000001">
+                </div>
+                <div class="input-group">
+                    <label>Off-Peak Rate ($/kWh) <span class="peak-indicator offpeak"></span></label>
+                    <input type="number" id="offPeakRate" value="0.120000" step="0.000001">
+                </div>
+                <div class="input-group">
+                    <label>Weekend Charging ($/kWh) <span class="peak-indicator" style="background: #38b2ac;"></span></label>
+                    <input type="number" id="weekendRate" value="0.000000" step="0.000001">
+                </div>
+                <div class="input-group">
+                    <label>Daily Supply Charge ($)</label>
+                    <input type="number" id="supplyCharge" value="1.331000" step="0.001">
+                </div>
+            </div>
+            <div class="rate-inputs" id="flatRateInputs" style="display: none;">
+                <div class="input-group">
+                    <label>Flat Rate ($/kWh)</label>
+                    <input type="number" id="flatRate" value="0.25" step="0.01">
+                </div>
+                <div class="input-group">
+                    <label>Daily Supply Charge ($)</label>
+                    <input type="number" id="flatSupplyCharge" value="1.331" step="0.001">
+                </div>
+            </div>
+            <div style="margin-top: 20px;">
+                <button onclick="calculateCosts()">Calculate Costs</button>
+            </div>
+        </div>
+
+        <div class="dashboard" id="dashboard">
+            <div class="card">
+                <h3>📊 Total Usage</h3>
+                <div class="stat-value" id="totalUsage">0</div>
+                <div class="stat-label">kWh</div>
+            </div>
+            <div class="card">
+                <h3>💰 Estimated Cost</h3>
+                <div class="stat-value" id="totalCost">$0</div>
+                <div class="stat-label">Total</div>
+                <div class="cost-breakdown" id="costBreakdown"></div>
+            </div>
+            <div class="card">
+                <h3>📈 Average Daily Usage</h3>
+                <div class="stat-value" id="avgDaily">0</div>
+                <div class="stat-label">kWh/day</div>
+            </div>
+            <div class="card">
+                <h3>🔋 Free Charging Usage</h3>
+                <div class="stat-value" id="freeUsage">0</div>
+                <div class="stat-label">kWh (Sat/Sun 12-2pm)</div>
+            </div>
+        </div>
+
+        <div class="info-section" id="infoSection">
+            <h3>📋 Billing Period Information</h3>
+            <div class="info-grid" id="infoGrid"></div>
+        </div>
+
+        <div class="chart-container" id="dailyChart">
+            <h3>📅 Daily Usage Breakdown</h3>
+            <div class="chart-wrapper">
+                <canvas id="dailyChartCanvas"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-container" id="hourlyChart">
+            <h3>🕐 Hourly Usage Pattern</h3>
+            <div class="chart-wrapper">
+                <canvas id="hourlyChartCanvas"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-container" id="peakChart">
+            <h3>⏰ Usage by Rate Period</h3>
+            <div class="chart-wrapper">
+                <canvas id="peakChartCanvas"></canvas>
+            </div>
+        </div>
+
+        <!-- CSV Data Grid Section -->
+        <div class="data-grid-section" id="dataGridSection">
+            <div class="data-grid-header">
+                <h3>📊 Raw CSV Data</h3>
+                <button class="toggle-btn" id="toggleDataGrid">
+                    <span class="toggle-icon">▼</span>
+                    <span class="toggle-text">Show Data</span>
+                </button>
+            </div>
+            <div class="data-grid-content" id="dataGridContent">
+                <div class="data-grid-table-container">
+                    <table id="dataGridTable" class="data-grid-table">
+                        <thead id="dataGridHeader"></thead>
+                        <tbody id="dataGridBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast">
+        <div class="toast-content">
+            <span id="toast-icon">✅</span>
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <script>
+        let parsedData = null;
+        let billingInfo = {};
+        let charts = {};
+
+        // Toast notification functions
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMessage.textContent = message;
+            toast.className = `toast ${type}`;
+
+            if (type === 'success') {
+                toastIcon.textContent = '✅';
+            } else if (type === 'error') {
+                toastIcon.textContent = '❌';
+            }
+
+            toast.classList.add('show');
+
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                hideToast();
+            }, 3000);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('show');
+        }
+
+        // Data grid toggle functionality
+        function toggleDataGrid() {
+            const content = document.getElementById('dataGridContent');
+            const button = document.getElementById('toggleDataGrid');
+            const icon = button.querySelector('.toggle-icon');
+            const text = button.querySelector('.toggle-text');
+
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                icon.textContent = '▼';
+                text.textContent = 'Show Data';
+            } else {
+                content.classList.add('expanded');
+                icon.textContent = '▲';
+                text.textContent = 'Hide Data';
+            }
+        }
+
+        // Render CSV data as table
+        function renderDataTable() {
+            if (!parsedData || parsedData.length === 0) return;
+
+            const headerRow = document.getElementById('dataGridHeader');
+            const body = document.getElementById('dataGridBody');
+
+            // Clear existing content
+            headerRow.innerHTML = '';
+            body.innerHTML = '';
+
+            // Get all unique keys from the data
+            const allKeys = new Set();
+            parsedData.forEach(row => {
+                Object.keys(row).forEach(key => allKeys.add(key));
+            });
+
+            const columns = Array.from(allKeys).sort();
+
+            // Create header row
+            const headerTr = document.createElement('tr');
+            columns.forEach(column => {
+                const th = document.createElement('th');
+                th.textContent = column;
+                headerTr.appendChild(th);
+            });
+            headerRow.appendChild(headerTr);
+
+            // Create data rows
+            parsedData.forEach((row, index) => {
+                const tr = document.createElement('tr');
+
+                columns.forEach(column => {
+                    const td = document.createElement('td');
+                    let value = row[column];
+
+                    // Format timestamp for better display
+                    if (column === 'timestamp' && value instanceof Date) {
+                        value = value.toLocaleString();
+                    } else if (value === undefined || value === null) {
+                        value = '';
+                    }
+
+                    td.textContent = value;
+                    tr.appendChild(td);
+                });
+
+                body.appendChild(tr);
+            });
+        }
+
+        // File upload handling
+        const fileUpload = document.getElementById('fileUpload');
+        const fileInput = document.getElementById('fileInput');
+
+        fileUpload.addEventListener('click', () => fileInput.click());
+
+        fileUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUpload.classList.add('active');
+        });
+
+        fileUpload.addEventListener('dragleave', () => {
+            fileUpload.classList.remove('active');
+        });
+
+        fileUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUpload.classList.remove('active');
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        });
+
+        // Peak/Off-Peak toggle
+        document.getElementById('peakOffPeakToggle').addEventListener('change', function() {
+            document.getElementById('rateInputs').style.display = this.checked ? 'grid' : 'none';
+            document.getElementById('flatRateInputs').style.display = this.checked ? 'none' : 'grid';
+        });
+
+        // Data grid toggle
+        document.getElementById('toggleDataGrid').addEventListener('click', toggleDataGrid);
+
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                parseCSV(content);
+                showToast('CSV file loaded successfully');
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(content) {
+            const lines = content.split('\n');
+
+            // Parse billing info from header
+            billingInfo.accountNumber = lines[0].split(',')[1]?.trim();
+            billingInfo.startDate = lines[1].split(',')[1]?.trim();
+            billingInfo.endDate = lines[2].split(',')[1]?.trim();
+
+            // Find the header line
+            let headerIndex = -1;
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].includes('NMI') && lines[i].includes('Reading Date')) {
+                    headerIndex = i;
+                    break;
+                }
+            }
+
+            if (headerIndex === -1) {
+                showToast('Could not find data header in CSV file', 'error');
+                return;
+            }
+
+            const headers = lines[headerIndex].split(',').map(h => h.trim());
+            const data = [];
+
+            for (let i = headerIndex + 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const values = line.split(',');
+                if (values.length < headers.length) continue;
+
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = values[index]?.trim();
+                });
+
+                // Parse the reading date and time
+                if (row['Reading Date'] && row['Reading Start Time']) {
+                    const dateParts = row['Reading Date'].split('/');
+                    const timeParts = row['Reading Start Time'].split(':');
+
+                    if (dateParts.length === 3 && timeParts.length >= 2) {
+                        // Handle malformed years like "202025" -> "2025"
+                        let yearStr = dateParts[2];
+                        if (yearStr.length > 4) {
+                            // If year is longer than 4 digits, take the last 4
+                            yearStr = yearStr.slice(-4);
+                        } else if (yearStr.length === 2) {
+                            // If year is 2 digits, assume 20xx
+                            yearStr = '20' + yearStr;
+                        }
+
+                        const date = new Date(
+                            parseInt(yearStr),
+                            parseInt(dateParts[1]) - 1,
+                            parseInt(dateParts[0]),
+                            parseInt(timeParts[0]),
+                            parseInt(timeParts[1]),
+                            timeParts.length > 2 ? parseInt(timeParts[2]) : 0 // Handle seconds if present
+                        );
+
+                        row.timestamp = date;
+                        row.usage = parseFloat(row['Units']) || 0;
+                        data.push(row);
+                    }
+                }
+            }
+
+            parsedData = data;
+            displayInfo();
+            calculateCosts();
+            renderDataTable();
+
+            // Show sections
+            document.getElementById('ratePlanSection').classList.add('visible');
+            document.getElementById('dashboard').classList.add('visible');
+            document.getElementById('infoSection').classList.add('visible');
+            document.getElementById('dailyChart').classList.add('visible');
+            document.getElementById('hourlyChart').classList.add('visible');
+            document.getElementById('peakChart').classList.add('visible');
+            document.getElementById('dataGridSection').classList.add('visible');
+        }
+
+        function displayInfo() {
+            const infoGrid = document.getElementById('infoGrid');
+            const totalReadings = parsedData.length;
+
+            const dates = parsedData.map(d => d.timestamp);
+            const minDate = new Date(Math.min(...dates));
+            const maxDate = new Date(Math.max(...dates));
+            const daysDiff = Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)) + 1;
+
+            infoGrid.innerHTML = `
+                <div class="info-item">
+                    <strong>Account Number</strong>
+                    <span>${billingInfo.accountNumber || 'N/A'}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Billing Period</strong>
+                    <span>${billingInfo.startDate} to ${billingInfo.endDate}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Days in Period</strong>
+                    <span>${daysDiff} days</span>
+                </div>
+                <div class="info-item">
+                    <strong>Total Readings</strong>
+                    <span>${totalReadings.toLocaleString()} readings</span>
+                </div>
+                <div class="info-item">
+                    <strong>NMI</strong>
+                    <span>${parsedData[0]?.NMI || 'N/A'}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Meter Serial</strong>
+                    <span>${parsedData[0]['Meter Serial Number'] || 'N/A'}</span>
+                </div>
+            `;
+        }
+
+        function getPeakType(date) {
+            const hour = date.getHours();
+            const day = date.getDay();
+            const isWeekend = day === 0 || day === 6;
+
+            // Weekend Charging Window: noon-2pm on weekends (FREE)
+            if (isWeekend && hour >= 12 && hour < 14) {
+                return 'weekend';
+            }
+
+            // Off-peak: 00:00-05:59 (every day)
+            if (hour >= 0 && hour < 6) {
+                return 'offpeak';
+            }
+
+            // Peak: 06:00-23:59 (rest of the time)
+            return 'peak';
+        }
+
+        function calculateCosts() {
+            if (!parsedData) return;
+
+            const usePeakRates = document.getElementById('peakOffPeakToggle').checked;
+
+            let peakRate, offPeakRate, weekendRate, supplyCharge;
+
+            if (usePeakRates) {
+                peakRate = parseFloat(document.getElementById('peakRate').value);
+                offPeakRate = parseFloat(document.getElementById('offPeakRate').value);
+                weekendRate = parseFloat(document.getElementById('weekendRate').value);
+                supplyCharge = parseFloat(document.getElementById('supplyCharge').value);
+            } else {
+                const flatRate = parseFloat(document.getElementById('flatRate').value);
+                peakRate = offPeakRate = weekendRate = flatRate;
+                supplyCharge = parseFloat(document.getElementById('flatSupplyCharge').value);
+            }
+
+            let peakUsage = 0, offPeakUsage = 0, weekendUsage = 0;
+            let totalUsage = 0;
+
+            parsedData.forEach(reading => {
+                const usage = reading.usage;
+                totalUsage += usage;
+
+                if (usePeakRates) {
+                    const peakType = getPeakType(reading.timestamp);
+                    if (peakType === 'peak') peakUsage += usage;
+                    else if (peakType === 'weekend') weekendUsage += usage;
+                    else offPeakUsage += usage;
+                } else {
+                    peakUsage += usage;
+                }
+            });
+
+            const peakCost = peakUsage * peakRate;
+            const offPeakCost = offPeakUsage * offPeakRate;
+            const weekendCost = weekendUsage * weekendRate;
+
+            const dates = parsedData.map(d => d.timestamp);
+            const minDate = new Date(Math.min(...dates));
+            const maxDate = new Date(Math.max(...dates));
+            const daysDiff = Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)) + 1;
+
+            const totalSupplyCharge = daysDiff * supplyCharge;
+            const totalCost = peakCost + offPeakCost + weekendCost + totalSupplyCharge;
+
+            const weekendSavings = weekendUsage * peakRate; // What it would have cost at peak rate
+
+            // Update dashboard
+            document.getElementById('totalUsage').textContent = totalUsage.toFixed(2);
+            document.getElementById('totalCost').textContent = '$' + totalCost.toFixed(2);
+            document.getElementById('avgDaily').textContent = (totalUsage / daysDiff).toFixed(2);
+            document.getElementById('freeUsage').textContent = weekendUsage.toFixed(2);
+
+            // Update cost breakdown
+            const costBreakdown = document.getElementById('costBreakdown');
+            if (usePeakRates) {
+                costBreakdown.innerHTML = `
+                    <div class="cost-item">
+                        <span class="label"><span class="peak-indicator peak"></span>Peak (${peakUsage.toFixed(1)} kWh)</span>
+                        <span class="value">$${peakCost.toFixed(2)}</span>
+                    </div>
+                    <div class="cost-item">
+                        <span class="label"><span class="peak-indicator offpeak"></span>Off-Peak (${offPeakUsage.toFixed(1)} kWh)</span>
+                        <span class="value">$${offPeakCost.toFixed(2)}</span>
+                    </div>
+                    <div class="cost-item" style="background: #e6fffa; padding: 8px; margin: 4px -8px; border-radius: 6px;">
+                        <span class="label"><span class="peak-indicator" style="background: #38b2ac;"></span>Free Charging (${weekendUsage.toFixed(1)} kWh)</span>
+                        <span class="value" style="color: #38b2ac;">$${weekendCost.toFixed(2)}</span>
+                    </div>
+                    ${weekendSavings > 0 ? `
+                    <div class="cost-item" style="font-size: 0.85em; color: #38b2ac;">
+                        <span class="label">💰 Saved from free charging</span>
+                        <span class="value" style="color: #38b2ac;">$${weekendSavings.toFixed(2)}</span>
+                    </div>
+                    ` : ''}
+                    <div class="cost-item">
+                        <span class="label">Supply Charge (${daysDiff} days)</span>
+                        <span class="value">$${totalSupplyCharge.toFixed(2)}</span>
+                    </div>
+                `;
+            } else {
+                costBreakdown.innerHTML = `
+                    <div class="cost-item">
+                        <span class="label">Usage (${totalUsage.toFixed(1)} kWh)</span>
+                        <span class="value">$${peakCost.toFixed(2)}</span>
+                    </div>
+                    <div class="cost-item">
+                        <span class="label">Supply Charge (${daysDiff} days)</span>
+                        <span class="value">$${totalSupplyCharge.toFixed(2)}</span>
+                    </div>
+                `;
+            }
+
+            // Update charts
+            updateCharts({ peakUsage, offPeakUsage, weekendUsage });
+        }
+
+        function updateCharts(usage) {
+            // Daily usage chart with peak/off-peak/weekend breakdown
+            const dailyData = {};
+            const usePeakRates = document.getElementById('peakOffPeakToggle').checked;
+
+            parsedData.forEach(reading => {
+                const date = reading.timestamp.toLocaleDateString();
+                if (!dailyData[date]) {
+                    dailyData[date] = { peak: 0, weekend: 0, offpeak: 0 };
+                }
+
+                if (usePeakRates) {
+                    const peakType = getPeakType(reading.timestamp);
+                    dailyData[date][peakType] += reading.usage;
+                } else {
+                    dailyData[date].peak += reading.usage;
+                }
+            });
+
+            // Sort daily labels chronologically by parsing the date strings back to dates
+            const dailyLabels = Object.keys(dailyData).sort((a, b) => {
+                const dateA = new Date(a);
+                const dateB = new Date(b);
+                return dateA - dateB;
+            });
+            const peakValues = dailyLabels.map(date => dailyData[date].peak);
+            const weekendValues = dailyLabels.map(date => dailyData[date].weekend);
+            const offpeakValues = dailyLabels.map(date => dailyData[date].offpeak);
+
+            if (charts.daily) charts.daily.destroy();
+
+            const datasets = usePeakRates ? [
+                {
+                    label: 'Peak',
+                    data: peakValues,
+                    backgroundColor: 'rgba(245, 101, 101, 0.8)',
+                    borderColor: 'rgba(245, 101, 101, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Off-Peak',
+                    data: offpeakValues,
+                    backgroundColor: 'rgba(72, 187, 120, 0.8)',
+                    borderColor: 'rgba(72, 187, 120, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Free Charging',
+                    data: weekendValues,
+                    backgroundColor: 'rgba(56, 178, 172, 0.8)',
+                    borderColor: 'rgba(56, 178, 172, 1)',
+                    borderWidth: 1
+                }
+            ] : [
+                {
+                    label: 'Daily Usage (kWh)',
+                    data: peakValues,
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 2
+                }
+            ];
+
+            charts.daily = new Chart(document.getElementById('dailyChartCanvas'), {
+                type: 'bar',
+                data: {
+                    labels: dailyLabels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true },
+                        tooltip: {
+                            callbacks: {
+                                footer: function(tooltipItems) {
+                                    if (!usePeakRates) return '';
+                                    let sum = 0;
+                                    tooltipItems.forEach(item => sum += item.parsed.y);
+                                    return 'Total: ' + sum.toFixed(2) + ' kWh';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: usePeakRates
+                        },
+                        y: {
+                            stacked: usePeakRates,
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Usage (kWh)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Hourly pattern chart
+            const hourlyData = Array(24).fill(0);
+            const hourlyCounts = Array(24).fill(0);
+
+            parsedData.forEach(reading => {
+                const hour = reading.timestamp.getHours();
+                hourlyData[hour] += reading.usage;
+                hourlyCounts[hour]++;
+            });
+
+            const hourlyAvg = hourlyData.map((sum, i) => hourlyCounts[i] ? sum / hourlyCounts[i] : 0);
+
+            if (charts.hourly) charts.hourly.destroy();
+            charts.hourly = new Chart(document.getElementById('hourlyChartCanvas'), {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => i + ':00'),
+                    datasets: [{
+                        label: 'Average Usage by Hour (kWh)',
+                        data: hourlyAvg,
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // Usage breakdown chart
+            if (charts.peak) charts.peak.destroy();
+            charts.peak = new Chart(document.getElementById('peakChartCanvas'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Peak', 'Off-Peak', 'Free Charging'],
+                    datasets: [{
+                        data: [usage.peakUsage, usage.offPeakUsage, usage.weekendUsage],
+                        backgroundColor: [
+                            'rgba(245, 101, 101, 0.8)',
+                            'rgba(72, 187, 120, 0.8)',
+                            'rgba(56, 178, 172, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(245, 101, 101, 1)',
+                            'rgba(72, 187, 120, 1)',
+                            'rgba(56, 178, 172, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Auto-load sample.csv on startup
+        async function loadSampleData() {
+            try {
+                const response = await fetch('sample.csv');
+                if (response.ok) {
+                    const content = await response.text();
+                    parseCSV(content);
+                    showToast('Sample data loaded successfully');
+                }
+            } catch (error) {
+                console.log('No sample.csv found - waiting for user upload');
+            }
+        }
+
+        // Load sample data when page loads
+        window.addEventListener('DOMContentLoaded', loadSampleData);
+    </script>
+</body>
+</html>
