@@ -1017,6 +1017,7 @@
             const totalCost = peakCost + offPeakCost + weekendCost + totalSupplyCharge;
 
             const weekendSavings = weekendUsage * peakRate; // What it would have cost at peak rate
+            const offPeakSavings = offPeakUsage * (peakRate - offPeakRate); // Savings from off-peak vs peak rate
 
             // Update dashboard
             document.getElementById('totalUsage').textContent = totalUsage.toFixed(2);
@@ -1036,6 +1037,12 @@
                         <span class="label"><span class="peak-indicator offpeak"></span>Off-Peak (${offPeakUsage.toFixed(1)} kWh)</span>
                         <span class="value">$${offPeakCost.toFixed(2)}</span>
                     </div>
+                    ${offPeakSavings > 0 ? `
+                    <div class="cost-item" style="font-size: 0.85em; color: #48bb78;">
+                        <span class="label">💰 Saved from off-peak</span>
+                        <span class="value" style="color: #48bb78;">$${offPeakSavings.toFixed(2)}</span>
+                    </div>
+                    ` : ''}
                     <div class="cost-item" style="background: #e6fffa; padding: 8px; margin: 4px -8px; border-radius: 6px;">
                         <span class="label"><span class="peak-indicator" style="background: #38b2ac;"></span>Free Charging (${weekendUsage.toFixed(1)} kWh)</span>
                         <span class="value" style="color: #38b2ac;">$${weekendCost.toFixed(2)}</span>
