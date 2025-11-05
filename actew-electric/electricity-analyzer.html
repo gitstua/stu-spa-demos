@@ -772,12 +772,18 @@
             e.preventDefault();
             fileUpload.classList.remove('active');
             const file = e.dataTransfer.files[0];
-            if (file) handleFile(file);
+            if (file) {
+                handleFile(file);
+            }
         });
 
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
-            if (file) handleFile(file);
+            if (file) {
+                handleFile(file);
+                // Reset the input so the same file can be selected again
+                e.target.value = '';
+            }
         });
 
         // Peak/Off-Peak toggle
@@ -790,12 +796,36 @@
         document.getElementById('toggleDataGrid').addEventListener('click', toggleDataGrid);
 
         function handleFile(file) {
+            // Validate file type
+            if (!file.name.endsWith('.csv')) {
+                showToast('Please select a CSV file', 'error');
+                return;
+            }
+
+            showToast('Reading CSV file...', 'success');
+
             const reader = new FileReader();
+
             reader.onload = (e) => {
-                const content = e.target.result;
-                parseCSV(content);
-                showToast('CSV file loaded successfully');
+                try {
+                    const content = e.target.result;
+                    if (!content || content.trim().length === 0) {
+                        showToast('CSV file is empty', 'error');
+                        return;
+                    }
+                    parseCSV(content);
+                    showToast('CSV file loaded successfully', 'success');
+                } catch (error) {
+                    console.error('Error processing CSV:', error);
+                    showToast('Error processing CSV file', 'error');
+                }
             };
+
+            reader.onerror = (e) => {
+                console.error('Error reading file:', e);
+                showToast('Error reading file', 'error');
+            };
+
             reader.readAsText(file);
         }
 
