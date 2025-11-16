@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shamir Secret Sharing – Message in Query String</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+      color: #111827;
+      background: #f3f4f6;
+    }
+    body {
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+    }
+    .app {
+      max-width: 960px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 0.75rem;
+      padding: 1.75rem;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+    h1 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      font-size: 1.6rem;
+    }
+    p {
+      margin-top: 0.25rem;
+      margin-bottom: 0.75rem;
+      color: #4b5563;
+      font-size: 0.95rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    @media (max-width: 800px) {
+      .grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    .card {
+      border-radius: 0.75rem;
+      border: 1px solid #e5e7eb;
+      padding: 1rem 1.25rem 1.25rem;
+      background: #f9fafb;
+    }
+    .card h2 {
+      margin: 0 0 0.5rem;
+      font-size: 1.1rem;
+    }
+    .field {
+      margin-top: 0.75rem;
+    }
+    .field label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.25rem;
+    }
+    textarea, input[type="number"] {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 0.5rem;
+      border: 1px solid #d1d5db;
+      padding: 0.5rem 0.6rem;
+      font: inherit;
+      resize: vertical;
+      min-height: 90px;
+    }
+    input[type="number"] {
+      min-height: auto;
+      width: 100%;
+    }
+    textarea:focus, input[type="number"]:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 1px #4f46e5;
+    }
+    .inline-fields {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+    .inline-fields .field {
+      flex: 1;
+      margin-top: 0;
+    }
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      border-radius: 999px;
+      border: none;
+      padding: 0.45rem 1.1rem;
+      font: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+      margin-top: 0.75rem;
+      background: #4f46e5;
+      color: #fff;
+      transition: background 0.15s ease, transform 0.05s ease;
+    }
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+    button:hover {
+      background: #4338ca;
+    }
+    button.secondary:hover {
+      background: #d1d5db;
+    }
+    button:active {
+      transform: translateY(1px);
+    }
+    .shares-output {
+      margin-top: 0.75rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.8rem;
+      background: #111827;
+      color: #e5e7eb;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      max-height: 260px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .status {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+    }
+    .status.error {
+      color: #b91c1c;
+    }
+    .status.ok {
+      color: #065f46;
+    }
+    .result {
+      margin-top: 0.5rem;
+      padding: 0.5rem 0.6rem;
+      border-radius: 0.5rem;
+      background: #ecfdf5;
+      border: 1px solid #6ee7b7;
+      font-size: 0.9rem;
+      word-wrap: break-word;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.15rem 0.6rem;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4338ca;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .badge code {
+      font-size: 0.7rem;
+      background: #e5e7eb;
+      padding: 0.05rem 0.25rem;
+      border-radius: 999px;
+    }
+    .note {
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+    .url-box {
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      padding: 0.5rem 0.6rem;
+      border-radius: 0.5rem;
+      background: #f3f4ff;
+      border: 1px solid #c7d2fe;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <h1>Shamir Secret Sharing SPA</h1>
+  <p>
+    Uses Shamir&rsquo;s Secret Sharing to split the message into shares.  
+    The <strong>message itself is stored in the query string</strong> (<code>?m=...</code>) using
+    URL-safe Base64 and optional DEFLATE compression.
+  </p>
+  <span class="badge">Field: <code>GF(257)</code></span>
+  <p class="note">
+    Each share line has the form <code>x:base64data</code>. Any <em>k</em> shares can reconstruct the original message.
+  </p>
+  <p class="note">
+    <code>?m=...</code> format:
+    <code>c.&lt;base64url&gt;</code> (compressed) or <code>u.&lt;base64url&gt;</code> (uncompressed).  
+    Old style with no prefix is treated as uncompressed.
+  </p>
+
+  <div id="urlInfo" class="note"></div>
+  <div id="currentUrl" class="url-box" style="display:none;"></div>
+
+  <div class="grid">
+    <!-- LEFT: Split secret and sync URL -->
+    <div class="card">
+      <h2>1. Message & Shares</h2>
+      <div class="field">
+        <label for="secretInput">Message (stored in <code>?m=...</code>)</label>
+        <textarea id="secretInput" placeholder="Type a message..."></textarea>
+      </div>
+
+      <div class="inline-fields">
+        <div class="field">
+          <label for="numShares">Total shares (n)</label>
+          <input id="numShares" type="number" min="2" max="10" value="5" />
+        </div>
+        <div class="field">
+          <label for="threshold">Threshold (k)</label>
+          <input id="threshold" type="number" min="2" max="10" value="3" />
+        </div>
+      </div>
+
+      <button id="splitBtn">🔗 Update URL & Generate Shares</button>
+
+      <div id="splitStatus" class="status"></div>
+      <div id="sharesOutput" class="shares-output" style="display:none;"></div>
+    </div>
+
+    <!-- RIGHT: Reconstruct secret from shares -->
+    <div class="card">
+      <h2>2. Reconstruct from shares (SSS)</h2>
+      <div class="field">
+        <label for="sharesInput">
+          Paste at least <strong>k</strong> share lines (format <code>x:base64</code>, one per line)
+        </label>
+        <textarea id="sharesInput" placeholder="Example:
+1:AAECAwQ=
+2:BgcICQo=
+3:..."></textarea>
+      </div>
+
+      <button id="reconstructBtn" class="secondary">🧩 Reconstruct Message (from shares only)</button>
+
+      <div id="reconstructStatus" class="status"></div>
+      <div id="reconstructResult" class="result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <p class="note" style="margin-top:1.5rem;">
+    Demo only. SSS is real, but this page also keeps the plaintext in the URL for convenience.
+  </p>
+</div>
+
+<script>
+/**
+ * Shamir's Secret Sharing over GF(257).
+ * Applied byte-by-byte to UTF-8 message.
+ */
+
+const PRIME = 257;
+
+// ---- finite field helpers ----
+function mod(n) {
+  return ((n % PRIME) + PRIME) % PRIME;
+}
+
+function modInv(a) {
+  a = mod(a);
+  if (a === 0) {
+    throw new Error("No inverse for 0");
+  }
+  let t = 0, newT = 1;
+  let r = PRIME, newR = a;
+
+  while (newR !== 0) {
+    const q = Math.floor(r / newR);
+    [t, newT] = [newT, t - q * newT];
+    [r, newR] = [newR, r - q * newR];
+  }
+  if (r > 1) {
+    throw new Error("a is not invertible");
+  }
+  return mod(t);
+}
+
+function randomFieldElement() {
+  if (window.crypto && crypto.getRandomValues) {
+    const arr = new Uint32Array(1);
+    crypto.getRandomValues(arr);
+    return arr[0] % PRIME;
+  }
+  return Math.floor(Math.random() * PRIME);
+}
+
+function evalPoly(secretByte, coeffs, x) {
+  let y = mod(secretByte);
+  let xPower = 1;
+  for (let i = 0; i < coeffs.length; i++) {
+    xPower = mod(xPower * x);
+    y = mod(y + coeffs[i] * xPower);
+  }
+  return y;
+}
+
+// ---- SSS core ----
+function splitBytes(bytes, n, k) {
+  if (k < 2 || n < k) {
+    throw new Error("Require 2 ≤ k ≤ n");
+  }
+
+  const shares = [];
+  for (let i = 0; i < n; i++) {
+    shares.push({ x: i + 1, ys: new Uint8Array(bytes.length) });
+  }
+
+  for (let idx = 0; idx < bytes.length; idx++) {
+    const s = bytes[idx];
+    const coeffs = [];
+    for (let i = 0; i < k - 1; i++) {
+      coeffs.push(randomFieldElement());
+    }
+    for (let shareIndex = 0; shareIndex < n; shareIndex++) {
+      const x = shareIndex + 1;
+      const y = evalPoly(s, coeffs, x);
+      shares[shareIndex].ys[idx] = y;
+    }
+  }
+
+  return shares;
+}
+
+function interpolateAtZero(points) {
+  let secret = 0;
+  const m = points.length;
+  for (let i = 0; i < m; i++) {
+    const xi = mod(points[i].x);
+    const yi = mod(points[i].y);
+
+    let li = 1;
+    for (let j = 0; j < m; j++) {
+      if (i === j) continue;
+      const xj = mod(points[j].x);
+      const num = mod(-xj);
+      const den = mod(xi - xj);
+      li = mod(li * num * modInv(den));
+    }
+
+    secret = mod(secret + yi * li);
+  }
+  return secret;
+}
+
+function reconstructBytes(shareObjs) {
+  if (!shareObjs.length) {
+    throw new Error("No shares provided");
+  }
+  const len = shareObjs[0].ys.length;
+  for (const s of shareObjs) {
+    if (s.ys.length !== len) {
+      throw new Error("Share byte lengths don't match");
+    }
+  }
+
+  const out = new Uint8Array(len);
+  for (let idx = 0; idx < len; idx++) {
+    const points = shareObjs.map(s => ({
+      x: s.x,
+      y: s.ys[idx]
+    }));
+    out[idx] = interpolateAtZero(points);
+  }
+  return out;
+}
+
+// ---- Base64 + URL-safe helpers ----
+function bytesToBase64(bytes) {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+function base64ToBytes(b64) {
+  const binary = atob(b64.trim());
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+// URL-safe base64: + -> -, / -> _, strip =
+function bytesToBase64Url(bytes) {
+  return bytesToBase64(bytes)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+
+function base64UrlToBytes(str) {
+  let b64 = str.replace(/-/g, "+").replace(/_/g, "/");
+  while (b64.length % 4) b64 += "=";
+  return base64ToBytes(b64);
+}
+
+// ---- Compression helpers (DEFLATE) ----
+async function compressBytes(bytes) {
+  if (!("CompressionStream" in window)) {
+    return bytes;
+  }
+  const cs = new CompressionStream("deflate");
+  const writer = cs.writable.getWriter();
+  await writer.write(bytes);
+  await writer.close();
+  const resp = new Response(cs.readable);
+  const compressed = new Uint8Array(await resp.arrayBuffer());
+  return compressed;
+}
+
+async function decompressBytes(bytes) {
+  if (!("DecompressionStream" in window)) {
+    throw new Error("DecompressionStream is not supported in this browser");
+  }
+  const ds = new DecompressionStream("deflate");
+  const writer = ds.writable.getWriter();
+  await writer.write(bytes);
+  await writer.close();
+  const resp = new Response(ds.readable);
+  const decompressed = new Uint8Array(await resp.arrayBuffer());
+  return decompressed;
+}
+
+// ---- Message <-> ?m= helpers ----
+// returns "c.<b64url>" (compressed) or "u.<b64url>" (uncompressed)
+async function messageToQueryParam(text) {
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(text);
+
+  if ("CompressionStream" in window && "DecompressionStream" in window) {
+    const compressed = await compressBytes(bytes);
+    const b64url = bytesToBase64Url(compressed);
+    return "c." + b64url;
+  } else {
+    const b64url = bytesToBase64Url(bytes);
+    return "u." + b64url;
+  }
+}
+
+async function queryParamToMessage(paramValue) {
+  const decoder = new TextDecoder();
+
+  if (paramValue.startsWith("c.")) {
+    const data = base64UrlToBytes(paramValue.slice(2));
+    if (!("DecompressionStream" in window)) {
+      throw new Error("Message is compressed, but this browser cannot decompress it.");
+    }
+    const bytes = await decompressBytes(data);
+    return decoder.decode(bytes);
+  }
+
+  const raw = paramValue.startsWith("u.") ? paramValue.slice(2) : paramValue;
+  const bytes = base64UrlToBytes(raw);
+  return decoder.decode(bytes);
+}
+
+// ---- DOM wiring ----
+const secretInput = document.getElementById("secretInput");
+const numSharesInput = document.getElementById("numShares");
+const thresholdInput = document.getElementById("threshold");
+const splitBtn = document.getElementById("splitBtn");
+const splitStatus = document.getElementById("splitStatus");
+const sharesOutput = document.getElementById("sharesOutput");
+
+const sharesInput = document.getElementById("sharesInput");
+const reconstructBtn = document.getElementById("reconstructBtn");
+const reconstructStatus = document.getElementById("reconstructStatus");
+const reconstructResult = document.getElementById("reconstructResult");
+
+const urlInfo = document.getElementById("urlInfo");
+const currentUrlBox = document.getElementById("currentUrl");
+
+// Update URL ?m=... for the current message
+async function updateUrlForMessage(msg) {
+  const mParam = await messageToQueryParam(msg);
+  const params = new URLSearchParams(window.location.search);
+  params.set("m", mParam);
+  const newUrl = `${location.origin}${location.pathname}?${params.toString()}`;
+  history.replaceState(null, "", newUrl);
+
+  currentUrlBox.textContent = newUrl;
+  currentUrlBox.style.display = "block";
+  urlInfo.textContent = "Current message is encoded in the ?m= parameter.";
+}
+
+// Generate shares from current textarea contents
+async function generateSharesFromCurrent(updateUrlToo) {
+  splitStatus.textContent = "";
+  splitStatus.className = "status";
+  sharesOutput.style.display = "none";
+  sharesOutput.textContent = "";
+
+  const secret = secretInput.value;
+  const n = parseInt(numSharesInput.value, 10);
+  const k = parseInt(thresholdInput.value, 10);
+
+  if (!secret) {
+    splitStatus.textContent = "Enter a message first.";
+    splitStatus.classList.add("error");
+    return;
+  }
+  if (!Number.isInteger(n) || !Number.isInteger(k)) {
+    splitStatus.textContent = "n and k must be integers.";
+    splitStatus.classList.add("error");
+    return;
+  }
+  if (n < 2 || n > 10) {
+    splitStatus.textContent = "n must be between 2 and 10.";
+    splitStatus.classList.add("error");
+    return;
+  }
+  if (k < 2 || k > n) {
+    splitStatus.textContent = "k must be between 2 and n.";
+    splitStatus.classList.add("error");
+    return;
+  }
+
+  try {
+    if (updateUrlToo) {
+      await updateUrlForMessage(secret);
+    } else {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("m")) {
+        const url = `${location.origin}${location.pathname}?${params.toString()}`;
+        currentUrlBox.textContent = url;
+        currentUrlBox.style.display = "block";
+        urlInfo.textContent = "Message came from the ?m= parameter.";
+      }
+    }
+
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(secret);
+    const shares = splitBytes(bytes, n, k);
+
+    let out = "";
+    for (const s of shares) {
+      out += `${s.x}:${bytesToBase64(s.ys)}\n`;
+    }
+
+    sharesOutput.textContent = out.trim();
+    sharesOutput.style.display = "block";
+    splitStatus.textContent = `Generated ${n} shares (threshold = ${k}).`;
+    splitStatus.classList.add("ok");
+  } catch (err) {
+    splitStatus.textContent = "Error: " + (err.message || err);
+    splitStatus.classList.add("error");
+  }
+}
+
+// Button: update URL & generate shares
+splitBtn.addEventListener("click", () => {
+  generateSharesFromCurrent(true);
+});
+
+// Reconstruct from shares only (ignores URL/plaintext)
+reconstructBtn.addEventListener("click", () => {
+  reconstructStatus.textContent = "";
+  reconstructStatus.className = "status";
+  reconstructResult.style.display = "none";
+  reconstructResult.textContent = "";
+
+  const raw = sharesInput.value.trim();
+  if (!raw) {
+    reconstructStatus.textContent = "Paste at least one share.";
+    reconstructStatus.classList.add("error");
+    return;
+  }
+
+  const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const shareObjs = [];
+
+  try {
+    for (const line of lines) {
+      const parts = line.split(":");
+      if (parts.length !== 2) {
+        throw new Error("Share line must be in format x:base64");
+      }
+      const x = parseInt(parts[0], 10);
+      if (!Number.isInteger(x) || x <= 0) {
+        throw new Error("Invalid x value in share: " + parts[0]);
+      }
+      const ys = base64ToBytes(parts[1]);
+      shareObjs.push({ x, ys });
+    }
+
+    if (shareObjs.length < 2) {
+      reconstructStatus.textContent = "Need at least 2 shares (or the original threshold).";
+      reconstructStatus.classList.add("error");
+      return;
+    }
+
+    const bytes = reconstructBytes(shareObjs);
+    const decoder = new TextDecoder();
+    const secret = decoder.decode(bytes);
+
+    reconstructResult.textContent = secret;
+    reconstructResult.style.display = "block";
+    reconstructStatus.textContent = `Reconstructed from ${shareObjs.length} share(s).`;
+    reconstructStatus.classList.add("ok");
+  } catch (err) {
+    reconstructStatus.textContent = "Error: " + (err.message || err);
+    reconstructStatus.classList.add("error");
+  }
+});
+
+// On load: if ?m is present, decode message, populate, and generate shares
+(async function initFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const m = params.get("m");
+  if (!m) {
+    urlInfo.textContent =
+      "No ?m= parameter detected. Type a message and click the button to encode it into the URL (URL-safe, optionally compressed) and generate shares.";
+    return;
+  }
+  try {
+    const msg = await queryParamToMessage(m);
+    secretInput.value = msg;
+    urlInfo.textContent = "Message loaded from the ?m= parameter.";
+    await generateSharesFromCurrent(false);
+  } catch (e) {
+    urlInfo.textContent = "Failed to decode message from ?m=: " + (e.message || e);
+  }
+})();
+</script>
+</body>
+</html>
