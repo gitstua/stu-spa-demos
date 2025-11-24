@@ -15,11 +15,13 @@
             background-color: #f4f4f4;
         }
         h1 {
+            display: flex;
+            align-items: baseline;
+            gap: 15px;
             margin-bottom: 20px;
         }
         #timer {
             font-size: 48px;
-            margin-bottom: 20px;
         }
         button, input {
             margin: 5px;
@@ -64,8 +66,7 @@
 </head>
 <body>
     <a href="index.html" class="nav-link">← Back to Index</a>
-    <h1>Pomodoro Timer</h1>
-    <div id="timer">25:00</div>
+    <h1>Pomodoro Timer <span id="timer">25:00</span></h1>
     <div class="time-entry">
         <label for="minutesInput">Minutes</label>
         <input type="number" id="minutesInput" placeholder="Minutes" min="0" max="59" maxlength="3" value="25">
@@ -75,8 +76,7 @@
         <input type="number" id="secondsInput" placeholder="Seconds" min="0" max="59" maxlength="3" value="0">
     </div>
     <button onclick="setTimer()">Set Time</button>
-    <button onclick="startTimer()">Start</button>
-    <button onclick="stopTimer()">Stop</button>
+    <button id="toggleButton" onclick="toggleTimer()">Start</button>
     <button onclick="resetTimer()">Reset</button>
     <audio id="alarmSound" src="TempleBell-SoundBible.com-756181215.mp3" preload="auto"></audio>
 
@@ -87,8 +87,9 @@
         let isRunning = false;
 
         function updateDisplay() {
-            document.getElementById('timer').textContent = 
-                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            document.getElementById('timer').textContent = formatted;
+            document.title = isRunning ? `${formatted} • Pomodoro Timer` : 'Pomodoro Timer';
         }
 
         function setTimer() {
@@ -97,14 +98,18 @@
             updateDisplay();
         }
 
-        function startTimer() {
-            if (isRunning) return;
+        function toggleTimer() {
+            if (isRunning) {
+                stopTimer();
+                return;
+            }
+            setTimer();
             isRunning = true;
+            document.getElementById('toggleButton').textContent = 'Stop';
             timer = setInterval(() => {
                 if (seconds === 0) {
                     if (minutes === 0) {
-                        clearInterval(timer);
-                        isRunning = false;
+                        stopTimer();
                         document.getElementById('alarmSound').play();
                         alert("Time's up!");
                     } else {
@@ -121,6 +126,7 @@
         function stopTimer() {
             clearInterval(timer);
             isRunning = false;
+            document.getElementById('toggleButton').textContent = 'Start';
         }
 
         function resetTimer() {
@@ -130,6 +136,7 @@
             seconds = 0;
             document.getElementById('minutesInput').value = 25;
             document.getElementById('secondsInput').value = 0;
+            document.getElementById('toggleButton').textContent = 'Start';
             updateDisplay();
         }
 
