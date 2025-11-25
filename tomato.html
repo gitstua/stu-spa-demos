@@ -23,7 +23,7 @@
         #timer {
             font-size: 48px;
         }
-        button, input {
+        button, input, select {
             margin: 5px;
             padding: 10px 20px;
             font-size: 16px;
@@ -36,9 +36,13 @@
         .time-entry label {
             margin-bottom: 5px;
         }
-        .time-entry input {
-            width: 60px; /* Adjust the width as needed */
+        .time-entry select {
+            min-width: 170px;
             text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fff;
+            padding: 10px;
         }
         button {
             background-color: #007BFF;
@@ -62,29 +66,72 @@
             color: #666;
             font-size: 16px;
         }
+        .usage-note {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #555;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <a href="index.html" class="nav-link">← Back to Index</a>
-    <h1>Pomodoro Timer <span id="timer">25:00</span></h1>
+    <h1>Pomodoro Timer <span id="timer">10:00</span></h1>
     <div class="time-entry">
-        <label for="minutesInput">Minutes</label>
-        <input type="number" id="minutesInput" placeholder="Minutes" min="0" max="59" maxlength="3" value="25">
+        <label for="minutesSelect">Minutes</label>
+        <select id="minutesSelect">
+            <option value="2">2</option>
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+            <option value="25">25</option>
+        </select>
     </div>
-    <div class="time-entry">
-        <label for="secondsInput">Seconds</label>
-        <input type="number" id="secondsInput" placeholder="Seconds" min="0" max="59" maxlength="3" value="0">
-    </div>
-    <button onclick="setTimer()">Set Time</button>
     <button id="toggleButton" onclick="toggleTimer()">Start</button>
     <button onclick="resetTimer()">Reset</button>
     <audio id="alarmSound" src="TempleBell-SoundBible.com-756181215.mp3" preload="auto"></audio>
+    <p class="usage-note">
+        Tip: Bookmark custom times with query params, e.g. <code>?minutes=7&amp;seconds=30</code>.
+    </p>
 
     <script>
+        const minutesSelect = document.getElementById('minutesSelect');
+        const toggleButton = document.getElementById('toggleButton');
         let timer;
-        let minutes = 25;
+        let minutes = 10;
         let seconds = 0;
+        let baseMinutes = 10;
+        let baseSeconds = 0;
         let isRunning = false;
+
+        function setSelectValue(value) {
+            const existingOption = Array.from(minutesSelect.options).find(opt => parseInt(opt.value, 10) === value);
+            if (existingOption) {
+                minutesSelect.value = String(value);
+                return;
+            }
+            const customOption = document.createElement('option');
+            customOption.value = String(value);
+            customOption.textContent = `${value} (custom)`;
+            minutesSelect.appendChild(customOption);
+            minutesSelect.value = String(value);
+        }
+
+        function initializeFromQuery() {
+            const params = new URLSearchParams(window.location.search);
+            const queryMinutes = parseInt(params.get('minutes'), 10);
+            const querySeconds = parseInt(params.get('seconds'), 10);
+            if (!Number.isNaN(queryMinutes)) {
+                baseMinutes = Math.max(0, queryMinutes);
+            }
+            setSelectValue(baseMinutes);
+            minutes = baseMinutes;
+            if (!Number.isNaN(querySeconds)) {
+                baseSeconds = Math.min(59, Math.max(0, querySeconds));
+            }
+            seconds = baseSeconds;
+        }
 
         function updateDisplay() {
             const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
@@ -92,9 +139,10 @@
             document.title = isRunning ? `${formatted} • Pomodoro Timer` : 'Pomodoro Timer';
         }
 
-        function setTimer() {
-            minutes = parseInt(document.getElementById('minutesInput').value) || 0;
-            seconds = parseInt(document.getElementById('secondsInput').value) || 0;
+        function syncTimerFromControls() {
+            baseMinutes = parseInt(minutesSelect.value, 10) || 0;
+            minutes = baseMinutes;
+            seconds = baseSeconds;
             updateDisplay();
         }
 
@@ -103,9 +151,9 @@
                 stopTimer();
                 return;
             }
-            setTimer();
+            syncTimerFromControls();
             isRunning = true;
-            document.getElementById('toggleButton').textContent = 'Stop';
+            toggleButton.textContent = 'Stop';
             timer = setInterval(() => {
                 if (seconds === 0) {
                     if (minutes === 0) {
@@ -126,20 +174,24 @@
         function stopTimer() {
             clearInterval(timer);
             isRunning = false;
-            document.getElementById('toggleButton').textContent = 'Start';
+            toggleButton.textContent = 'Start';
         }
 
         function resetTimer() {
             clearInterval(timer);
             isRunning = false;
-            minutes = 25;
-            seconds = 0;
-            document.getElementById('minutesInput').value = 25;
-            document.getElementById('secondsInput').value = 0;
-            document.getElementById('toggleButton').textContent = 'Start';
+            minutes = baseMinutes;
+            seconds = baseSeconds;
+            setSelectValue(minutes);
+            toggleButton.textContent = 'Start';
             updateDisplay();
         }
 
+        initializeFromQuery();
+        minutesSelect.addEventListener('change', () => {
+            if (isRunning) return;
+            syncTimerFromControls();
+        });
         updateDisplay();
     </script>
 </body>
