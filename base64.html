@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Base64 Encode/Decode · Stu SPA Demos</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --accent: #38bdf8;
+      --accent-2: #a855f7;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --error: #f97316;
+      --success: #22c55e;
+    }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(56,189,248,0.1), transparent 35%), radial-gradient(circle at 80% 10%, rgba(168,85,247,0.12), transparent 40%), var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 20px 120px;
+    }
+    .back { display: inline-block; margin-bottom: 12px; font-weight: 600; }
+    .hero {
+      background: linear-gradient(135deg, rgba(56,189,248,0.12), rgba(168,85,247,0.12));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px 22px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+    }
+    h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: -0.02em; }
+    p.lead { margin: 6px 0 0; color: var(--muted); }
+    .controls { margin: 14px 0 4px; display: flex; gap: 10px; align-items: center; color: var(--muted); font-weight: 600; }
+    select {
+      background: #0b1220;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 14px;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(56,189,248,0.2); }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      margin-top: 20px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.25);
+    }
+    label { display: flex; align-items: center; justify-content: space-between; font-weight: 600; margin-bottom: 8px; color: var(--muted); }
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      resize: vertical;
+      background: #0b1220;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 14px;
+      font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(56,189,248,0.2);
+    }
+    .badge {
+      background: rgba(56,189,248,0.14);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      border: 1px solid rgba(56,189,248,0.25);
+    }
+    .status {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--muted);
+      display: inline-block;
+    }
+    .status.ok .dot { background: var(--success); }
+    .status.err .dot { background: var(--error); }
+    .footer {
+      position: fixed;
+      right: 12px;
+      bottom: 12px;
+      background: rgba(17,24,39,0.85);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      backdrop-filter: blur(8px);
+    }
+    .footer span { color: var(--muted); }
+    .explanation {
+      margin-top: 28px;
+      background: rgba(17,24,39,0.6);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+    @media (max-width: 720px) {
+      .hero { padding: 16px; }
+      textarea { min-height: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <a class="back" href="/">← Back to home</a>
+    <div class="hero">
+      <h1>Base64 Encoder / Decoder</h1>
+      <p class="lead">Type Base64 above or plain text below; both stay in sync. Processing is in-memory only—no data stored in the URL.</p>
+    </div>
+
+    <div class="controls">
+      <span>Text encoding:</span>
+      <select id="mode">
+        <option value="utf8">UTF-8</option>
+        <option value="utf16le">UTF-16 LE</option>
+        <option value="utf16be">UTF-16 BE</option>
+        <option value="ascii">ASCII (7-bit)</option>
+      </select>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <label for="encoded">
+          Base64
+          <span class="badge">encoded</span>
+        </label>
+        <textarea id="encoded" placeholder="Paste or type Base64 here..."></textarea>
+        <div id="status" class="status"><span class="dot"></span><span>Waiting for input…</span></div>
+      </div>
+      <div class="panel">
+        <label for="plain">
+          Plain Text
+          <span class="badge" style="background: rgba(168,85,247,0.14); color: var(--accent-2); border-color: rgba(168,85,247,0.25);">decoded</span>
+        </label>
+        <textarea id="plain" placeholder="Type plain text here..."></textarea>
+      </div>
+    </div>
+
+    <div class="explanation">
+      <strong>How it works:</strong> Choose a text encoding (UTF-8, UTF-16 LE/BE, or ASCII). Your plain text is converted to bytes with that charset, then Base64-encoded for the top box. Typing in either box updates the other locally; nothing is written to the URL for privacy.
+    </div>
+  </div>
+
+  <div class="footer">
+    Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot · v4
+  </div>
+
+  <script>
+    const encodedEl = document.getElementById('encoded');
+    const plainEl = document.getElementById('plain');
+    const statusEl = document.getElementById('status');
+    const modeEl = document.getElementById('mode');
+    let syncing = false;
+
+    const bytesToBase64 = (bytes) => {
+      let binary = '';
+      bytes.forEach(b => binary += String.fromCharCode(b));
+      return btoa(binary);
+    };
+    const base64ToBytes = (b64) => {
+      const binary = atob(b64);
+      return Uint8Array.from(binary, ch => ch.charCodeAt(0));
+    };
+
+    const stringToBytes = (str, mode) => {
+      switch (mode) {
+        case 'utf16le': {
+          const out = new Uint8Array(str.length * 2);
+          for (let i = 0; i < str.length; i++) {
+            const code = str.charCodeAt(i);
+            out[i * 2] = code & 0xff;
+            out[i * 2 + 1] = code >> 8;
+          }
+          return out;
+        }
+        case 'utf16be': {
+          const out = new Uint8Array(str.length * 2);
+          for (let i = 0; i < str.length; i++) {
+            const code = str.charCodeAt(i);
+            out[i * 2] = code >> 8;
+            out[i * 2 + 1] = code & 0xff;
+          }
+          return out;
+        }
+        case 'ascii': {
+          const out = new Uint8Array(str.length);
+          for (let i = 0; i < str.length; i++) {
+            const code = str.charCodeAt(i);
+            if (code > 0x7f) throw new Error('Non-ASCII character');
+            out[i] = code;
+          }
+          return out;
+        }
+        default:
+          return new TextEncoder().encode(str); // utf8
+      }
+    };
+
+    const bytesToString = (bytes, mode) => {
+      switch (mode) {
+        case 'utf16le': {
+          if (bytes.length % 2 !== 0) throw new Error('Invalid UTF-16 LE byte length');
+          const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+          let out = '';
+          for (let i = 0; i < bytes.length; i += 2) out += String.fromCharCode(view.getUint16(i, true));
+          return out;
+        }
+        case 'utf16be': {
+          if (bytes.length % 2 !== 0) throw new Error('Invalid UTF-16 BE byte length');
+          const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+          let out = '';
+          for (let i = 0; i < bytes.length; i += 2) out += String.fromCharCode(view.getUint16(i, false));
+          return out;
+        }
+        case 'ascii': {
+          for (const b of bytes) if (b > 0x7f) throw new Error('Non-ASCII byte');
+          return String.fromCharCode(...bytes);
+        }
+        default:
+          return new TextDecoder().decode(bytes); // utf8
+      }
+    };
+
+    const getMode = () => modeEl.value || 'utf8';
+    const encodeUtf = (txt, mode) => bytesToBase64(stringToBytes(txt, mode));
+    const decodeUtf = (data, mode) => bytesToString(base64ToBytes(data), mode);
+
+    const setStatus = (msg, ok = true) => {
+      statusEl.className = `status ${ok ? 'ok' : 'err'}`;
+      statusEl.querySelector('.dot').style.background = ok ? 'var(--success)' : 'var(--error)';
+      statusEl.querySelector('span:nth-child(2)').textContent = msg;
+    };
+
+    const updateFromEncoded = () => {
+      const b64 = encodedEl.value.trim();
+      if (!b64) {
+        plainEl.value = '';
+        setStatus('Waiting for input…', true);
+        return;
+      }
+      try {
+        const txt = decodeUtf(b64, getMode());
+        plainEl.value = txt;
+        setStatus(`Decoded (${getMode()})`, true);
+      } catch {
+        setStatus('Invalid input for selected charset', false);
+      }
+    };
+
+    const updateFromPlain = () => {
+      const txt = plainEl.value;
+      if (!txt) {
+        encodedEl.value = '';
+        setStatus('Waiting for input…', true);
+        return;
+      }
+      try {
+        const b64 = encodeUtf(txt, getMode());
+        encodedEl.value = b64;
+        setStatus(`Encoded (${getMode()})`, true);
+      } catch {
+        setStatus('Could not encode with selected charset', false);
+      }
+    };
+
+    const onModeChange = () => {
+      const hasEncoded = encodedEl.value.trim().length > 0;
+      const hasPlain = plainEl.value.length > 0;
+      if (hasEncoded) updateFromEncoded();
+      else if (hasPlain) updateFromPlain();
+      else setStatus('Waiting for input…', true);
+    };
+
+    encodedEl.addEventListener('input', updateFromEncoded);
+    plainEl.addEventListener('input', updateFromPlain);
+    modeEl.addEventListener('change', onModeChange);
+
+    setStatus('Waiting for input…', true);
+  </script>
+</body>
+</html>
