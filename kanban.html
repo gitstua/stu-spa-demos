@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>kanban Clone SPA</title>
+    <style>
+      /* Global styles */
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: #f4f5f7;
+        color: #172b4d;
+      }
+
+      /* Board header */
+      .board-header {
+        background-color: #026aa7;
+        color: #fff;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+      }
+      .board-header h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+        outline: none;
+      }
+
+      /* Container for lists */
+      #lists-container {
+        display: flex;
+        align-items: flex-start;
+        padding: 16px;
+        overflow-x: auto;
+        gap: 8px;
+      }
+
+      /* Individual list */
+      .list {
+        background-color: #e2e4e6;
+        border-radius: 3px;
+        width: 272px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - 160px);
+      }
+      .list-header {
+        padding: 8px;
+        font-weight: bold;
+      }
+      .list-title {
+        cursor: text;
+        outline: none;
+      }
+      .cards {
+        padding: 0 8px;
+        overflow-y: auto;
+        min-height: 20px;
+        flex-grow: 1;
+      }
+      .card {
+        background-color: #fff;
+        border-radius: 3px;
+        box-shadow: 0 1px 0 rgba(9, 30, 66, 0.25);
+        padding: 6px 8px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .card:active {
+        opacity: 0.8;
+      }
+      .add-card {
+        padding: 4px 8px 8px;
+      }
+      .add-card button {
+        width: 100%;
+        background: none;
+        border: none;
+        color: #5e6c84;
+        padding: 8px;
+        text-align: left;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      .add-card button:hover {
+        background-color: rgba(9, 30, 66, 0.08);
+      }
+
+      /* Add another list button */
+      .add-list {
+        padding: 0 16px 16px;
+      }
+      #add-list-button {
+        background-color: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      #add-list-button:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <!-- Board header with editable title -->
+      <div class="board-header">
+        <h1 id="board-title" contenteditable="true">My sss</h1>
+      </div>
+      <!-- Lists will be rendered here -->
+      <div id="lists-container">
+        <div class="list" data-list-id="0">
+          <div class="list-header">
+            <div class="list-title" contenteditable="true">test</div>
+          </div>
+          <div class="cards" data-list-id="0">
+            <div class="card" draggable="true" data-card-id="1">aa</div>
+            <div class="card" draggable="true" data-card-id="0">a</div>
+          </div>
+          <div class="add-card"><button>+ Add a card</button></div>
+        </div>
+        <div class="list" data-list-id="1">
+          <div class="list-header">
+            <div class="list-title" contenteditable="true">aa</div>
+          </div>
+          <div class="cards" data-list-id="1"></div>
+          <div class="add-card"><button>+ Add a card</button></div>
+        </div>
+      </div>
+      <!-- Button to add additional lists -->
+      <div class="add-list">
+        <button id="add-list-button">+ Add another list</button>
+      </div>
+    </div>
+    <script>
+      /**
+       * Simple kanban‑like board implementation.
+       * Data model is stored in localStorage under keys 'kanbanBoard' and 'kanbanBoardTitle'.
+       */
+      (function () {
+        let board = { lists: [] };
+        let listIdCounter = 0;
+        let cardIdCounter = 0;
+
+        // Persist the current board to localStorage
+        function save() {
+          localStorage.setItem("kanbanBoard", JSON.stringify(board));
+        }
+
+        // Load the board from localStorage (if present)
+        function load() {
+          const savedBoard = localStorage.getItem("kanbanBoard");
+          if (savedBoard) {
+            try {
+              const parsed = JSON.parse(savedBoard);
+              if (parsed && Array.isArray(parsed.lists)) {
+                board = parsed;
+                // Update counters so new IDs don't collide with existing ones
+                board.lists.forEach((list) => {
+                  listIdCounter = Math.max(listIdCounter, list.id + 1);
+                  list.cards.forEach((card) => {
+                    cardIdCounter = Math.max(cardIdCounter, card.id + 1);
+                  });
+                });
+              }
+            } catch (e) {
+              console.error("Failed to parse saved board:", e);
+            }
+          }
+        }
+
+        // Render the entire board
+        function renderBoard() {
+          const container = document.getElementById("lists-container");
+          container.innerHTML = "";
+          board.lists.forEach((list) => {
+            const listEl = document.createElement("div");
+            listEl.className = "list";
+            listEl.dataset.listId = list.id;
+            // List header with editable title
+            const header = document.createElement("div");
+            header.className = "list-header";
+            const title = document.createElement("div");
+            title.className = "list-title";
+            title.textContent = list.name;
+            title.contentEditable = true;
+            // Save title change
+            title.addEventListener("blur", () => {
+              const newName = title.textContent.trim();
+              list.name = newName || "Untitled";
+              save();
+            });
+            header.appendChild(title);
+            listEl.appendChild(header);
+            // Cards container
+            const cardsContainer = document.createElement("div");
+            cardsContainer.className = "cards";
+            cardsContainer.dataset.listId = list.id;
+            // Allow drops on lists
+            cardsContainer.addEventListener("dragover", (e) => {
+              e.preventDefault();
+            });
+            cardsContainer.addEventListener("drop", (e) => {
+              e.preventDefault();
+              const cardId = e.dataTransfer.getData("text/plain");
+              const sourceListId = e.dataTransfer.getData("sourceListId");
+              if (!cardId || !sourceListId) return;
+              // Only move if dropping into a different list or repositioning within same list
+              const card = removeCardFromList(
+                Number(sourceListId),
+                Number(cardId)
+              );
+              if (card) {
+                // Append to end of new list
+                addCardToList(list.id, card);
+                renderBoard();
+                save();
+              }
+            });
+            // Render each card
+            list.cards.forEach((card) => {
+              const cardEl = document.createElement("div");
+              cardEl.className = "card";
+              cardEl.textContent = card.content;
+              cardEl.draggable = true;
+              cardEl.dataset.cardId = card.id;
+              // Start dragging
+              cardEl.addEventListener("dragstart", (e) => {
+                e.dataTransfer.setData("text/plain", card.id);
+                e.dataTransfer.setData("sourceListId", list.id);
+                // Set a drag image to avoid default ghost icon
+                const ghost = document.createElement("div");
+                ghost.style.position = "absolute";
+                ghost.style.top = "-9999px";
+                ghost.textContent = card.content;
+                document.body.appendChild(ghost);
+                e.dataTransfer.setDragImage(ghost, 0, 0);
+              });
+              // Editing card on double click
+              cardEl.addEventListener("dblclick", () => {
+                const updated = prompt("Edit card content:", card.content);
+                if (updated !== null) {
+                  const trimmed = updated.trim();
+                  if (trimmed) {
+                    card.content = trimmed;
+                    renderBoard();
+                    save();
+                  }
+                }
+              });
+              cardsContainer.appendChild(cardEl);
+            });
+            listEl.appendChild(cardsContainer);
+            // Add card button
+            const addCardDiv = document.createElement("div");
+            addCardDiv.className = "add-card";
+            const addCardBtn = document.createElement("button");
+            addCardBtn.textContent = "+ Add a card";
+            addCardBtn.addEventListener("click", () => {
+              const content = prompt("Enter card content:");
+              if (content) {
+                const trimmed = content.trim();
+                if (trimmed) {
+                  addNewCard(list.id, trimmed);
+                  renderBoard();
+                  save();
+                }
+              }
+            });
+            addCardDiv.appendChild(addCardBtn);
+            listEl.appendChild(addCardDiv);
+            container.appendChild(listEl);
+          });
+        }
+
+        // Add a new list to the board
+        function addNewList(name) {
+          board.lists.push({
+            id: listIdCounter++,
+            name: name || "Untitled",
+            cards: [],
+          });
+        }
+
+        // Add a new card to a specific list by id
+        function addNewCard(listId, content) {
+          const list = board.lists.find((l) => l.id === listId);
+          if (list) {
+            list.cards.push({ id: cardIdCounter++, content });
+          }
+        }
+
+        // Remove a card from a list and return it
+        function removeCardFromList(listId, cardId) {
+          const list = board.lists.find((l) => l.id === listId);
+          if (list) {
+            const idx = list.cards.findIndex((c) => c.id === cardId);
+            if (idx > -1) {
+              return list.cards.splice(idx, 1)[0];
+            }
+          }
+          return null;
+        }
+
+        // Add an existing card object to a list (used when moving cards)
+        function addCardToList(listId, card) {
+          const list = board.lists.find((l) => l.id === listId);
+          if (list) {
+            list.cards.push(card);
+          }
+        }
+
+        // Initialise the board on DOMContentLoaded
+        function init() {
+          // Load saved board state
+          load();
+          // Render board
+          renderBoard();
+          // Board title persistence
+          const boardTitle = document.getElementById("board-title");
+          const savedTitle = localStorage.getItem("kanbanBoardTitle");
+          if (savedTitle) {
+            boardTitle.textContent = savedTitle;
+          }
+          boardTitle.addEventListener("blur", () => {
+            const title = boardTitle.textContent.trim();
+            localStorage.setItem("kanbanBoardTitle", title || "My Board");
+          });
+          // Add list button
+          document
+            .getElementById("add-list-button")
+            .addEventListener("click", () => {
+              const name = prompt("Enter list name:");
+              if (name) {
+                const trimmed = name.trim();
+                if (trimmed) {
+                  addNewList(trimmed);
+                  renderBoard();
+                  save();
+                }
+              }
+            });
+        }
+        document.addEventListener("DOMContentLoaded", init);
+      })();
+    </script>
+  </body>
+</html>
