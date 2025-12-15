@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bicep As-Built Markdown</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0f172a;
+      --panel: rgba(15, 23, 42, 0.82);
+      --panel-border: rgba(148, 163, 184, 0.35);
+      --soft: rgba(59, 130, 246, 0.18);
+      --highlight: #38bdf8;
+      --text: #e2e8f0;
+      --muted: rgba(226, 232, 240, 0.7);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 96px 22px 140px;
+      font-family: "Inter", "Segoe UI", Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.08), transparent 50%),
+                  radial-gradient(circle at bottom right, rgba(244, 114, 182, 0.08), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+    }
+
+    main { width: min(1120px, 100%); display: grid; gap: 26px; }
+    a { color: inherit; }
+
+    header {
+      display: flex; gap: 22px; flex-wrap: wrap; align-items: flex-start;
+      background: var(--panel); border: 1px solid var(--panel-border);
+      border-radius: 24px; padding: 28px;
+      box-shadow: 0 32px 70px rgba(15, 23, 42, 0.45);
+    }
+    header h1 { margin: 0; font-size: clamp(32px, 5vw, 44px); }
+    header p { margin: 0; max-width: 680px; line-height: 1.6; color: var(--muted); }
+    .back-home { font-weight: 600; text-decoration: none; color: var(--highlight); }
+
+    .panel { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 22px; padding: 26px; display: grid; gap: 18px; }
+    .panel h2 { margin: 0; font-size: 26px; }
+    .panel p { margin: 0; color: var(--muted); line-height: 1.6; }
+
+    .controls { display: grid; gap: 14px; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .row label { font-size: 14px; color: var(--muted); }
+    input[type="text"], textarea { flex: 1; min-width: 220px; border-radius: 14px; border: 1px solid rgba(148,163,184,0.3); background: rgba(15,23,42,0.6); color: inherit; padding: 12px 14px; font-size: 14px; }
+    textarea { min-height: 120px; resize: vertical; }
+    input[type="file"] { color: var(--muted); }
+    .primary-btn { border-radius: 14px; border: none; background: rgba(56,189,248,0.9); color: #0b1120; font-weight: 600; padding: 12px 16px; cursor: pointer; }
+    .chip { border-radius: 999px; padding: 6px 10px; background: rgba(56,189,248,0.18); border: 1px solid rgba(56,189,248,0.28); font-size: 12px; }
+    .checkboxes { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .markdown-view { border-radius: 18px; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(148, 163, 184, 0.2); padding: 18px; }
+    pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
+
+    footer { position: fixed; right: 18px; bottom: 18px; background: rgba(15,23,42,0.75); border: 1px solid rgba(148,163,184,0.25); border-radius: 999px; padding: 10px 14px; font-size: 12px; color: rgba(226,232,240,0.85); backdrop-filter: blur(6px); }
+
+    @media (max-width: 920px) {
+      body { padding: 72px 16px 120px; }
+      .row { flex-direction: column; align-items: stretch; }
+      .primary-btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Bicep As-Built Markdown</h1>
+        <p>Generate a readable, shareable “as built / as configured” Markdown document from a Bicep template. Load the sample <span class="chip">bicepdoc/main.bicep</span> or drop your own file. Use filters to hide noisy resource types (like tables and saved searches).</p>
+      </div>
+      <a class="back-home" href="/">← back to home</a>
+    </header>
+
+    <section class="panel">
+      <h2>Source & Filters</h2>
+      <div class="controls">
+        <div class="row">
+          <button id="load-sample" class="primary-btn">Load Sample</button>
+          <input id="file-input" type="file" accept=".bicep,.txt" />
+          <button id="generate" class="primary-btn">Generate Markdown</button>
+        </div>
+        <div class="row">
+          <label for="exclude">Exclude Type contains (comma-separated)</label>
+          <input id="exclude" type="text" placeholder="tables,savedSearches,ProactiveDetectionConfigs">
+        </div>
+        <div class="checkboxes" id="noise-presets">
+          <label><input type="checkbox" data-pattern="workspaces/tables" checked> Exclude Log Analytics Tables</label>
+          <label><input type="checkbox" data-pattern="OperationalInsights/workspaces/savedSearches" checked> Exclude Saved Searches</label>
+          <label><input type="checkbox" data-pattern="insights/components/ProactiveDetectionConfigs" checked> Exclude App Insights Proactive Detectors</label>
+        </div>
+        <div class="row">
+          <label><input type="checkbox" id="list-props-keys-only" checked> List property keys only (not full bodies)</label>
+          <label><input type="checkbox" id="include-depends" checked> Include dependsOn</label>
+        </div>
+        <div class="row">
+          <label for="paste">Or paste Bicep code</label>
+          <textarea id="paste" placeholder="Paste your .bicep file content here"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Markdown Output</h2>
+      <div class="row">
+        <button id="copy-md" class="primary-btn">Copy</button>
+        <button id="download-md" class="primary-btn">Download .md</button>
+      </div>
+      <div class="markdown-view" id="markdown-view"><pre id="markdown-pre">Ready. Load sample or provide a file.</pre></div>
+    </section>
+
+    <section class="panel">
+      <h2>How this works</h2>
+      <p id="explain">This SPA scans Bicep resource blocks via a lightweight parser and extracts key configuration fields such as <em>type</em>, <em>API version</em>, <em>name</em>, <em>location</em>, <em>sku</em>, and immediate keys under <em>properties</em>. Filters hide noisy types (e.g., tables, saved searches, and proactive detectors) without touching your source. All settings are saved in the URL hash so refreshes preserve state. No external dependencies.</p>
+    </section>
+  </main>
+
+  <footer>Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot — v6</footer>
+
+  <script>
+    // URL hash state helpers
+    function getHashState() {
+      const h = (location.hash || '').replace(/^#/, '');
+      const params = new URLSearchParams(h);
+      return {
+        exclude: (params.get('exclude') || '').split(',').filter(Boolean),
+        listPropsKeysOnly: params.get('keysOnly') === '1',
+        includeDepends: params.get('depends') !== '0',
+        src: params.get('src') || 'sample',
+      };
+    }
+    function setHashState(s) {
+      const params = new URLSearchParams();
+      if (s.exclude && s.exclude.length) params.set('exclude', s.exclude.join(','));
+      params.set('keysOnly', s.listPropsKeysOnly ? '1' : '0');
+      params.set('depends', s.includeDepends ? '1' : '0');
+      params.set('src', s.src || 'sample');
+      location.hash = params.toString();
+    }
+
+    // Basic Bicep resource block parser
+    function stripComments(text) {
+      // More careful comment stripping that doesn't treat */ inside strings as comment terminators
+      let result = '';
+      let inString = false;
+      let stringChar = '';
+      let i = 0;
+      
+      while (i < text.length) {
+        const ch = text[i];
+        const next = text[i + 1];
+        
+        // Toggle string state
+        if (!inString && (ch === "'" || ch === '"' || ch === '`')) {
+          inString = true;
+          stringChar = ch;
+          result += ch;
+          i++;
+        } else if (inString && ch === stringChar && text[i - 1] !== '\\') {
+          inString = false;
+          result += ch;
+          i++;
+        } else if (!inString && ch === '/' && next === '/') {
+          // Line comment - skip to end of line
+          while (i < text.length && text[i] !== '\n') i++;
+        } else if (!inString && ch === '/' && next === '*') {
+          // Block comment - skip to */
+          i += 2;
+          while (i < text.length - 1) {
+            if (text[i] === '*' && text[i + 1] === '/') {
+              i += 2;
+              break;
+            }
+            i++;
+          }
+        } else {
+          result += ch;
+          i++;
+        }
+      }
+      return result;
+    }
+
+    function findMatchingBrace(text, startIdx) {
+      let depth = 0;
+      for (let i = startIdx; i < text.length; i++) {
+        const ch = text[i];
+        if (ch === '{') depth++;
+        else if (ch === '}') { depth--; if (depth === 0) return i; }
+      }
+      return -1;
+    }
+
+    function parseResources(bicepText) {
+      const text = stripComments(bicepText);
+      const re = /(^|\n)\s*resource\s+([A-Za-z0-9_]+)\s+'([^']+?)@([^']+?)'\s*=\s*\{/g;
+      const resources = [];
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        const symbol = m[2];
+        const type = m[3];
+        const apiVersion = m[4];
+        const objStart = text.indexOf('{', m.index);
+        const objEnd = findMatchingBrace(text, objStart);
+        const body = objEnd > objStart ? text.slice(objStart + 1, objEnd) : '';
+        resources.push({ symbol, type, apiVersion, body });
+      }
+      return resources;
+    }
+
+    function topLevelKeys(body) {
+      const keys = [];
+      let depth = 0, key = '', readingKey = true;
+      for (let i = 0; i < body.length; i++) {
+        const ch = body[i];
+        if (ch === '{') depth++;
+        else if (ch === '}') depth--;
+        if (depth === 0) {
+          if (readingKey) {
+            if (/\s/.test(ch)) { /* skip */ }
+            else if (ch === ':' ) { if (key) { keys.push(key.trim()); key=''; } readingKey=false; }
+            else if (ch === '\n' || ch === ',') { key=''; readingKey=true; }
+            else { key += ch; }
+          } else {
+            if (ch === ',') { readingKey = true; }
+          }
+        }
+      }
+      return keys.filter(Boolean);
+    }
+
+    function extractField(body, field) {
+      const re = new RegExp("(^|\\n)\\s*" + field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "\\s*:");
+      const m = re.exec(body);
+      if (!m) return null;
+      
+      // Start after the colon
+      let i = m.index + m[0].length;
+      
+      // Skip initial whitespace (but not newlines yet)
+      while (i < body.length && (body[i] === ' ' || body[i] === '\t')) i++;
+      
+      let out = '';
+      let depth = 0;
+      let inString = false;
+      let stringChar = null;
+      let startedComplex = false; // Track if we entered an object/array
+      
+      for (; i < body.length; i++) {
+        const ch = body[i];
+        
+        // Handle strings
+        if (!inString && (ch === "'" || ch === '"' || ch === '`')) {
+          inString = true;
+          stringChar = ch;
+          out += ch;
+          continue;
+        }
+        if (inString) {
+          out += ch;
+          if (ch === stringChar && body[i-1] !== '\\') {
+            inString = false;
+          }
+          continue;
+        }
+        
+        // Handle braces/brackets
+        if (ch === '{' || ch === '[') {
+          depth++;
+          out += ch;
+          startedComplex = true;
+          continue;
+        }
+        
+        if (ch === '}' || ch === ']') {
+          depth--;
+          if (depth < 0) {
+            // Hit parent's closing brace
+            break;
+          }
+          out += ch;
+          if (startedComplex && depth === 0) {
+            // Completed the object/array
+            return out.trim();
+          }
+          continue;
+        }
+        
+        // At depth 0, check for field termination
+        if (depth === 0) {
+          // Stop at newline if next line looks like a new field (starts with identifier)
+          if (ch === '\n') {
+            // Look ahead to see if next line is a new field
+            let peek = i + 1;
+            while (peek < body.length && /[ \t]/.test(body[peek])) peek++;
+            
+            if (peek < body.length) {
+              const nextChar = body[peek];
+              // If next line starts with a word character or closing brace, we're done
+              if (/[a-zA-Z_]/.test(nextChar) || nextChar === '}') {
+                return out.trim();
+              }
+            }
+          }
+        }
+        
+        out += ch;
+      }
+      
+      return out.trim();
+    }
+
+    function parseSku(body) {
+      const s = extractField(body, 'sku');
+      if (!s) return null;
+      const nameMatch = /name\s*:\s*([^,\n]+)/.exec(s);
+      const tierMatch = /tier\s*:\s*([^,\n]+)/.exec(s);
+      const sizeMatch = /size\s*:\s*([^,\n]+)/.exec(s);
+      return {
+        raw: s,
+        name: nameMatch ? nameMatch[1].trim() : null,
+        tier: tierMatch ? tierMatch[1].trim() : null,
+        size: sizeMatch ? sizeMatch[1].trim() : null,
+      };
+    }
+
+    function parsePropertiesKeys(body) {
+      const p = extractField(body, 'properties');
+      if (!p) return [];
+      return topLevelKeys(p);
+    }
+
+    function parseDepends(body) {
+      const d = extractField(body, 'dependsOn');
+      if (!d) return [];
+      const items = [];
+      let token = '', depth = 0;
+      for (let i = 0; i < d.length; i++) {
+        const ch = d[i];
+        if (ch === '[' || ch === '{') depth++;
+        else if (ch === ']' || ch === '}') depth--;
+        if (depth === 0 && ch === ',') { if (token.trim()) items.push(token.trim()); token=''; }
+        else token += ch;
+      }
+      if (token.trim()) items.push(token.trim());
+      return items.map(x => x.replace(/\s+/g, ' ').replace(/^(['"])(.*)\1$/, '$2'));
+    }
+
+    function applyFilters(resources, patterns) {
+      const checks = patterns.filter(Boolean).map(p => p.toLowerCase());
+      return resources.filter(r => !checks.some(p => r.type.toLowerCase().includes(p)));
+    }
+
+    function formatValue(val, indent = 2) {
+      if (!val) return '';
+      const trimmed = val.trim();
+      // Simple object/array detection
+      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        // Pretty-print with indentation
+        const lines = [];
+        let depth = 0;
+        let line = '';
+        for (let i = 0; i < trimmed.length; i++) {
+          const ch = trimmed[i];
+          if (ch === '{' || ch === '[') {
+            line += ch;
+            lines.push(' '.repeat(indent + depth * 2) + line.trim());
+            line = '';
+            depth++;
+          } else if (ch === '}' || ch === ']') {
+            if (line.trim()) {
+              lines.push(' '.repeat(indent + depth * 2) + line.trim());
+              line = '';
+            }
+            depth--;
+            lines.push(' '.repeat(indent + depth * 2) + ch);
+          } else if (ch === '\n') {
+            if (line.trim()) {
+              lines.push(' '.repeat(indent + depth * 2) + line.trim());
+              line = '';
+            }
+          } else {
+            line += ch;
+          }
+        }
+        if (line.trim()) lines.push(' '.repeat(indent + depth * 2) + line.trim());
+        return lines.join('\n');
+      }
+      return ' '.repeat(indent) + trimmed;
+    }
+
+    function toMarkdown(resources, opts) {
+      const lines = [];
+      lines.push(`# As Built: Bicep Resources`);
+      const dt = new Date().toISOString();
+      lines.push(`Generated: ${dt}`);
+      lines.push('');
+      resources.forEach(r => {
+        lines.push(`## ${r.type}`);
+        lines.push(`- **Symbol**: \`${r.symbol}\``);
+        lines.push(`- **API Version**: \`${r.apiVersion}\``);
+        const name = extractField(r.body, 'name');
+        if (name) {
+          lines.push(`- **Name**:`);
+          lines.push('  ```');
+          lines.push(formatValue(name, 2));
+          lines.push('  ```');
+        }
+        const location = extractField(r.body, 'location');
+        if (location) {
+          lines.push(`- **Location**: \`${location.trim().replace(/'/g, '')}\``);
+        }
+        const tags = extractField(r.body, 'tags');
+        if (tags) {
+          lines.push(`- **Tags**:`);
+          lines.push('  ```');
+          lines.push(formatValue(tags, 2));
+          lines.push('  ```');
+        }
+        const kind = extractField(r.body, 'kind');
+        if (kind) {
+          lines.push(`- **Kind**: \`${kind.trim().replace(/'/g, '')}\``);
+        }
+        const identity = extractField(r.body, 'identity');
+        if (identity) {
+          lines.push(`- **Identity**:`);
+          lines.push('  ```bicep');
+          lines.push(formatValue(identity, 2));
+          lines.push('  ```');
+        }
+        const sku = parseSku(r.body);
+        if (sku) {
+          lines.push(`- **SKU**:`);
+          lines.push('  ```');
+          if (sku.name || sku.tier || sku.size) {
+            if (sku.name) lines.push(`  name: ${sku.name.trim()}`);
+            if (sku.tier) lines.push(`  tier: ${sku.tier.trim()}`);
+            if (sku.size) lines.push(`  size: ${sku.size.trim()}`);
+          } else {
+            lines.push(formatValue(sku.raw, 2));
+          }
+          lines.push('  ```');
+        }
+        const propsKeys = parsePropertiesKeys(r.body);
+        if (propsKeys.length) {
+          if (opts.listPropsKeysOnly) {
+            lines.push(`- **Properties**: ${propsKeys.join(', ')}`);
+          } else {
+            const propsRaw = extractField(r.body, 'properties');
+            lines.push(`- **Properties**:`);
+            lines.push('  ```bicep');
+            lines.push(formatValue(propsRaw, 2));
+            lines.push('  ```');
+          }
+        } else {
+          // Fallback: try to extract properties even if we can't parse keys
+          const propsRaw = extractField(r.body, 'properties');
+          if (propsRaw) {
+            lines.push(`- **Properties**:`);
+            lines.push('  ```bicep');
+            lines.push(formatValue(propsRaw, 2));
+            lines.push('  ```');
+          }
+        }
+        if (opts.includeDepends) {
+          const deps = parseDepends(r.body);
+          if (deps.length) {
+            lines.push(`- **dependsOn**:`);
+            deps.forEach(d => lines.push(`  - \`${d}\``));
+          }
+        }
+        lines.push('');
+      });
+      return lines.join('\n');
+    }
+
+    // UI wiring
+    const state = getHashState();
+    const excludeInput = document.getElementById('exclude');
+    const pasteInput = document.getElementById('paste');
+    const noisePresets = document.getElementById('noise-presets');
+    const keysOnly = document.getElementById('list-props-keys-only');
+    const includeDepends = document.getElementById('include-depends');
+    const pre = document.getElementById('markdown-pre');
+
+    // Initialize from hash
+    excludeInput.value = state.exclude.join(',');
+    keysOnly.checked = !!state.listPropsKeysOnly;
+    includeDepends.checked = !!state.includeDepends;
+
+    function currentPatterns() {
+      const manual = excludeInput.value.split(',').map(s => s.trim()).filter(Boolean);
+      const preset = Array.from(noisePresets.querySelectorAll('input[type="checkbox"]'))
+        .filter(cb => cb.checked)
+        .map(cb => cb.getAttribute('data-pattern'));
+      return Array.from(new Set([...manual, ...preset]));
+    }
+
+    function updateHashFromUI(srcTag) {
+      const s = {
+        exclude: currentPatterns(),
+        listPropsKeysOnly: keysOnly.checked,
+        includeDepends: includeDepends.checked,
+        src: srcTag || state.src
+      };
+      setHashState(s);
+    }
+
+    async function readFileAsText(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsText(file);
+      });
+    }
+
+    async function loadSample() {
+      const resp = await fetch('bicepdoc/main.bicep');
+      const text = await resp.text();
+      return text;
+    }
+
+    async function getSourceText() {
+      const file = document.getElementById('file-input').files[0];
+      if (file) { updateHashFromUI('file'); return await readFileAsText(file); }
+      if (pasteInput.value.trim()) { updateHashFromUI('paste'); return pasteInput.value; }
+      updateHashFromUI('sample');
+      return await loadSample();
+    }
+
+    async function generate() {
+      try {
+        const text = await getSourceText();
+        const resources = parseResources(text);
+        const filtered = applyFilters(resources, currentPatterns());
+        const md = toMarkdown(filtered, { listPropsKeysOnly: keysOnly.checked, includeDepends: includeDepends.checked });
+        pre.textContent = md;
+      } catch (e) {
+        pre.textContent = 'Error: ' + e.message;
+      }
+    }
+
+    document.getElementById('load-sample').addEventListener('click', async () => { await generate(); });
+    document.getElementById('generate').addEventListener('click', async () => { await generate(); });
+    excludeInput.addEventListener('input', () => updateHashFromUI());
+    noisePresets.addEventListener('change', () => updateHashFromUI());
+    keysOnly.addEventListener('change', () => updateHashFromUI());
+    includeDepends.addEventListener('change', () => updateHashFromUI());
+
+    document.getElementById('copy-md').addEventListener('click', async () => {
+      const text = pre.textContent || '';
+      try { await navigator.clipboard.writeText(text); } catch {}
+    });
+    document.getElementById('download-md').addEventListener('click', () => {
+      const blob = new Blob([pre.textContent || ''], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'as-built.md'; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    });
+
+    // Auto-generate once on load for convenience
+    generate();
+  </script>
+</body>
+</html>
