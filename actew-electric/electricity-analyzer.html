@@ -1203,6 +1203,17 @@
             const dailyData = {};
             const usePeakRates = document.getElementById('peakOffPeakToggle').checked;
             const selectedPlan = document.getElementById('planSelector').value;
+            let peakRate, offPeakRate, shoulderRate, weekendRate, flatRate;
+
+            if (usePeakRates) {
+                peakRate = parseFloat(document.getElementById('peakRate').value);
+                offPeakRate = parseFloat(document.getElementById('offPeakRate').value);
+                shoulderRate = parseFloat(document.getElementById('shoulderRate').value);
+                weekendRate = parseFloat(document.getElementById('weekendRate').value);
+            } else {
+                flatRate = parseFloat(document.getElementById('flatRate').value);
+                peakRate = offPeakRate = shoulderRate = weekendRate = flatRate;
+            }
 
             parsedData.forEach(reading => {
                 // Use ISO date format (YYYY-MM-DD) for sorting, then convert to display format
@@ -1237,6 +1248,17 @@
             const shoulderValues = dailyLabels.map(date => dailyData[date].shoulder);
             const weekendValues = dailyLabels.map(date => dailyData[date].weekend);
             const offpeakValues = dailyLabels.map(date => dailyData[date].offpeak);
+            const dailyTotals = dailyLabels.map(date => {
+                const day = dailyData[date];
+                return day.peak + day.shoulder + day.offpeak + day.weekend;
+            });
+            const dailyCosts = dailyLabels.map(date => {
+                const day = dailyData[date];
+                return (day.peak * peakRate) +
+                    (day.offpeak * offPeakRate) +
+                    (day.shoulder * shoulderRate) +
+                    (day.weekend * weekendRate);
+            });
 
             if (charts.daily) charts.daily.destroy();
 
@@ -1315,10 +1337,11 @@
                         tooltip: {
                             callbacks: {
                                 footer: function(tooltipItems) {
-                                    if (!usePeakRates) return '';
-                                    let sum = 0;
-                                    tooltipItems.forEach(item => sum += item.parsed.y);
-                                    return 'Total: ' + sum.toFixed(2) + ' kWh';
+                                    if (!tooltipItems.length) return '';
+                                    const index = tooltipItems[0].dataIndex;
+                                    const totalKwh = dailyTotals[index] ?? 0;
+                                    const totalCost = dailyCosts[index] ?? 0;
+                                    return 'Total: ' + totalKwh.toFixed(2) + ' kWh | Total Cost: $' + totalCost.toFixed(2);
                                 }
                             }
                         }
