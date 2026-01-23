@@ -6,3 +6,4 @@ package-lock.json
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+/scripts/out/
