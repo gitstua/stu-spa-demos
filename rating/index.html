@@ -1,0 +1,1003 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ADHD Rating Scale-IV (Adult) — Self-Report</title>
+  <style>
+    :root{
+      --bg:#0b0f14; --card:#111826; --card2:#0f172a; --text:#e5e7eb; --muted:#9ca3af;
+      --accent:#60a5fa; --good:#34d399; --warn:#fbbf24; --bad:#fb7185;
+      --shadow:0 10px 30px rgba(0,0,0,.35); --radius:16px;
+      --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      --sans:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:var(--sans); color:var(--text); line-height:1.35;
+      background:
+        radial-gradient(1200px 800px at 20% 10%, rgba(96,165,250,.16), transparent 60%),
+        radial-gradient(900px 700px at 90% 30%, rgba(52,211,153,.10), transparent 55%),
+        var(--bg);
+    }
+    header{padding:28px 18px 10px; max-width:1100px; margin:0 auto;}
+    h1{margin:0 0 8px; font-size:clamp(20px,2.4vw,28px); font-weight:750; letter-spacing:.2px;}
+    .sub{margin:0; color:var(--muted); font-size:14px;}
+    main{
+      max-width:1100px; margin:0 auto; padding:14px 18px 40px;
+      display:grid; grid-template-columns:1.3fr .7fr; gap:16px;
+    }
+    @media (max-width:960px){ main{grid-template-columns:1fr;} }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.03), transparent 40%), var(--card);
+      border:1px solid rgba(255,255,255,.06); border-radius:var(--radius); box-shadow:var(--shadow);
+    }
+    .card h2{margin:0; padding:16px 16px 10px; font-size:16px; font-weight:700;}
+    .card h3{margin:0; font-size:14px; font-weight:750; letter-spacing:.2px;}
+    .card .content{padding:0 16px 16px;}
+
+    .pill{
+      display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap;
+      padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      color:var(--muted); font-size:12px; margin-top:8px;
+    }
+    kbd{
+      font-family:var(--mono); font-size:11px; padding:2px 6px; border-radius:8px;
+      border:1px solid rgba(255,255,255,.14); background:rgba(0,0,0,.25); color:var(--text);
+    }
+
+    .section-title{
+      display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+      padding:14px 16px 8px; border-top:1px solid rgba(255,255,255,.06);
+    }
+    .section-title:first-of-type{border-top:0;}
+    .section-title small{color:var(--muted); font-size:12px;}
+
+    .q{
+      display:grid; gap:8px; padding:12px 16px;
+      border-top:1px solid rgba(255,255,255,.06);
+      outline:none;
+    }
+    .q:first-of-type{border-top:0;}
+    .q .top{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
+    .q .label{display:flex; gap:10px; align-items:flex-start; font-size:14px;}
+    .q .num{font-family:var(--mono); color:var(--muted); font-size:12px; min-width:34px; padding-top:2px;}
+    .q .text{margin:0;}
+    .choices{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px;}
+    @media (max-width:640px){ .choices{grid-template-columns:1fr 1fr;} }
+
+    .choice{
+      position:relative; border-radius:12px; border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.02); padding:10px 10px; cursor:pointer; user-select:none;
+      transition:transform .04s ease, border-color .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+    .choice:hover{transform:translateY(-1px); border-color:rgba(96,165,250,.35); background:rgba(96,165,250,.08);}
+    .choice input{position:absolute; opacity:0; pointer-events:none;}
+    .choice .t{display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px;}
+    .choice .score{font-family:var(--mono); color:var(--muted); font-size:12px;}
+    .choice.selected{
+      border-color:rgba(96,165,250,.6);
+      background:rgba(96,165,250,.14);
+      box-shadow:0 0 0 1px rgba(96,165,250,.18) inset;
+    }
+
+    .q.active{
+      border-left:3px solid rgba(96,165,250,.9);
+      background:linear-gradient(90deg, rgba(96,165,250,.10), transparent 55%);
+      box-shadow:0 0 0 1px rgba(96,165,250,.12) inset;
+    }
+    .q.active .num{color:rgba(96,165,250,.95);}
+    .hint{
+      display:none; align-items:center; gap:8px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.03);
+      border-radius:999px;
+      padding:6px 10px;
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .q.active .hint{display:inline-flex;}
+
+    .aside{position:sticky; top:14px; align-self:start;}
+    @media (max-width:960px){ .aside{position:static;} }
+
+    .kpi{
+      background:var(--card2); border:1px solid rgba(255,255,255,.06);
+      border-radius:14px; padding:12px;
+    }
+    .kpi .row{display:flex; align-items:baseline; justify-content:space-between; gap:12px;}
+    .kpi .name{color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.8px; display:flex; align-items:center; gap:8px;}
+    .kpi .val{font-family:var(--mono); font-size:20px; font-weight:800;}
+    .bar{height:10px; border-radius:999px; background:rgba(255,255,255,.06); overflow:hidden; margin-top:10px;}
+    .bar>div{height:100%; width:0%; background:linear-gradient(90deg, rgba(96,165,250,.9), rgba(52,211,153,.9));
+      border-radius:999px; transition:width .25s ease;}
+    .status{margin-top:10px; font-size:13px; color:var(--muted); line-height:1.25;}
+
+    .flag{
+      display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03);
+      margin-top:10px; font-size:13px;
+    }
+    .flag.good{border-color:rgba(52,211,153,.35); background:rgba(52,211,153,.08); color:#d1fae5;}
+    .flag.warn{border-color:rgba(251,191,36,.35); background:rgba(251,191,36,.08); color:#fffbeb;}
+    .flag.bad{border-color:rgba(251,113,133,.35); background:rgba(251,113,133,.08); color:#fff1f2;}
+
+    .btns{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;}
+    .btn{
+      border:1px solid rgba(255,255,255,.10); border-radius:12px;
+      background:rgba(255,255,255,.04); color:var(--text);
+      padding:10px 12px; cursor:pointer; font-weight:650;
+      transition:border-color .15s ease, background .15s ease, transform .04s ease;
+    }
+    .btn:hover{border-color:rgba(96,165,250,.45); background:rgba(96,165,250,.10); transform:translateY(-1px);}
+    .btn:active{transform:translateY(0px);}
+    .btn.secondary:hover{border-color:rgba(255,255,255,.25); background:rgba(255,255,255,.07);}
+    .btn.full{grid-column:1 / -1;}
+    .btn.danger:hover{border-color:rgba(251,113,133,.55); background:rgba(251,113,133,.12);}
+    .btn.small{padding:8px 10px; font-size:12px; border-radius:10px;}
+
+    .small{margin-top:10px; color:var(--muted); font-size:12px;}
+    textarea{
+      width:100%; min-height:110px; border-radius:12px; border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.25); color:var(--text); padding:10px;
+      font-family:var(--mono); font-size:12px; resize:vertical;
+    }
+
+    .tip{
+      position:relative; display:inline-flex; align-items:center; justify-content:center;
+      width:18px; height:18px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.04);
+      color:var(--muted);
+      font-size:12px;
+      cursor:help;
+      user-select:none;
+    }
+    .tip:focus{outline:2px solid rgba(96,165,250,.55); outline-offset:2px;}
+    .tip[data-tip]:hover::after,
+    .tip[data-tip]:focus::after{
+      content:attr(data-tip);
+      position:absolute; left:50%; transform:translateX(-50%);
+      top:calc(100% + 8px);
+      min-width:240px; max-width:320px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(17,24,38,.98);
+      color:var(--text);
+      box-shadow:var(--shadow);
+      font-size:12px;
+      line-height:1.25;
+      z-index:20;
+      white-space:normal;
+    }
+    .tip[data-tip]:hover::before,
+    .tip[data-tip]:focus::before{
+      content:"";
+      position:absolute; left:50%;
+      top:calc(100% + 2px);
+      width:10px; height:10px;
+      background:rgba(17,24,38,.98);
+      border-left:1px solid rgba(255,255,255,.12);
+      border-top:1px solid rgba(255,255,255,.12);
+      transform:translateX(-50%) rotate(45deg);
+      z-index:21;
+    }
+
+    .note{
+      margin-top:12px; padding:10px 12px; border-radius:12px;
+      border:1px dashed rgba(255,255,255,.18);
+      color:var(--muted); font-size:12px;
+    }
+
+    /* History */
+    .history-head{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:14px 16px 10px; border-top:1px solid rgba(255,255,255,.06);
+    }
+    .history-actions{display:flex; gap:10px; flex-wrap:wrap;}
+    .history-wrap{padding:0 16px 16px;}
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      overflow:hidden;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(0,0,0,.15);
+    }
+    thead th{
+      text-align:left;
+      font-size:12px;
+      color:var(--muted);
+      padding:10px 10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+    }
+    tbody td{
+      padding:10px 10px;
+      font-size:12px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      vertical-align:top;
+    }
+    tbody tr:last-child td{border-bottom:0;}
+    .mono{font-family:var(--mono);}
+    .tag{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+      font-size:11px;
+      white-space:nowrap;
+    }
+    .tag.good{border-color:rgba(52,211,153,.30); background:rgba(52,211,153,.08); color:#d1fae5;}
+    .tag.bad{border-color:rgba(251,113,133,.30); background:rgba(251,113,133,.08); color:#fff1f2;}
+    .tag.warn{border-color:rgba(251,191,36,.30); background:rgba(251,191,36,.08); color:#fffbeb;}
+
+    .footer{max-width:1100px; margin:0 auto; padding:0 18px 26px; color:var(--muted); font-size:12px;}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ADHD Rating Scale-IV (Adult) — Self-Report</h1>
+    <p class="sub">
+      Rate each item over your <b>typical baseline</b> (not your worst day). Scale: <b>Never / Sometimes / Often / Very Often</b>.
+    </p>
+    <p class="sub">
+      NOTE: this is not a diagnostic tool. Use at own risk. May be errors. See a doctor for official expertise.
+    </p>
+    <div class="pill">
+      18 items • Scores: 0–54 • Subscales: Inattention (0–27), Hyperactivity/Impulsivity (0–27)
+      • Keyboard: <kbd>0</kbd>=Never <kbd>1</kbd>=Sometimes <kbd>2</kbd>=Often <kbd>3</kbd>=Very Often
+      • <kbd>↑</kbd>/<kbd>↓</kbd> to move
+    </div>
+  </header>
+
+  <main>
+    <section class="card" id="formCard" aria-label="Questionnaire">
+      <div class="section-title">
+        <h3>Inattention</h3>
+        <small>Items 1–9</small>
+      </div>
+      <div id="inattention"></div>
+
+      <div class="section-title">
+        <h3>Hyperactivity / Impulsivity</h3>
+        <small>Items 10–18</small>
+      </div>
+      <div id="hyper"></div>
+
+      <div class="history-head">
+        <h3>History</h3>
+        <div class="history-actions">
+          <button class="btn small" id="saveTimepointBtn" type="button">Save timepoint</button>
+          <button class="btn small secondary" id="downloadHistoryBtn" type="button">Download history (JSON)</button>
+          <button class="btn small danger" id="clearHistoryBtn" type="button">Clear history</button>
+        </div>
+      </div>
+      <div class="history-wrap">
+        <div class="small" style="margin:0 0 10px;">
+          Saved timepoints live in your browser (localStorage). Use “Download history” if you want a backup.
+        </div>
+        <div id="historyEmpty" class="note" style="margin-top:0; display:none;">
+          No saved timepoints yet. Fill all 18 items, then click <b>Save timepoint</b>.
+        </div>
+        <div id="historyTableWrap"></div>
+      </div>
+    </section>
+
+    <aside class="card aside" aria-label="Score summary">
+      <h2>Score</h2>
+      <div class="content">
+
+        <div class="kpi">
+          <div class="row">
+            <div class="name">
+              Total
+              <span class="tip" tabindex="0" data-tip="Sum of all 18 items (0–54). Mainly useful for tracking change pre-med vs on-med, not for diagnosing.">?</span>
+            </div>
+            <div class="val" id="totalScore">0</div>
+          </div>
+          <div class="bar" aria-hidden="true"><div id="totalBar"></div></div>
+          <div class="status" id="totalStatus">
+            0 / 54 answered: <span id="answeredCount">0</span> of 18
+          </div>
+        </div>
+
+        <div class="kpi" style="margin-top:10px;">
+          <div class="row">
+            <div class="name">
+              Inattention
+              <span class="tip" tabindex="0" data-tip="Items 1–9 (0–27). Clinicians also count how many items are rated Often/Very Often (2–3).">?</span>
+            </div>
+            <div class="val" id="inattScore">0</div>
+          </div>
+          <div class="status">
+            Symptoms rated <b>Often/Very Often</b>: <span id="inattSymptoms">0</span> / 9
+          </div>
+        </div>
+
+        <div class="kpi" style="margin-top:10px;">
+          <div class="row">
+            <div class="name">
+              Hyper/Impulsive
+              <span class="tip" tabindex="0" data-tip="Items 10–18 (0–27). Stimulants often reduce this less than inattention in some adults. Track function, not just score.">?</span>
+            </div>
+            <div class="val" id="hyperScore">0</div>
+          </div>
+          <div class="status">
+            Symptoms rated <b>Often/Very Often</b>: <span id="hyperSymptoms">0</span> / 9
+          </div>
+        </div>
+
+        <div class="kpi" style="margin-top:10px;">
+          <div class="row">
+            <div class="name">
+              Rating anchors
+              <span class="tip" tabindex="0" data-tip="Never: essentially not happening. Sometimes: occasional / situation-specific, not persistent. Often: several times/week, causes problems or compensation. Very Often: most days, across settings, clear impairment.">?</span>
+            </div>
+            <div class="val" style="font-size:12px; font-family:var(--sans); font-weight:650; color:var(--muted);">
+              Hover “?” for definitions
+            </div>
+          </div>
+          <div class="status" style="display:grid; gap:6px;">
+            <div><b>0 Never</b> — basically does not happen / rare.</div>
+            <div><b>1 Sometimes</b> — occasional; doesn’t reliably impair.</div>
+            <div><b>2 Often</b> — several times a week; interferes or needs compensation.</div>
+            <div><b>3 Very Often</b> — most days; across settings; clear impairment.</div>
+          </div>
+        </div>
+
+        <div class="flag warn" id="flagBox" role="status" aria-live="polite" style="margin-top:10px;">
+          Fill all items for clean tracking.
+        </div>
+
+        <div class="btns">
+          <button class="btn" id="copyBtn" type="button">Copy current (JSON)</button>
+          <button class="btn secondary" id="resetBtn" type="button">Reset current</button>
+          <button class="btn full secondary" id="printBtn" type="button">Print</button>
+        </div>
+
+        <div class="small">Export (current session JSON):</div>
+        <textarea id="export" readonly spellcheck="false"></textarea>
+
+        <div class="note">
+          <b>Keyboard:</b> Click a question to focus it, then press <kbd>0</kbd>/<kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd>.
+          Use <kbd>↑</kbd>/<kbd>↓</kbd> or <kbd>PageUp</kbd>/<kbd>PageDown</kbd> to move between questions.
+          <br><br>
+          <b>History:</b> “Save timepoint” stores a snapshot (date + totals + full item responses).
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <div class="footer">
+    This is for symptom tracking (e.g., baseline vs on-med). Not a standalone diagnosis tool.
+  </div>
+
+  <script>
+    // -------------------- Data --------------------
+    const ITEMS = [
+      { n: 1,  domain: "inatt", text: "Fails to give close attention to details or makes careless mistakes." },
+      { n: 2,  domain: "inatt", text: "Has difficulty sustaining attention in tasks or activities." },
+      { n: 3,  domain: "inatt", text: "Does not seem to listen when spoken to directly." },
+      { n: 4,  domain: "inatt", text: "Does not follow through on instructions and fails to finish tasks." },
+      { n: 5,  domain: "inatt", text: "Has difficulty organising tasks and activities." },
+      { n: 6,  domain: "inatt", text: "Avoids, dislikes, or is reluctant to engage in tasks requiring sustained mental effort." },
+      { n: 7,  domain: "inatt", text: "Loses things necessary for tasks or activities." },
+      { n: 8,  domain: "inatt", text: "Is easily distracted by extraneous stimuli." },
+      { n: 9,  domain: "inatt", text: "Is forgetful in daily activities." },
+      { n: 10, domain: "hyper", text: "Fidgets with hands or feet or squirms in seat." },
+      { n: 11, domain: "hyper", text: "Leaves seat in situations when remaining seated is expected." },
+      { n: 12, domain: "hyper", text: "Feels restless or has difficulty staying still." },
+      { n: 13, domain: "hyper", text: "Has difficulty engaging in leisure activities quietly." },
+      { n: 14, domain: "hyper", text: "Is “on the go” or acts as if “driven by a motor”." },
+      { n: 15, domain: "hyper", text: "Talks excessively." },
+      { n: 16, domain: "hyper", text: "Blurts out answers before questions have been completed." },
+      { n: 17, domain: "hyper", text: "Has difficulty waiting their turn." },
+      { n: 18, domain: "hyper", text: "Interrupts or intrudes on others." }
+    ];
+
+    const OPTIONS = [
+      { label: "Never", value: 0 },
+      { label: "Sometimes", value: 1 },
+      { label: "Often", value: 2 },
+      { label: "Very Often", value: 3 }
+    ];
+
+    // -------------------- State --------------------
+    const STORAGE_KEY = "adhd_rs4_state_v2";
+    const HISTORY_KEY = "adhd_rs4_history_v1";
+
+    const state = {
+      answers: {},      // { [itemNumber]: 0..3 }
+      lastUpdated: null,
+      activeItem: 1
+    };
+
+    let history = [];   // array of timepoints
+
+    // -------------------- DOM --------------------
+    const inattEl = document.getElementById("inattention");
+    const hyperEl = document.getElementById("hyper");
+
+    const totalScoreEl = document.getElementById("totalScore");
+    const inattScoreEl = document.getElementById("inattScore");
+    const hyperScoreEl = document.getElementById("hyperScore");
+    const totalBarEl = document.getElementById("totalBar");
+    const answeredCountEl = document.getElementById("answeredCount");
+    const inattSymptomsEl = document.getElementById("inattSymptoms");
+    const hyperSymptomsEl = document.getElementById("hyperSymptoms");
+    const flagBoxEl = document.getElementById("flagBox");
+    const exportEl = document.getElementById("export");
+
+    const copyBtn = document.getElementById("copyBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const printBtn = document.getElementById("printBtn");
+
+    const saveTimepointBtn = document.getElementById("saveTimepointBtn");
+    const downloadHistoryBtn = document.getElementById("downloadHistoryBtn");
+    const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+
+    const historyTableWrap = document.getElementById("historyTableWrap");
+    const historyEmpty = document.getElementById("historyEmpty");
+
+    // -------------------- Helpers --------------------
+    function clamp(n, min, max){ return Math.min(max, Math.max(min, n)); }
+
+    function fmtDate(iso){
+      try{
+        const d = new Date(iso);
+        // Local time display
+        return d.toLocaleString(undefined, { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" });
+      }catch(_){
+        return iso;
+      }
+    }
+
+    function saveState() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {}
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") {
+          state.answers = parsed.answers || {};
+          state.lastUpdated = parsed.lastUpdated || null;
+          state.activeItem = parsed.activeItem || 1;
+        }
+      } catch (_) {}
+    }
+
+    function clearState() {
+      try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+    }
+
+    function saveHistory() {
+      try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); } catch (_) {}
+    }
+
+    function loadHistory() {
+      try {
+        const raw = localStorage.getItem(HISTORY_KEY);
+        if (!raw) { history = []; return; }
+        const parsed = JSON.parse(raw);
+        history = Array.isArray(parsed) ? parsed : [];
+      } catch (_) {
+        history = [];
+      }
+    }
+
+    function clearHistory() {
+      try { localStorage.removeItem(HISTORY_KEY); } catch (_) {}
+      history = [];
+    }
+
+    // -------------------- Scoring --------------------
+    function getScoreFromAnswers(answersObj) {
+      let inatt=0, hyper=0, total=0, answered=0;
+      let inattSymptoms=0, hyperSymptoms=0;
+      const details = [];
+
+      for (const item of ITEMS) {
+        const ans = answersObj[item.n];
+        const has = Number.isFinite(ans);
+        if (has) {
+          answered++;
+          total += ans;
+          if (item.domain === "inatt") inatt += ans; else hyper += ans;
+          if (ans >= 2) { if (item.domain === "inatt") inattSymptoms++; else hyperSymptoms++; }
+        }
+        details.push({
+          item: item.n,
+          domain: item.domain,
+          text: item.text,
+          response: has ? OPTIONS[ans].label : null,
+          score: has ? ans : null
+        });
+      }
+
+      return { inatt, hyper, total, answered, inattSymptoms, hyperSymptoms, details };
+    }
+
+    function getCurrentScore() {
+      return getScoreFromAnswers(state.answers);
+    }
+
+    function setFlag({ answered, inattSymptoms, hyperSymptoms }) {
+      const complete = answered === 18;
+      flagBoxEl.classList.remove("good","warn","bad");
+
+      if (!complete) {
+        flagBoxEl.classList.add("warn");
+        flagBoxEl.textContent = "Fill all items for clean tracking.";
+        return;
+      }
+
+      const inattClin = inattSymptoms >= 5;
+      const hyperClin = hyperSymptoms >= 5;
+
+      if (inattClin || hyperClin) {
+        flagBoxEl.classList.add("bad");
+        const parts = [];
+        if (inattClin) parts.push("Inattention ≥5");
+        if (hyperClin) parts.push("Hyper/Impulsive ≥5");
+        flagBoxEl.textContent = `Flag: ${parts.join(" • ")} (Often/Very Often count).`;
+      } else {
+        flagBoxEl.classList.add("good");
+        flagBoxEl.textContent = "No domain hits ≥5 at Often/Very Often (common rule of thumb).";
+      }
+    }
+
+    function buildExport(scoreObj) {
+      const payload = {
+        tool: "ADHD Rating Scale-IV (Adult) — self-report SPA",
+        generatedAt: new Date().toISOString(),
+        lastUpdated: state.lastUpdated,
+        activeItem: state.activeItem,
+        scaleAnchors: {
+          0: "Never: essentially not happening / rare.",
+          1: "Sometimes: occasional; doesn’t reliably impair.",
+          2: "Often: several times/week; interferes or needs compensation.",
+          3: "Very Often: most days; across settings; clear impairment."
+        },
+        totals: {
+          total: scoreObj.total, maxTotal: 54,
+          inattention: scoreObj.inatt, maxInattention: 27,
+          hyperImpulsive: scoreObj.hyper, maxHyperImpulsive: 27,
+          answered: scoreObj.answered, items: 18
+        },
+        symptomsOftenOrVeryOften: {
+          inattention: scoreObj.inattSymptoms,
+          hyperImpulsive: scoreObj.hyperSymptoms
+        },
+        responses: scoreObj.details
+      };
+      exportEl.value = JSON.stringify(payload, null, 2);
+      return payload;
+    }
+
+    function renderScore() {
+      const s = getCurrentScore();
+      totalScoreEl.textContent = String(s.total);
+      inattScoreEl.textContent = String(s.inatt);
+      hyperScoreEl.textContent = String(s.hyper);
+      answeredCountEl.textContent = String(s.answered);
+      inattSymptomsEl.textContent = String(s.inattSymptoms);
+      hyperSymptomsEl.textContent = String(s.hyperSymptoms);
+
+      const pct = (s.total / 54) * 100;
+      totalBarEl.style.width = `${clamp(pct, 0, 100).toFixed(1)}%`;
+
+      buildExport(s);
+      setFlag(s);
+
+      const complete = s.answered === 18;
+      document.getElementById("totalStatus").innerHTML =
+        `${s.total} / 54 answered: <span id="answeredCount">${s.answered}</span> of 18` +
+        (complete ? "" : " (incomplete)");
+    }
+
+    // -------------------- Active question --------------------
+    function setActive(itemN, { scroll=true, focus=false } = {}) {
+      const n = clamp(itemN, 1, 18);
+      state.activeItem = n;
+      saveState();
+
+      document.querySelectorAll(".q").forEach(el => el.classList.remove("active"));
+      const qEl = document.querySelector(`.q[data-item="${n}"]`);
+      if (!qEl) return;
+
+      qEl.classList.add("active");
+      if (scroll) qEl.scrollIntoView({ behavior:"smooth", block:"center" });
+      if (focus) qEl.focus({ preventScroll:true });
+    }
+
+    function moveActive(delta, opts) { setActive(state.activeItem + delta, opts); }
+
+    // -------------------- Answer handling --------------------
+    function setAnswer(itemN, val, { autoAdvance=true } = {}) {
+      state.answers[itemN] = val;
+      state.lastUpdated = new Date().toISOString();
+      saveState();
+
+      document.querySelectorAll(`[data-q="${itemN}"]`).forEach(btn => {
+        const v = Number(btn.getAttribute("data-v"));
+        btn.classList.toggle("selected", v === val);
+        const input = btn.querySelector("input");
+        if (input) input.checked = (v === val);
+      });
+
+      renderScore();
+      if (autoAdvance) moveActive(+1, { scroll:true, focus:true });
+    }
+
+    // -------------------- Form rendering --------------------
+    function makeQuestion(item) {
+      const q = document.createElement("div");
+      q.className = "q";
+      q.tabIndex = 0;
+      q.setAttribute("data-item", item.n);
+
+      q.addEventListener("click", () => setActive(item.n, { scroll:false, focus:true }));
+      q.addEventListener("focus", () => setActive(item.n, { scroll:false, focus:false }));
+
+      const top = document.createElement("div");
+      top.className = "top";
+
+      const label = document.createElement("div");
+      label.className = "label";
+
+      const num = document.createElement("div");
+      num.className = "num";
+      num.textContent = `#${String(item.n).padStart(2,"0")}`;
+
+      const text = document.createElement("p");
+      text.className = "text";
+      text.textContent = item.text;
+
+      const hint = document.createElement("div");
+      hint.className = "hint";
+      hint.innerHTML = `Keys: <kbd>0</kbd> Never <kbd>1</kbd> Sometimes <kbd>2</kbd> Often <kbd>3</kbd> Very Often`;
+
+      label.appendChild(num);
+      label.appendChild(text);
+      top.appendChild(label);
+      top.appendChild(hint);
+
+      const choices = document.createElement("div");
+      choices.className = "choices";
+      choices.setAttribute("role","radiogroup");
+      choices.setAttribute("aria-label", `Question ${item.n}`);
+
+      OPTIONS.forEach(opt => {
+        const btn = document.createElement("label");
+        btn.className = "choice";
+        btn.setAttribute("data-q", item.n);
+        btn.setAttribute("data-v", opt.value);
+
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = `q${item.n}`;
+        input.value = opt.value;
+        input.addEventListener("change", () => setAnswer(item.n, opt.value));
+
+        const t = document.createElement("div");
+        t.className = "t";
+        const spanLabel = document.createElement("span");
+        spanLabel.textContent = opt.label;
+        const spanScore = document.createElement("span");
+        spanScore.className = "score";
+        spanScore.textContent = opt.value;
+        t.appendChild(spanLabel);
+        t.appendChild(spanScore);
+
+        btn.appendChild(input);
+        btn.appendChild(t);
+
+        btn.addEventListener("click", () => {
+          setActive(item.n, { scroll:false, focus:true });
+          setAnswer(item.n, opt.value);
+        });
+
+        choices.appendChild(btn);
+      });
+
+      q.appendChild(top);
+      q.appendChild(choices);
+      return q;
+    }
+
+    function renderForm() {
+      inattEl.innerHTML = "";
+      hyperEl.innerHTML = "";
+
+      for (const item of ITEMS) {
+        const node = makeQuestion(item);
+        if (item.domain === "inatt") inattEl.appendChild(node);
+        else hyperEl.appendChild(node);
+      }
+
+      // Apply saved selections
+      for (const item of ITEMS) {
+        const ans = state.answers[item.n];
+        if (Number.isFinite(ans)) {
+          document.querySelectorAll(`[data-q="${item.n}"]`).forEach(btn => {
+            const v = Number(btn.getAttribute("data-v"));
+            btn.classList.toggle("selected", v === ans);
+            const input = btn.querySelector("input");
+            if (input) input.checked = (v === ans);
+          });
+        }
+      }
+    }
+
+    // -------------------- History rendering --------------------
+    function makeDomainTag(tp){
+      const inattClin = tp.symptomsOftenOrVeryOften.inattention >= 5;
+      const hyperClin = tp.symptomsOftenOrVeryOften.hyperImpulsive >= 5;
+      if (inattClin || hyperClin) return `<span class="tag bad">≥5 Often/Very Often</span>`;
+      return `<span class="tag good">&lt;5 Often/Very Often</span>`;
+    }
+
+    function findBaseline() {
+      // baseline = first entry marked baseline, else first entry chronologically
+      const marked = history.find(h => h.isBaseline);
+      if (marked) return marked;
+      if (history.length === 0) return null;
+      // history stored newest-first; baseline should be oldest for deltas
+      const sorted = [...history].sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+      return sorted[0];
+    }
+
+    function pctChange(curr, base){
+      if (!base || base === 0) return null;
+      return ((curr - base) / base) * 100;
+    }
+
+    function renderHistory() {
+      if (!history || history.length === 0) {
+        historyEmpty.style.display = "block";
+        historyTableWrap.innerHTML = "";
+        return;
+      }
+      historyEmpty.style.display = "none";
+
+      const baseline = findBaseline();
+
+      const rows = history.map((tp, idx) => {
+        const baseTotal = baseline ? baseline.totals.total : null;
+        const delta = (baseline && tp.id !== baseline.id) ? (tp.totals.total - baseTotal) : (baseline ? 0 : null);
+        const pct = (baseline && tp.id !== baseline.id) ? pctChange(tp.totals.total, baseTotal) : (baseline ? 0 : null);
+
+        const deltaStr = (delta === null) ? "—" : `${delta >= 0 ? "+" : ""}${delta}`;
+        const pctStr = (pct === null) ? "—" : `${pct >= 0 ? "+" : ""}${pct.toFixed(0)}%`;
+
+        const baselineTag = tp.isBaseline ? `<span class="tag warn">Baseline</span>` : "";
+
+        return `
+          <tr>
+            <td class="mono">${fmtDate(tp.timestamp)}</td>
+            <td class="mono">${tp.totals.total}</td>
+            <td class="mono">${tp.totals.inattention}</td>
+            <td class="mono">${tp.totals.hyperImpulsive}</td>
+            <td class="mono">${tp.symptomsOftenOrVeryOften.inattention}/${tp.symptomsOftenOrVeryOften.hyperImpulsive}</td>
+            <td class="mono">${deltaStr} (${pctStr})</td>
+            <td>${baselineTag} ${makeDomainTag(tp)}</td>
+            <td>
+              <button class="btn small secondary" data-act="load" data-id="${tp.id}">Load</button>
+              <button class="btn small danger" data-act="del" data-id="${tp.id}">Delete</button>
+              <button class="btn small" data-act="baseline" data-id="${tp.id}">Set baseline</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      historyTableWrap.innerHTML = `
+        <table aria-label="Saved timepoints">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Total</th>
+              <th>Inatt</th>
+              <th>Hyper</th>
+              <th>Often/VO (I/H)</th>
+              <th>Δ vs baseline</th>
+              <th>Flags</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+
+      // action handlers
+      historyTableWrap.querySelectorAll("button[data-act]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const act = btn.getAttribute("data-act");
+          const id = btn.getAttribute("data-id");
+          if (act === "load") loadTimepoint(id);
+          if (act === "del") deleteTimepoint(id);
+          if (act === "baseline") setBaseline(id);
+        });
+      });
+    }
+
+    function loadTimepoint(id) {
+      const tp = history.find(h => h.id === id);
+      if (!tp) return;
+
+      // load answers into current session
+      state.answers = { ...tp.answers };
+      state.lastUpdated = new Date().toISOString();
+      saveState();
+
+      renderForm();
+      renderScore();
+      setActive(1, { scroll:true, focus:false });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function deleteTimepoint(id) {
+      const tp = history.find(h => h.id === id);
+      if (!tp) return;
+      if (!confirm("Delete this saved timepoint?")) return;
+
+      history = history.filter(h => h.id !== id);
+      saveHistory();
+      renderHistory();
+    }
+
+    function setBaseline(id) {
+      history = history.map(h => ({ ...h, isBaseline: h.id === id }));
+      saveHistory();
+      renderHistory();
+    }
+
+    function downloadJSON(filename, obj) {
+      const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    // -------------------- Save timepoint --------------------
+    function makeId() {
+      // simple unique-ish id
+      return "tp_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+    }
+
+    function saveTimepoint() {
+      const s = getCurrentScore();
+      if (s.answered !== 18) {
+        alert("Fill all 18 items before saving a timepoint.");
+        return;
+      }
+
+      const tp = {
+        id: makeId(),
+        timestamp: new Date().toISOString(),
+        isBaseline: false,
+        totals: {
+          total: s.total,
+          inattention: s.inatt,
+          hyperImpulsive: s.hyper
+        },
+        symptomsOftenOrVeryOften: {
+          inattention: s.inattSymptoms,
+          hyperImpulsive: s.hyperSymptoms
+        },
+        // snapshot of answers and details
+        answers: { ...state.answers },
+        responses: s.details
+      };
+
+      // store newest-first
+      history.unshift(tp);
+
+      // if first ever timepoint, mark baseline automatically
+      if (history.length === 1) {
+        history[0].isBaseline = true;
+      }
+
+      saveHistory();
+      renderHistory();
+    }
+
+    // -------------------- Keyboard support --------------------
+    document.addEventListener("keydown", (e) => {
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+      const isTypingField = tag === "textarea" || tag === "input";
+      if (isTypingField) return;
+
+      const key = e.key;
+
+      if (key === "ArrowDown" || key === "PageDown") {
+        e.preventDefault();
+        moveActive(+1, { scroll:true, focus:true });
+        return;
+      }
+      if (key === "ArrowUp" || key === "PageUp") {
+        e.preventDefault();
+        moveActive(-1, { scroll:true, focus:true });
+        return;
+      }
+      if (key === "0" || key === "1" || key === "2" || key === "3") {
+        e.preventDefault();
+        setAnswer(state.activeItem, Number(key));
+        return;
+      }
+    });
+
+    // -------------------- Buttons --------------------
+    copyBtn.addEventListener("click", async () => {
+      renderScore();
+      const text = exportEl.value;
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent = "Copied";
+        setTimeout(() => (copyBtn.textContent = "Copy current (JSON)"), 900);
+      } catch (e) {
+        exportEl.focus();
+        exportEl.select();
+        document.execCommand("copy");
+        copyBtn.textContent = "Copied";
+        setTimeout(() => (copyBtn.textContent = "Copy current (JSON)"), 900);
+      }
+    });
+
+    resetBtn.addEventListener("click", () => {
+      if (!confirm("Reset current answers? (History is kept)")) return;
+      state.answers = {};
+      state.lastUpdated = null;
+      state.activeItem = 1;
+      clearState();
+      renderForm();
+      renderScore();
+      setActive(1, { scroll:true, focus:false });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    printBtn.addEventListener("click", () => window.print());
+
+    saveTimepointBtn.addEventListener("click", saveTimepoint);
+
+    downloadHistoryBtn.addEventListener("click", () => {
+      downloadJSON("adhd_rs4_history.json", {
+        tool: "ADHD Rating Scale-IV (Adult) — history export",
+        exportedAt: new Date().toISOString(),
+        history
+      });
+    });
+
+    clearHistoryBtn.addEventListener("click", () => {
+      if (!confirm("Clear ALL history timepoints? This cannot be undone.")) return;
+      clearHistory();
+      saveHistory();
+      renderHistory();
+    });
+
+    // -------------------- Init --------------------
+    loadState();
+    loadHistory();
+    renderForm();
+    renderScore();
+    renderHistory();
+    setActive(state.activeItem || 1, { scroll:false, focus:false });
+  </script>
+</body>
+</html>
