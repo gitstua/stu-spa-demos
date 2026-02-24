@@ -4,6 +4,7 @@ End Date ,31-Oct-2025
 
 
 NMI,Meter Serial Number,Stream,Suffix,Register Description,UOM,Reading Date,Reading Start Time,Reading End Time,Units,Read Type
+7000000000,LG111111111,E1,E1,Solar,kWh,30/10/2025,23:55,00:00,20.032,Actual
 7000000000,LG111111111,E1,E1,Peak,kWh,30/10/2025,23:55,00:00,0.032,Actual
 7000000000,LG111111111,E1,E1,Peak,kWh,30/10/2025,23:50,23:55,0.034,Actual
 7000000000,LG111111111,E1,E1,Peak,kWh,30/10/2025,23:45,23:50,0.024,Actual
