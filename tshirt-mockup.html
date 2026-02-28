@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T-Shirt Text Mockup Studio</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: rgba(15, 23, 42, 0.88);
+            --panel-border: rgba(148, 163, 184, 0.3);
+            --muted: rgba(226, 232, 240, 0.7);
+            --text: #e2e8f0;
+            --accent: #38bdf8;
+            --accent-soft: rgba(56, 189, 248, 0.18);
+            --warm: #f97316;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Space Grotesk", "Futura", "Trebuchet MS", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 10% 10%, rgba(56, 189, 248, 0.16), transparent 45%),
+                radial-gradient(circle at 90% 20%, rgba(249, 115, 22, 0.18), transparent 45%),
+                radial-gradient(circle at 80% 80%, rgba(94, 234, 212, 0.12), transparent 55%),
+                var(--bg);
+            min-height: 100vh;
+            padding: 84px 20px 140px;
+            display: flex;
+            justify-content: center;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        main {
+            width: min(1160px, 100%);
+            display: grid;
+            gap: 24px;
+        }
+
+        .back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .hero {
+            display: grid;
+            gap: 16px;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 28px;
+            padding: 28px;
+            box-shadow: 0 30px 70px rgba(15, 23, 42, 0.5);
+        }
+
+        .hero h1 {
+            margin: 0;
+            font-size: clamp(30px, 5vw, 44px);
+        }
+
+        .hero p {
+            margin: 0;
+            max-width: 640px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+            gap: 24px;
+        }
+
+        @media (max-width: 920px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 24px;
+            padding: 24px;
+            display: grid;
+            gap: 18px;
+        }
+
+        .panel h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .control {
+            display: grid;
+            gap: 8px;
+        }
+
+        .control label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            border-radius: 16px;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            background: rgba(15, 23, 42, 0.6);
+            color: var(--text);
+            padding: 12px 14px;
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .row > * {
+            flex: 1;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .chip {
+            border-radius: 999px;
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            background: transparent;
+            color: inherit;
+            padding: 8px 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .chip.active,
+        .chip:hover {
+            background: var(--accent-soft);
+        }
+
+        .preview {
+            position: relative;
+            display: grid;
+            place-items: center;
+            min-height: 520px;
+            border-radius: 30px;
+            border: 1px solid var(--panel-border);
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+            overflow: hidden;
+        }
+
+        .preview::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 20%, rgba(56, 189, 248, 0.22), transparent 50%);
+            pointer-events: none;
+        }
+
+        .shirt-wrap {
+            position: relative;
+            width: min(420px, 82vw);
+            aspect-ratio: 3 / 4;
+        }
+
+        .shirt-svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 24px 30px rgba(0, 0, 0, 0.35));
+        }
+
+        .shirt-text {
+            position: absolute;
+            left: 50%;
+            top: 44%;
+            transform: translate(-50%, -50%);
+            width: 70%;
+            text-align: center;
+            line-height: 1.1;
+            letter-spacing: 0.5px;
+            white-space: pre-wrap;
+            text-transform: none;
+        }
+
+        .text-font-display {
+            font-family: "Bebas Neue", "Franklin Gothic Medium", "Arial Narrow", sans-serif;
+        }
+
+        .text-font-sans {
+            font-family: "Space Grotesk", "Futura", "Trebuchet MS", sans-serif;
+        }
+
+        .text-font-mono {
+            font-family: "JetBrains Mono", "Courier New", monospace;
+        }
+
+        .text-font-hand {
+            font-family: "Bradley Hand", "Comic Sans MS", "Segoe Print", cursive;
+        }
+
+        .preview-meta {
+            position: absolute;
+            bottom: 24px;
+            left: 24px;
+            right: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .meta-pill {
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            padding: 6px 12px;
+            background: rgba(15, 23, 42, 0.4);
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .action-btn {
+            border-radius: 14px;
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            background: rgba(15, 23, 42, 0.6);
+            color: var(--text);
+            padding: 10px 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.4), rgba(249, 115, 22, 0.4));
+            border: 1px solid rgba(249, 115, 22, 0.5);
+        }
+
+        .explain {
+            background: rgba(15, 23, 42, 0.72);
+            border: 1px dashed rgba(148, 163, 184, 0.4);
+            border-radius: 22px;
+            padding: 22px;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 18px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 999px;
+            padding: 10px 16px;
+            font-size: 13px;
+            color: var(--muted);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <a class="back-home" href="/">← Back to home</a>
+
+        <section class="hero">
+            <h1>T-Shirt Text Mockup Studio</h1>
+            <p>Mock up bold, simple t-shirt concepts without leaving the browser. Tune the shirt color, typography, sizing, and placement, then share the URL to keep the mock in sync.</p>
+        </section>
+
+        <section class="workspace">
+            <div class="panel">
+                <h2>Design Controls</h2>
+
+                <div class="control">
+                    <label for="design-text">T-shirt text</label>
+                    <textarea id="design-text" placeholder="Type your message here">Future Club</textarea>
+                </div>
+
+                <div class="control">
+                    <label>Font style</label>
+                    <div class="chips" id="font-chips">
+                        <button class="chip" data-font="display">Display</button>
+                        <button class="chip" data-font="sans">Sans</button>
+                        <button class="chip" data-font="mono">Mono</button>
+                        <button class="chip" data-font="hand">Handwritten</button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="control">
+                        <label for="shirt-color">Shirt color</label>
+                        <select id="shirt-color">
+                            <option value="midnight">Midnight</option>
+                            <option value="ink">Ink Blue</option>
+                            <option value="stone">Stone</option>
+                            <option value="clay">Clay</option>
+                            <option value="sage">Sage</option>
+                            <option value="rose">Rose</option>
+                            <option value="vanilla">Vanilla</option>
+                        </select>
+                    </div>
+                    <div class="control">
+                        <label for="text-color">Text color</label>
+                        <select id="text-color">
+                            <option value="cream">Cream</option>
+                            <option value="ice">Ice</option>
+                            <option value="charcoal">Charcoal</option>
+                            <option value="sunset">Sunset</option>
+                            <option value="lime">Lime</option>
+                            <option value="berry">Berry</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="control">
+                    <label for="text-size">Text size</label>
+                    <input id="text-size" type="range" min="24" max="90" value="56">
+                </div>
+
+                <div class="control">
+                    <label for="text-offset">Vertical placement</label>
+                    <input id="text-offset" type="range" min="-60" max="80" value="0">
+                </div>
+
+                <div class="control">
+                    <label for="text-align">Alignment</label>
+                    <select id="text-align">
+                        <option value="center">Center</option>
+                        <option value="left">Left</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
+
+                <div class="actions">
+                    <button class="action-btn primary" id="copy-link">Copy shareable link</button>
+                    <button class="action-btn" id="reset">Reset design</button>
+                </div>
+            </div>
+
+            <div class="panel preview">
+                <div class="shirt-wrap">
+                    <svg class="shirt-svg" viewBox="0 0 400 520" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path id="shirt-body" d="M86 78L40 112L82 190V484C82 498 94 510 108 510H292C306 510 318 498 318 484V190L360 112L314 78L265 108C247 88 226 74 200 74C174 74 153 88 135 108L86 78Z" fill="#1f2937"/>
+                        <path d="M135 108C153 128 174 138 200 138C226 138 247 128 265 108" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="10" stroke-linecap="round"/>
+                    </svg>
+                    <div id="shirt-text" class="shirt-text text-font-display">Future Club</div>
+                </div>
+                <div class="preview-meta">
+                    <span class="meta-pill" id="meta-shirt">Midnight cotton</span>
+                    <span class="meta-pill" id="meta-font">Display font</span>
+                    <span class="meta-pill" id="meta-size">56px type</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="explain">
+            <strong>How it works:</strong> Every control updates a compact set of settings stored in the URL fragment (everything after the <code>#</code>). When you copy the shareable link, those hash settings come along, so anyone opening the URL sees the exact same mockup without any saved data or accounts.
+        </section>
+    </main>
+
+    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot · v1.0</div>
+
+    <script>
+        const defaultState = {
+            text: "Future Club",
+            font: "display",
+            shirt: "midnight",
+            textColor: "cream",
+            size: "56",
+            offset: "0",
+            align: "center"
+        };
+
+        const shirtPalette = {
+            midnight: { label: "Midnight", color: "#1f2937" },
+            ink: { label: "Ink Blue", color: "#1e3a5f" },
+            stone: { label: "Stone", color: "#d1d5db" },
+            clay: { label: "Clay", color: "#b45309" },
+            sage: { label: "Sage", color: "#4b6f5b" },
+            rose: { label: "Rose", color: "#be506b" },
+            vanilla: { label: "Vanilla", color: "#f5ede1" }
+        };
+
+        const textPalette = {
+            cream: { label: "Cream", color: "#f8fafc" },
+            ice: { label: "Ice", color: "#e0f2fe" },
+            charcoal: { label: "Charcoal", color: "#111827" },
+            sunset: { label: "Sunset", color: "#fb7185" },
+            lime: { label: "Lime", color: "#a3e635" },
+            berry: { label: "Berry", color: "#c084fc" }
+        };
+
+        const fontLabels = {
+            display: "Display",
+            sans: "Sans",
+            mono: "Mono",
+            hand: "Handwritten"
+        };
+
+        const elements = {
+            text: document.getElementById("design-text"),
+            fontChips: document.getElementById("font-chips"),
+            shirt: document.getElementById("shirt-color"),
+            textColor: document.getElementById("text-color"),
+            size: document.getElementById("text-size"),
+            offset: document.getElementById("text-offset"),
+            align: document.getElementById("text-align"),
+            previewText: document.getElementById("shirt-text"),
+            shirtBody: document.getElementById("shirt-body"),
+            metaShirt: document.getElementById("meta-shirt"),
+            metaFont: document.getElementById("meta-font"),
+            metaSize: document.getElementById("meta-size"),
+            copyLink: document.getElementById("copy-link"),
+            reset: document.getElementById("reset")
+        };
+
+        const sanitizeText = (value) => value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+        const readStateFromHash = () => {
+            const params = new URLSearchParams(window.location.hash.slice(1));
+            const nextState = { ...defaultState };
+            Object.keys(defaultState).forEach((key) => {
+                if (params.has(key)) {
+                    nextState[key] = params.get(key) || defaultState[key];
+                }
+            });
+            return nextState;
+        };
+
+        const writeStateToHash = (state) => {
+            const params = new URLSearchParams();
+            Object.keys(state).forEach((key) => params.set(key, state[key]));
+            const hash = params.toString();
+            if (window.location.hash.slice(1) !== hash) {
+                history.replaceState(null, "", `#${hash}`);
+            }
+        };
+
+        const applyStateToControls = (state) => {
+            elements.text.value = state.text;
+            elements.shirt.value = state.shirt;
+            elements.textColor.value = state.textColor;
+            elements.size.value = state.size;
+            elements.offset.value = state.offset;
+            elements.align.value = state.align;
+            [...elements.fontChips.querySelectorAll(".chip")].forEach((chip) => {
+                chip.classList.toggle("active", chip.dataset.font === state.font);
+            });
+        };
+
+        const applyStateToPreview = (state) => {
+            const shirt = shirtPalette[state.shirt] || shirtPalette.midnight;
+            const text = textPalette[state.textColor] || textPalette.cream;
+            elements.shirtBody.setAttribute("fill", shirt.color);
+            elements.previewText.className = `shirt-text text-font-${state.font}`;
+            elements.previewText.style.color = text.color;
+            elements.previewText.style.fontSize = `${state.size}px`;
+            elements.previewText.style.transform = `translate(-50%, calc(-50% + ${state.offset}px))`;
+            elements.previewText.style.textAlign = state.align;
+            elements.previewText.innerHTML = sanitizeText(state.text).replace(/\n/g, "<br>");
+
+            elements.metaShirt.textContent = `${shirt.label} cotton`;
+            elements.metaFont.textContent = `${fontLabels[state.font] || "Display"} font`;
+            elements.metaSize.textContent = `${state.size}px type`;
+        };
+
+        const getStateFromControls = () => ({
+            text: elements.text.value.trim() || defaultState.text,
+            font: elements.fontChips.querySelector(".chip.active")?.dataset.font || defaultState.font,
+            shirt: elements.shirt.value,
+            textColor: elements.textColor.value,
+            size: elements.size.value,
+            offset: elements.offset.value,
+            align: elements.align.value
+        });
+
+        const refresh = () => {
+            const state = getStateFromControls();
+            applyStateToPreview(state);
+            writeStateToHash(state);
+        };
+
+        elements.text.addEventListener("input", refresh);
+        elements.size.addEventListener("input", refresh);
+        elements.offset.addEventListener("input", refresh);
+        elements.shirt.addEventListener("change", refresh);
+        elements.textColor.addEventListener("change", refresh);
+        elements.align.addEventListener("change", refresh);
+        elements.fontChips.addEventListener("click", (event) => {
+            const chip = event.target.closest(".chip");
+            if (!chip) return;
+            [...elements.fontChips.querySelectorAll(".chip")].forEach((button) => button.classList.remove("active"));
+            chip.classList.add("active");
+            refresh();
+        });
+
+        elements.copyLink.addEventListener("click", async () => {
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                elements.copyLink.textContent = "Link copied!";
+                setTimeout(() => {
+                    elements.copyLink.textContent = "Copy shareable link";
+                }, 1600);
+            } catch (error) {
+                elements.copyLink.textContent = "Copy failed";
+                setTimeout(() => {
+                    elements.copyLink.textContent = "Copy shareable link";
+                }, 1600);
+            }
+        });
+
+        elements.reset.addEventListener("click", () => {
+            applyStateToControls(defaultState);
+            applyStateToPreview(defaultState);
+            writeStateToHash(defaultState);
+        });
+
+        const syncFromHash = () => {
+            const state = readStateFromHash();
+            applyStateToControls(state);
+            applyStateToPreview(state);
+        };
+
+        window.addEventListener("hashchange", syncFromHash);
+        syncFromHash();
+    </script>
+</body>
+</html>
