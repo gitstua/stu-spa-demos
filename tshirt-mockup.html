@@ -319,27 +319,19 @@
 
                 <div class="row">
                     <div class="control">
+                        <label for="team-preset">NRL team colors</label>
+                        <select id="team-preset"></select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="control">
                         <label for="shirt-color">Shirt color</label>
-                        <select id="shirt-color">
-                            <option value="midnight">Midnight</option>
-                            <option value="ink">Ink Blue</option>
-                            <option value="stone">Stone</option>
-                            <option value="clay">Clay</option>
-                            <option value="sage">Sage</option>
-                            <option value="rose">Rose</option>
-                            <option value="vanilla">Vanilla</option>
-                        </select>
+                        <select id="shirt-color"></select>
                     </div>
                     <div class="control">
                         <label for="text-color">Text color</label>
-                        <select id="text-color">
-                            <option value="cream">Cream</option>
-                            <option value="ice">Ice</option>
-                            <option value="charcoal">Charcoal</option>
-                            <option value="sunset">Sunset</option>
-                            <option value="lime">Lime</option>
-                            <option value="berry">Berry</option>
-                        </select>
+                        <select id="text-color"></select>
                     </div>
                 </div>
 
@@ -364,6 +356,7 @@
 
                 <div class="actions">
                     <button class="action-btn primary" id="copy-link">Copy shareable link</button>
+                    <button class="action-btn" id="copy-image">Copy image (PNG)</button>
                     <button class="action-btn" id="reset">Reset design</button>
                 </div>
             </div>
@@ -377,6 +370,7 @@
                     <div id="shirt-text" class="shirt-text text-font-display">Future Club</div>
                 </div>
                 <div class="preview-meta">
+                    <span class="meta-pill" id="meta-team">Custom colors</span>
                     <span class="meta-pill" id="meta-shirt">Midnight cotton</span>
                     <span class="meta-pill" id="meta-font">Display font</span>
                     <span class="meta-pill" id="meta-size">56px type</span>
@@ -385,16 +379,17 @@
         </section>
 
         <section class="explain">
-            <strong>How it works:</strong> Every control updates a compact set of settings stored in the URL fragment (everything after the <code>#</code>). When you copy the shareable link, those hash settings come along, so anyone opening the URL sees the exact same mockup without any saved data or accounts.
+            <strong>How it works:</strong> Every control updates a compact set of settings stored in the URL fragment (everything after the <code>#</code>). NRL team presets are just shorthand for shirt and text color pairs, and the full state is still encoded in the URL hash. When you copy the shareable link, anyone opening it sees the exact same mockup without any saved data or accounts.
         </section>
     </main>
 
-    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot · v1.0</div>
+    <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot · v1.2</div>
 
     <script>
         const defaultState = {
             text: "Future Club",
             font: "display",
+            team: "custom",
             shirt: "midnight",
             textColor: "cream",
             size: "56",
@@ -409,7 +404,23 @@
             clay: { label: "Clay", color: "#b45309" },
             sage: { label: "Sage", color: "#4b6f5b" },
             rose: { label: "Rose", color: "#be506b" },
-            vanilla: { label: "Vanilla", color: "#f5ede1" }
+            vanilla: { label: "Vanilla", color: "#f5ede1" },
+            broncosMaroon: { label: "Broncos Maroon", color: "#6d1438" },
+            bulldogsBlue: { label: "Bulldogs Blue", color: "#0054a6" },
+            raidersGreen: { label: "Raiders Green", color: "#18753f" },
+            sharksTeal: { label: "Sharks Teal", color: "#00a7b5" },
+            titansNavy: { label: "Titans Navy", color: "#102b6a" },
+            seaEaglesMaroon: { label: "Sea Eagles Maroon", color: "#6d214f" },
+            stormPurple: { label: "Storm Purple", color: "#4f2d7f" },
+            knightsRed: { label: "Knights Red", color: "#c8102e" },
+            cowboysNavy: { label: "Cowboys Navy", color: "#002b5c" },
+            eelsBlue: { label: "Eels Blue", color: "#003da5" },
+            panthersBlack: { label: "Panthers Black", color: "#0c0c0d" },
+            rabbitohsGreen: { label: "Rabbitohs Green", color: "#006747" },
+            dragonsRed: { label: "Dragons Red", color: "#d22630" },
+            roostersNavy: { label: "Roosters Navy", color: "#001f5b" },
+            tigersOrange: { label: "Tigers Orange", color: "#f05a28" },
+            dolphinsMaroon: { label: "Dolphins Maroon", color: "#8a1538" }
         };
 
         const textPalette = {
@@ -418,7 +429,41 @@
             charcoal: { label: "Charcoal", color: "#111827" },
             sunset: { label: "Sunset", color: "#fb7185" },
             lime: { label: "Lime", color: "#a3e635" },
-            berry: { label: "Berry", color: "#c084fc" }
+            berry: { label: "Berry", color: "#c084fc" },
+            broncosGold: { label: "Broncos Gold", color: "#f1a317" },
+            canary: { label: "Canary", color: "#facc15" },
+            sharksWhite: { label: "Sharks White", color: "#f9fafb" },
+            sky: { label: "Sky", color: "#7dd3fc" },
+            stormGold: { label: "Storm Gold", color: "#f5c84b" },
+            knightsBlue: { label: "Knights Blue", color: "#2a4f9f" },
+            cowboysGold: { label: "Cowboys Gold", color: "#f6c543" },
+            eelsGold: { label: "Eels Gold", color: "#fdb927" },
+            panthersMint: { label: "Panthers Mint", color: "#8ee2da" },
+            rabbitohsRed: { label: "Rabbitohs Red", color: "#cf2e2e" },
+            dragonsWhite: { label: "Dragons White", color: "#f5f5f5" },
+            roostersRed: { label: "Roosters Red", color: "#d62839" },
+            tigersBlack: { label: "Tigers Black", color: "#111111" },
+            dolphinsGold: { label: "Dolphins Gold", color: "#f6be00" }
+        };
+
+        const nrlTeamPresets = {
+            custom: { label: "Custom colors" },
+            broncos: { label: "Brisbane Broncos", shirt: "broncosMaroon", text: "broncosGold" },
+            bulldogs: { label: "Canterbury-Bankstown Bulldogs", shirt: "bulldogsBlue", text: "cream" },
+            raiders: { label: "Canberra Raiders", shirt: "raidersGreen", text: "canary" },
+            sharks: { label: "Cronulla Sharks", shirt: "sharksTeal", text: "sharksWhite" },
+            titans: { label: "Gold Coast Titans", shirt: "titansNavy", text: "sky" },
+            seaEagles: { label: "Manly Warringah Sea Eagles", shirt: "seaEaglesMaroon", text: "cream" },
+            storm: { label: "Melbourne Storm", shirt: "stormPurple", text: "stormGold" },
+            knights: { label: "Newcastle Knights", shirt: "knightsRed", text: "knightsBlue" },
+            cowboys: { label: "North Queensland Cowboys", shirt: "cowboysNavy", text: "cowboysGold" },
+            eels: { label: "Parramatta Eels", shirt: "eelsBlue", text: "eelsGold" },
+            panthers: { label: "Penrith Panthers", shirt: "panthersBlack", text: "panthersMint" },
+            rabbitohs: { label: "South Sydney Rabbitohs", shirt: "rabbitohsGreen", text: "rabbitohsRed" },
+            dragons: { label: "St George Illawarra Dragons", shirt: "dragonsRed", text: "dragonsWhite" },
+            roosters: { label: "Sydney Roosters", shirt: "roostersNavy", text: "roostersRed" },
+            tigers: { label: "Wests Tigers", shirt: "tigersOrange", text: "tigersBlack" },
+            dolphins: { label: "The Dolphins", shirt: "dolphinsMaroon", text: "dolphinsGold" }
         };
 
         const fontLabels = {
@@ -431,6 +476,7 @@
         const elements = {
             text: document.getElementById("design-text"),
             fontChips: document.getElementById("font-chips"),
+            teamPreset: document.getElementById("team-preset"),
             shirt: document.getElementById("shirt-color"),
             textColor: document.getElementById("text-color"),
             size: document.getElementById("text-size"),
@@ -438,14 +484,47 @@
             align: document.getElementById("text-align"),
             previewText: document.getElementById("shirt-text"),
             shirtBody: document.getElementById("shirt-body"),
+            metaTeam: document.getElementById("meta-team"),
             metaShirt: document.getElementById("meta-shirt"),
             metaFont: document.getElementById("meta-font"),
             metaSize: document.getElementById("meta-size"),
             copyLink: document.getElementById("copy-link"),
+            copyImage: document.getElementById("copy-image"),
             reset: document.getElementById("reset")
         };
 
         const sanitizeText = (value) => value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const escapeXml = (value) => value
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&apos;");
+        const isKnownTeam = (value) => Object.prototype.hasOwnProperty.call(nrlTeamPresets, value);
+        const getKnownKey = (value, options, fallback) => (
+            Object.prototype.hasOwnProperty.call(options, value) ? value : fallback
+        );
+        const getFontFamily = (fontKey) => {
+            if (fontKey === "display") return "'Bebas Neue','Franklin Gothic Medium','Arial Narrow',sans-serif";
+            if (fontKey === "mono") return "'JetBrains Mono','Courier New',monospace";
+            if (fontKey === "hand") return "'Bradley Hand','Comic Sans MS','Segoe Print',cursive";
+            return "'Space Grotesk','Futura','Trebuchet MS',sans-serif";
+        };
+        const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+        const hydrateSelect = (selectEl, optionsObject) => {
+            selectEl.innerHTML = "";
+            Object.entries(optionsObject).forEach(([value, config]) => {
+                const option = document.createElement("option");
+                option.value = value;
+                option.textContent = config.label;
+                selectEl.appendChild(option);
+            });
+        };
+
+        hydrateSelect(elements.teamPreset, nrlTeamPresets);
+        hydrateSelect(elements.shirt, shirtPalette);
+        hydrateSelect(elements.textColor, textPalette);
 
         const readStateFromHash = () => {
             const params = new URLSearchParams(window.location.hash.slice(1));
@@ -468,9 +547,13 @@
         };
 
         const applyStateToControls = (state) => {
+            const teamKey = isKnownTeam(state.team) ? state.team : defaultState.team;
+            const shirtKey = getKnownKey(state.shirt, shirtPalette, defaultState.shirt);
+            const textKey = getKnownKey(state.textColor, textPalette, defaultState.textColor);
+            elements.teamPreset.value = teamKey;
             elements.text.value = state.text;
-            elements.shirt.value = state.shirt;
-            elements.textColor.value = state.textColor;
+            elements.shirt.value = shirtKey;
+            elements.textColor.value = textKey;
             elements.size.value = state.size;
             elements.offset.value = state.offset;
             elements.align.value = state.align;
@@ -482,6 +565,7 @@
         const applyStateToPreview = (state) => {
             const shirt = shirtPalette[state.shirt] || shirtPalette.midnight;
             const text = textPalette[state.textColor] || textPalette.cream;
+            const team = nrlTeamPresets[state.team] || nrlTeamPresets.custom;
             elements.shirtBody.setAttribute("fill", shirt.color);
             elements.previewText.className = `shirt-text text-font-${state.font}`;
             elements.previewText.style.color = text.color;
@@ -490,6 +574,7 @@
             elements.previewText.style.textAlign = state.align;
             elements.previewText.innerHTML = sanitizeText(state.text).replace(/\n/g, "<br>");
 
+            elements.metaTeam.textContent = team.label;
             elements.metaShirt.textContent = `${shirt.label} cotton`;
             elements.metaFont.textContent = `${fontLabels[state.font] || "Display"} font`;
             elements.metaSize.textContent = `${state.size}px type`;
@@ -498,6 +583,7 @@
         const getStateFromControls = () => ({
             text: elements.text.value.trim() || defaultState.text,
             font: elements.fontChips.querySelector(".chip.active")?.dataset.font || defaultState.font,
+            team: elements.teamPreset.value,
             shirt: elements.shirt.value,
             textColor: elements.textColor.value,
             size: elements.size.value,
@@ -511,11 +597,94 @@
             writeStateToHash(state);
         };
 
+        const renderPngBlob = async (state) => {
+            const shirt = shirtPalette[state.shirt] || shirtPalette.midnight;
+            const text = textPalette[state.textColor] || textPalette.cream;
+            const lines = (state.text.trim() || defaultState.text).split("\n").slice(0, 6);
+            const fontSize = Number(state.size) || Number(defaultState.size);
+            const offset = Number(state.offset) || 0;
+            const lineHeight = fontSize * 1.1;
+            const textBoxWidth = 280;
+            const shirtCenterX = 200;
+            const textCenterY = 228.8 + offset;
+            const textStartY = textCenterY - ((lines.length - 1) * lineHeight) / 2;
+            const fontFamily = getFontFamily(state.font);
+
+            const anchor = state.align === "left" ? "start" : (state.align === "right" ? "end" : "middle");
+            const x = state.align === "left" ? shirtCenterX - (textBoxWidth / 2) : (
+                state.align === "right" ? shirtCenterX + (textBoxWidth / 2) : shirtCenterX
+            );
+
+            const tspans = lines.map((line, index) => (
+                `<tspan x="${x}" y="${textStartY + (index * lineHeight)}">${escapeXml(line)}</tspan>`
+            )).join("");
+
+            const svg = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="720" height="900" viewBox="0 0 720 900">
+                    <defs>
+                        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#0f172a"/>
+                            <stop offset="100%" stop-color="#111827"/>
+                        </linearGradient>
+                        <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+                            <feDropShadow dx="0" dy="24" stdDeviation="18" flood-color="#000000" flood-opacity="0.35"/>
+                        </filter>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#bg)"/>
+                    <g transform="translate(140 120) scale(1.1)" filter="url(#shadow)">
+                        <path d="M86 78L40 112L82 190V484C82 498 94 510 108 510H292C306 510 318 498 318 484V190L360 112L314 78L265 108C247 88 226 74 200 74C174 74 153 88 135 108L86 78Z" fill="${shirt.color}"/>
+                        <path d="M135 108C153 128 174 138 200 138C226 138 247 128 265 108" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="10" stroke-linecap="round"/>
+                        <text fill="${text.color}" text-anchor="${anchor}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="700">${tspans}</text>
+                    </g>
+                </svg>
+            `.replace(/\n\s+/g, " ").trim();
+
+            const image = new Image();
+            image.decoding = "sync";
+            const svgBlob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+            const svgUrl = URL.createObjectURL(svgBlob);
+
+            try {
+                await new Promise((resolve, reject) => {
+                    image.onload = () => resolve();
+                    image.onerror = () => reject(new Error("Image render failed"));
+                    image.src = svgUrl;
+                });
+            } finally {
+                URL.revokeObjectURL(svgUrl);
+            }
+
+            const canvas = document.createElement("canvas");
+            canvas.width = 720;
+            canvas.height = 900;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) throw new Error("Canvas unavailable");
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+            const pngBlob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+            if (!pngBlob) throw new Error("PNG export failed");
+            return pngBlob;
+        };
+
         elements.text.addEventListener("input", refresh);
         elements.size.addEventListener("input", refresh);
         elements.offset.addEventListener("input", refresh);
-        elements.shirt.addEventListener("change", refresh);
-        elements.textColor.addEventListener("change", refresh);
+        elements.teamPreset.addEventListener("change", () => {
+            const team = nrlTeamPresets[elements.teamPreset.value];
+            if (team && team.shirt && team.text) {
+                elements.shirt.value = team.shirt;
+                elements.textColor.value = team.text;
+            }
+            refresh();
+        });
+        elements.shirt.addEventListener("change", () => {
+            elements.teamPreset.value = defaultState.team;
+            refresh();
+        });
+        elements.textColor.addEventListener("change", () => {
+            elements.teamPreset.value = defaultState.team;
+            refresh();
+        });
         elements.align.addEventListener("change", refresh);
         elements.fontChips.addEventListener("click", (event) => {
             const chip = event.target.closest(".chip");
@@ -537,6 +706,24 @@
                 setTimeout(() => {
                     elements.copyLink.textContent = "Copy shareable link";
                 }, 1600);
+            }
+        });
+
+        elements.copyImage.addEventListener("click", async () => {
+            const originalLabel = "Copy image (PNG)";
+            try {
+                const state = getStateFromControls();
+                const pngBlob = await renderPngBlob(state);
+                if (!navigator.clipboard || typeof navigator.clipboard.write !== "function" || typeof ClipboardItem === "undefined") {
+                    throw new Error("Clipboard image copy unavailable");
+                }
+                await navigator.clipboard.write([new ClipboardItem({ "image/png": pngBlob })]);
+                elements.copyImage.textContent = "Image copied!";
+            } catch (error) {
+                elements.copyImage.textContent = "Copy blocked";
+            } finally {
+                await sleep(1600);
+                elements.copyImage.textContent = originalLabel;
             }
         });
 
