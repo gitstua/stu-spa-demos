@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PNG to SVG Converter</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        a {
+            color: #3498db;
+            text-decoration: none;
+            margin-bottom: 20px;
+            display: block;
+            text-align: center;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        input[type="file"],
+        select,
+        .radio-group label {
+            display: block;
+            margin: 10px auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: calc(100% - 20px);
+            max-width: 300px;
+            box-sizing: border-box;
+        }
+
+        .radio-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px auto;
+        }
+
+        .radio-group input[type="radio"] {
+            margin-right: 5px;
+        }
+
+        button {
+            background-color: #2ecc71;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 10px auto;
+        }
+
+        button:hover {
+            background-color: #27ae60;
+        }
+
+        textarea {
+            width: calc(100% - 20px);
+            height: 200px;
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            white-space: pre;
+            overflow: auto;
+            resize: vertical;
+        }
+
+        #svgPreview {
+            border: 1px solid #eee;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 150px;
+            max-width: 100%;
+            overflow: auto;
+        }
+
+        #svgPreview img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .explanation {
+            background-color: #e8f6f3;
+            border-left: 5px solid #2ecc71;
+            padding: 15px;
+            margin-top: 30px;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .explanation p {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .footer {
+            margin-top: auto; /* Pushes the footer to the bottom */
+            padding: 15px;
+            width: 100%;
+            background-color: #34495e;
+            color: white;
+            text-align: center;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            bottom: 0;
+            left: 0;
+        }
+    </style>
+    <script type="module">import ImageTracer from 'https://cdn.jsdelivr.net/npm/imagetracerjs@1.2.6/+esm'; window.ImageTracer = ImageTracer;</script>
+</head>
+<body>
+    <div class="container">
+        <a href="/">Back to Home</a>
+        <h1>PNG to SVG Converter</h1>
+
+        <input type="file" id="pngInput" accept="image/png">
+
+        <div class="radio-group">
+            <label><input type="radio" name="conversionMode" value="embed"> Embed PNG</label>
+            <label><input type="radio" name="conversionMode" value="trace" checked> Trace PNG</label>
+        </div>
+
+        <div id="traceOptions" style="display: none;">
+            <label for="presetSelect">Tracing Preset:</label>
+            <select id="presetSelect">
+                <option value="default">Default</option>
+                <option value="posterized1">Posterized 1</option>
+                <option value="posterized2">Posterized 2</option>
+                <option value="posterized3">Posterized 3</option>
+                <option value="curvy">Curvy</option>
+                <option value="sharp">Sharp</option>
+                <option value="detailed">Detailed</option>
+                <option value="smoothed">Smoothed</option>
+                <option value="grayscale">Grayscale</option>
+                <option value="fixedpalette">Fixed Palette</option>
+                <option value="randomsampling1">Random Sampling 1</option>
+                <option value="randomsampling2">Random Sampling 2</option>
+                <option value="artistic1">Artistic 1</option>
+                <option value="artistic2">Artistic 2</option>
+                <option value="artistic3">Artistic 3</option>
+                <option value="artistic4">Artistic 4</option>
+            </select>
+        </div>
+
+        <button id="convertButton" disabled>Convert</button>
+        <button id="downloadButton" disabled>Download SVG</button>
+
+        <h2>Generated SVG Code:</h2>
+        <textarea id="svgOutput" rows="10" readonly></textarea>
+
+        <h2>SVG Preview:</h2>
+        <div id="svgPreview"></div>
+    </div>
+
+    <div class="explanation">
+        <p><strong>How it works:</strong> This tool allows you to select a PNG image and convert it into an SVG file. You can choose between two modes:</p>
+        <ul>
+            <li><strong>Embed PNG:</strong> The PNG image will be embedded directly within the SVG as a data URL. This means the SVG will contain the original raster image rather than a vectorized version. It's useful for wrapping a PNG in an SVG container, but does not perform true vectorization.</li>
+            <li><strong>Trace PNG:</strong> Uses <a href="https://github.com/jankovicsandras/imagetracerjs" target="_blank" style="color:#3498db;">ImageTracer.js</a> by <a href="https://github.com/jankovicsandras" target="_blank" style="color:#3498db;">Andras Jankovics</a> to trace the outlines of the image and convert them into scalable vector paths. The quality of vectorization depends heavily on the input image and the selected tracing preset. Complex images may yield less precise results.</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using OpenCode. v2.0
+    </div>
+
+    <script>
+        const pngInput = document.getElementById('pngInput');
+        const conversionModeRadios = document.querySelectorAll('input[name="conversionMode"]');
+        const traceOptionsDiv = document.getElementById('traceOptions');
+        const presetSelect = document.getElementById('presetSelect');
+        const convertButton = document.getElementById('convertButton');
+        const downloadButton = document.getElementById('downloadButton');
+        const svgOutput = document.getElementById('svgOutput');
+        const svgPreview = document.getElementById('svgPreview');
+
+        let pngDataUrl = '';
+        let generatedSvgContent = '';
+        let currentMode = 'trace'; // Default mode
+        let currentPreset = 'default';
+
+        function updateUIForMode(mode) {
+            if (mode === 'trace') {
+                traceOptionsDiv.style.display = 'block';
+                convertButton.textContent = 'Trace to SVG';
+            } else {
+                traceOptionsDiv.style.display = 'none';
+                convertButton.textContent = 'Embed to SVG';
+            }
+            if (pngDataUrl) {
+                convertButton.disabled = false;
+            }
+        }
+
+        // Function to save state to URL hash
+        function saveState() {
+            const state = {
+                mode: currentMode,
+                preset: currentPreset,
+                svg: generatedSvgContent ? btoa(generatedSvgContent) : ''
+            };
+            window.location.hash = `#${btoa(JSON.stringify(state))}`;
+        }
+
+        // Function to load state from URL hash
+        function loadState() {
+            if (window.location.hash) {
+                try {
+                    const decodedState = JSON.parse(atob(window.location.hash.substring(1)));
+                    currentMode = decodedState.mode || 'embed';
+                    currentPreset = decodedState.preset || 'default';
+                    generatedSvgContent = decodedState.svg ? atob(decodedState.svg) : '';
+
+                    // Apply loaded state to UI
+                    document.querySelector(`input[name="conversionMode"][value="${currentMode}"]`).checked = true;
+                    presetSelect.value = currentPreset;
+                    updateUIForMode(currentMode);
+
+                    if (generatedSvgContent) {
+                        svgOutput.value = generatedSvgContent;
+                        svgPreview.innerHTML = generatedSvgContent;
+                        downloadButton.disabled = false;
+                    }
+                } catch (e) {
+                    console.error("Error decoding state from hash:", e);
+                    window.location.hash = ''; // Clear invalid hash
+                }
+            }
+        }
+
+        // Event listener for mode change
+        conversionModeRadios.forEach(radio => {
+            radio.addEventListener('change', (event) => {
+                currentMode = event.target.value;
+                updateUIForMode(currentMode);
+                saveState();
+            });
+        });
+
+        // Event listener for preset change
+        presetSelect.addEventListener('change', (event) => {
+            currentPreset = event.target.value;
+            saveState();
+        });
+
+        pngInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file && file.type === 'image/png') {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    pngDataUrl = e.target.result;
+                    convertButton.disabled = false;
+                    // Clear previous output and preview
+                    svgOutput.value = '';
+                    svgPreview.innerHTML = '';
+                    downloadButton.disabled = true;
+                    generatedSvgContent = '';
+                    saveState(); // Clear state when new file is selected
+                };
+                reader.readAsDataURL(file);
+            } else {
+                alert('Please select a PNG image.');
+                pngInput.value = ''; // Clear the input
+                convertButton.disabled = true;
+                downloadButton.disabled = true;
+                svgOutput.value = '';
+                svgPreview.innerHTML = '';
+                generatedSvgContent = '';
+                saveState();
+            }
+        });
+
+        convertButton.addEventListener('click', () => {
+            if (!pngDataUrl) {
+                alert('Please select a PNG image first.');
+                return;
+            }
+
+            if (currentMode === 'embed') {
+                const img = new Image();
+                img.onload = () => {
+                    const width = img.width;
+                    const height = img.height;
+
+                    generatedSvgContent = `
+<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+  <image href="${pngDataUrl}" x="0" y="0" width="${width}" height="${height}"/>
+</svg>`.trim();
+
+                    svgOutput.value = generatedSvgContent;
+                    svgPreview.innerHTML = generatedSvgContent;
+                    downloadButton.disabled = false;
+                    saveState(); // Save state after conversion
+                };
+                img.src = pngDataUrl; // Set img.src to load the image and get dimensions
+            } else if (currentMode === 'trace') {
+                if (!window.ImageTracer) {
+                    alert('ImageTracer library not loaded. Please check your internet connection.');
+                    return;
+                }
+
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    // Use Imagetracer.imagedataToSVG for tracing
+                    generatedSvgContent = window.ImageTracer.imagedataToSVG(imageData, currentPreset);
+
+                    svgOutput.value = generatedSvgContent;
+                    svgPreview.innerHTML = generatedSvgContent;
+                    downloadButton.disabled = false;
+                    saveState(); // Save state after conversion
+                };
+                img.src = pngDataUrl;
+            }
+        });
+
+        downloadButton.addEventListener('click', () => {
+            if (!generatedSvgContent) {
+                alert('No SVG content to download.');
+                return;
+            }
+
+            const blob = new Blob([generatedSvgContent], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'converted-image.svg';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // Load state when the page loads
+        window.addEventListener('load', () => {
+            loadState();
+            updateUIForMode(currentMode); // Ensure UI reflects loaded mode
+        });
+        window.addEventListener('hashchange', loadState); // Listen for hash changes
+    </script>
+</body>
+</html>
