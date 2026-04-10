@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tiny LLM Record Processor · Stu SPA Demos</title>
+  <style>
+    :root {
+      --bg: #071021;
+      --panel: rgba(8, 18, 38, 0.84);
+      --panel-border: rgba(120, 143, 188, 0.34);
+      --text: #e8eefb;
+      --muted: #9eb0d4;
+      --accent: #4cc9f0;
+      --accent-2: #f8961e;
+      --ok: #22c55e;
+      --warn: #fb7185;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 14% 10%, rgba(76, 201, 240, 0.2), transparent 44%),
+        radial-gradient(circle at 84% 18%, rgba(248, 150, 30, 0.14), transparent 46%),
+        radial-gradient(circle at 72% 82%, rgba(102, 126, 234, 0.17), transparent 48%),
+        var(--bg);
+      padding: 84px 18px 140px;
+      display: flex;
+      justify-content: center;
+    }
+
+    main {
+      width: min(1180px, 100%);
+      display: grid;
+      gap: 22px;
+    }
+
+    a { color: var(--accent); }
+
+    .back-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .hero,
+    .panel,
+    .explain {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      box-shadow: 0 26px 64px rgba(0, 0, 0, 0.35);
+    }
+
+    .hero {
+      padding: 26px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(30px, 5vw, 44px);
+      letter-spacing: -0.02em;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 760px;
+      line-height: 1.62;
+    }
+
+    .layout {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .panel p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 0.01em;
+    }
+
+    textarea,
+    select {
+      width: 100%;
+      border-radius: 15px;
+      border: 1px solid rgba(120, 143, 188, 0.42);
+      background: rgba(5, 12, 27, 0.64);
+      color: var(--text);
+      padding: 12px 14px;
+      font-size: 14px;
+      font-family: "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    }
+
+    textarea {
+      min-height: 320px;
+      resize: vertical;
+      line-height: 1.42;
+    }
+
+    textarea:focus,
+    select:focus,
+    button:focus {
+      outline: 2px solid rgba(76, 201, 240, 0.45);
+      outline-offset: 2px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 1px solid rgba(76, 201, 240, 0.5);
+      background: rgba(9, 23, 45, 0.8);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, rgba(76, 201, 240, 0.32), rgba(248, 150, 30, 0.3));
+      border-color: rgba(248, 150, 30, 0.64);
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      border-radius: 999px;
+      padding: 7px 11px;
+      border: 1px solid rgba(120, 143, 188, 0.38);
+      background: rgba(9, 23, 45, 0.6);
+      color: var(--muted);
+    }
+
+    .badge strong { color: var(--text); }
+
+    .status-ok { color: var(--ok); }
+    .status-warn { color: var(--warn); }
+
+    .table-wrap {
+      overflow: auto;
+      border-radius: 16px;
+      border: 1px solid rgba(120, 143, 188, 0.3);
+      background: rgba(5, 12, 27, 0.5);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 860px;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(120, 143, 188, 0.2);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: rgba(9, 23, 45, 0.75);
+      position: sticky;
+      top: 0;
+    }
+
+    td code {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      color: #b6c6e9;
+    }
+
+    .pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 9px;
+      border: 1px solid rgba(76, 201, 240, 0.35);
+      background: rgba(76, 201, 240, 0.14);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .error-list {
+      margin: 0;
+      padding-left: 18px;
+      color: #fda4af;
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .explain {
+      padding: 20px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    .explain strong { color: var(--text); }
+
+    .footer {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(120, 143, 188, 0.35);
+      background: rgba(8, 18, 38, 0.92);
+      padding: 10px 14px;
+      font-size: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(9px);
+    }
+
+    @media (max-width: 700px) {
+      body { padding: 72px 12px 130px; }
+      .hero, .panel, .explain { border-radius: 18px; }
+      textarea { min-height: 240px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="back-home" href="/">← Back to home</a>
+
+    <section class="hero">
+      <h1>Tiny LLM Record Processor</h1>
+      <p>Paste one record per line using <code>date|group|body|recipient</code>. A small in-browser model loads on demand, classifies each record, estimates confidence, and suggests whether the recipient should be rerouted.</p>
+      <p>Valid recipients: <strong>stu</strong>, <strong>bob</strong>, <strong>sally</strong>.</p>
+    </section>
+
+    <section class="layout">
+      <article class="panel">
+        <h2>Input Records</h2>
+        <p>Each non-empty line must contain 4 fields: <code>YYYY-MM-DD|group|body|recipient</code>.</p>
+        <label for="recordInput">Record lines</label>
+        <textarea id="recordInput" spellcheck="false"></textarea>
+        <label for="recipientFilter">Recipient filter</label>
+        <select id="recipientFilter">
+          <option value="all">All recipients</option>
+          <option value="stu">stu</option>
+          <option value="bob">bob</option>
+          <option value="sally">sally</option>
+        </select>
+        <div class="actions">
+          <button id="loadModelBtn" type="button">Load small model</button>
+          <button id="runBtn" type="button" class="primary">Process records</button>
+        </div>
+        <div class="badge-row" id="stats"></div>
+      </article>
+
+      <article class="panel">
+        <h2>Model Output</h2>
+        <p id="modelStatus" class="status-warn">Model not loaded yet.</p>
+        <div class="table-wrap">
+          <table aria-label="Processed records table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Group</th>
+                <th>Recipient</th>
+                <th>Intent</th>
+                <th>Confidence</th>
+                <th>Suggested Owner</th>
+                <th>Body</th>
+              </tr>
+            </thead>
+            <tbody id="outputRows">
+              <tr><td colspan="8">No records processed yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul id="errors" class="error-list" hidden></ul>
+      </article>
+    </section>
+
+    <section class="explain">
+      <strong>How this page works:</strong> The model is intentionally small and local: keyword weights are loaded into memory, then each record body is tokenized and scored across intent classes (<code>task</code>, <code>billing</code>, <code>scheduling</code>, <code>incident</code>, <code>social</code>). A second lightweight scorer suggests the best recipient (<code>stu</code>, <code>bob</code>, <code>sally</code>) based on body/group keywords. All page state (input text + filter) is persisted in the URL hash so this demo is shareable with no localStorage, cookies, or backend.
+    </section>
+  </main>
+
+  <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot · v1</div>
+
+  <script>
+    const allowedRecipients = ["stu", "bob", "sally"];
+    const defaultRecords = [
+      "2026-04-10|ops|Server CPU alarm in prod, investigate and patch tonight|stu",
+      "2026-04-10|finance|Please send invoice 4821 and update payment terms|bob",
+      "2026-04-11|people|Can we schedule a team lunch next Friday?|sally",
+      "2026-04-11|support|Need help resetting account password and MFA|stu"
+    ].join("\n");
+
+    const recordInput = document.getElementById("recordInput");
+    const recipientFilter = document.getElementById("recipientFilter");
+    const loadModelBtn = document.getElementById("loadModelBtn");
+    const runBtn = document.getElementById("runBtn");
+    const modelStatus = document.getElementById("modelStatus");
+    const outputRows = document.getElementById("outputRows");
+    const errorsEl = document.getElementById("errors");
+    const stats = document.getElementById("stats");
+
+    let tinyModel = null;
+
+    function bytesToBase64(bytes) {
+      let binary = "";
+      bytes.forEach((b) => { binary += String.fromCharCode(b); });
+      return btoa(binary);
+    }
+
+    function base64ToBytes(base64) {
+      const binary = atob(base64);
+      return Uint8Array.from(binary, (ch) => ch.charCodeAt(0));
+    }
+
+    function encodeState(state) {
+      const json = JSON.stringify(state);
+      const bytes = new TextEncoder().encode(json);
+      return bytesToBase64(bytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+    }
+
+    function decodeState(raw) {
+      if (!raw) return null;
+      const padded = raw.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((raw.length + 3) % 4);
+      const bytes = base64ToBytes(padded);
+      const json = new TextDecoder().decode(bytes);
+      return JSON.parse(json);
+    }
+
+    function readHashState() {
+      const raw = window.location.hash.replace(/^#/, "");
+      try {
+        return decodeState(raw);
+      } catch (_err) {
+        return null;
+      }
+    }
+
+    function writeHashState() {
+      const state = {
+        records: recordInput.value,
+        filter: recipientFilter.value
+      };
+      const encoded = encodeState(state);
+      if (window.location.hash !== `#${encoded}`) {
+        window.location.hash = encoded;
+      }
+    }
+
+    function tokenize(text) {
+      return (text.toLowerCase().match(/[a-z0-9']+/g) || []).slice(0, 120);
+    }
+
+    function normalizeScores(scores) {
+      const entries = Object.entries(scores);
+      let max = -Infinity;
+      entries.forEach(([, v]) => { if (v > max) max = v; });
+      const exps = entries.map(([k, v]) => [k, Math.exp(v - max)]);
+      const sum = exps.reduce((acc, [, v]) => acc + v, 0) || 1;
+      return Object.fromEntries(exps.map(([k, v]) => [k, v / sum]));
+    }
+
+    function createTinyModel() {
+      return {
+        intents: {
+          task: {
+            bias: 0.2,
+            words: { investigate: 1.0, patch: 0.9, update: 0.8, deliver: 0.7, review: 0.7, todo: 0.9, fix: 0.8, reset: 0.6 }
+          },
+          billing: {
+            bias: 0.12,
+            words: { invoice: 1.2, payment: 1.1, refund: 1.0, pricing: 0.9, budget: 0.8, finance: 0.8, quote: 0.7 }
+          },
+          scheduling: {
+            bias: 0.1,
+            words: { schedule: 1.2, calendar: 1.0, tomorrow: 0.7, friday: 0.7, monday: 0.7, meeting: 1.1, lunch: 0.8 }
+          },
+          incident: {
+            bias: 0.14,
+            words: { alarm: 1.1, outage: 1.2, urgent: 1.0, broken: 0.9, error: 0.8, server: 0.9, prod: 0.9, mfa: 0.6 }
+          },
+          social: {
+            bias: 0.08,
+            words: { thanks: 0.9, hello: 0.6, welcome: 0.8, lunch: 0.5, celebrate: 1.1, congrats: 0.9 }
+          }
+        },
+        recipients: {
+          stu: {
+            bias: 0.2,
+            words: { server: 1.0, prod: 0.9, support: 0.8, account: 0.7, auth: 0.7, reset: 0.6, patch: 0.6 }
+          },
+          bob: {
+            bias: 0.2,
+            words: { invoice: 1.0, payment: 0.95, budget: 0.9, terms: 0.8, quote: 0.75, finance: 0.7 }
+          },
+          sally: {
+            bias: 0.2,
+            words: { people: 0.9, schedule: 0.7, lunch: 0.9, meeting: 0.8, team: 0.75, onboarding: 0.9 }
+          }
+        }
+      };
+    }
+
+    function classify(tokens, group, modelPart) {
+      const scores = {};
+      const groupToken = group.toLowerCase();
+      Object.entries(modelPart).forEach(([label, def]) => {
+        let score = def.bias;
+        if (def.words[groupToken]) score += def.words[groupToken] * 0.8;
+        tokens.forEach((tok) => {
+          if (def.words[tok]) score += def.words[tok];
+        });
+        scores[label] = score;
+      });
+      const probabilities = normalizeScores(scores);
+      let bestLabel = "";
+      let best = -1;
+      Object.entries(probabilities).forEach(([label, prob]) => {
+        if (prob > best) {
+          best = prob;
+          bestLabel = label;
+        }
+      });
+      return { label: bestLabel, confidence: best, probabilities };
+    }
+
+    function parseLine(rawLine, index) {
+      const trimmed = rawLine.trim();
+      if (!trimmed) return null;
+
+      const fields = trimmed.split("|");
+      if (fields.length !== 4) {
+        return { error: `Line ${index + 1}: expected 4 fields, got ${fields.length}.` };
+      }
+
+      const [date, groupRaw, bodyRaw, recipientRaw] = fields.map((f) => f.trim());
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(new Date(date).getTime())) {
+        return { error: `Line ${index + 1}: invalid date '${date}' (use YYYY-MM-DD).` };
+      }
+
+      const recipient = recipientRaw.toLowerCase();
+      if (!allowedRecipients.includes(recipient)) {
+        return { error: `Line ${index + 1}: recipient must be stu, bob, or sally.` };
+      }
+
+      if (!groupRaw || !bodyRaw) {
+        return { error: `Line ${index + 1}: group and body must be non-empty.` };
+      }
+
+      return {
+        date,
+        group: groupRaw,
+        body: bodyRaw,
+        recipient,
+        index: index + 1
+      };
+    }
+
+    function renderStats(meta) {
+      stats.innerHTML = "";
+      const items = [
+        [`Model`, tinyModel ? "Loaded" : "Not loaded"],
+        [`Valid records`, String(meta.valid)],
+        [`Errors`, String(meta.errors)],
+        [`Shown`, String(meta.shown)]
+      ];
+      items.forEach(([k, v]) => {
+        const div = document.createElement("div");
+        div.className = "badge";
+        div.innerHTML = `<span>${k}</span><strong>${v}</strong>`;
+        stats.appendChild(div);
+      });
+    }
+
+    function renderErrors(errors) {
+      errorsEl.innerHTML = "";
+      if (!errors.length) {
+        errorsEl.hidden = true;
+        return;
+      }
+      errorsEl.hidden = false;
+      errors.forEach((err) => {
+        const li = document.createElement("li");
+        li.textContent = err;
+        errorsEl.appendChild(li);
+      });
+    }
+
+    function renderRows(rows) {
+      outputRows.innerHTML = "";
+      if (!rows.length) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = '<td colspan="8">No matching valid records.</td>';
+        outputRows.appendChild(tr);
+        return;
+      }
+
+      rows.forEach((row) => {
+        const mismatch = row.recipient !== row.suggestedOwner;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.index}</td>
+          <td><code>${row.date}</code></td>
+          <td>${escapeHtml(row.group)}</td>
+          <td><span class="pill">${row.recipient}</span></td>
+          <td><span class="pill">${row.intent}</span></td>
+          <td>${(row.confidence * 100).toFixed(1)}%</td>
+          <td><span class="pill" style="border-color:${mismatch ? 'rgba(251,113,133,0.6)' : 'rgba(34,197,94,0.55)'};background:${mismatch ? 'rgba(251,113,133,0.16)' : 'rgba(34,197,94,0.16)'};">${row.suggestedOwner}${mismatch ? ' (reroute)' : ''}</span></td>
+          <td>${escapeHtml(row.body)}</td>
+        `;
+        outputRows.appendChild(tr);
+      });
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, (ch) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;"
+      }[ch]));
+    }
+
+    async function loadModel() {
+      if (tinyModel) {
+        modelStatus.textContent = "Model already loaded and ready.";
+        modelStatus.className = "status-ok";
+        return;
+      }
+
+      modelStatus.textContent = "Loading small model weights...";
+      modelStatus.className = "status-warn";
+      loadModelBtn.disabled = true;
+
+      await new Promise((resolve) => setTimeout(resolve, 450));
+      tinyModel = createTinyModel();
+
+      modelStatus.textContent = "Model loaded: 5 intent classes + recipient scorer ready.";
+      modelStatus.className = "status-ok";
+      loadModelBtn.disabled = false;
+    }
+
+    function processRecords() {
+      if (!tinyModel) {
+        modelStatus.textContent = "Load the small model before processing.";
+        modelStatus.className = "status-warn";
+        return;
+      }
+
+      const lines = recordInput.value.split(/\r?\n/);
+      const parsed = [];
+      const errors = [];
+
+      lines.forEach((line, idx) => {
+        const result = parseLine(line, idx);
+        if (!result) return;
+        if (result.error) {
+          errors.push(result.error);
+          return;
+        }
+        parsed.push(result);
+      });
+
+      const filterValue = recipientFilter.value;
+      const processed = parsed
+        .map((item) => {
+          const tokens = tokenize(item.body);
+          const intent = classify(tokens, item.group, tinyModel.intents);
+          const owner = classify(tokens, item.group, tinyModel.recipients);
+          return {
+            ...item,
+            intent: intent.label,
+            confidence: intent.confidence,
+            suggestedOwner: owner.label
+          };
+        })
+        .filter((row) => filterValue === "all" || row.recipient === filterValue);
+
+      renderRows(processed);
+      renderErrors(errors);
+      renderStats({ valid: parsed.length, errors: errors.length, shown: processed.length });
+    }
+
+    function initFromHash() {
+      const state = readHashState();
+      if (state && typeof state.records === "string") {
+        recordInput.value = state.records;
+      } else {
+        recordInput.value = defaultRecords;
+      }
+      if (state && typeof state.filter === "string" && ["all", ...allowedRecipients].includes(state.filter)) {
+        recipientFilter.value = state.filter;
+      }
+    }
+
+    recordInput.addEventListener("input", writeHashState);
+    recipientFilter.addEventListener("change", () => {
+      writeHashState();
+      processRecords();
+    });
+    loadModelBtn.addEventListener("click", async () => {
+      await loadModel();
+      processRecords();
+    });
+    runBtn.addEventListener("click", processRecords);
+    window.addEventListener("hashchange", initFromHash);
+
+    (async function bootstrap() {
+      initFromHash();
+      writeHashState();
+      renderStats({ valid: 0, errors: 0, shown: 0 });
+      await loadModel();
+      processRecords();
+    }());
+  </script>
+</body>
+</html>
