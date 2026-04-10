@@ -12,7 +12,6 @@
       --text: #e8eefb;
       --muted: #9eb0d4;
       --accent: #4cc9f0;
-      --accent-2: #f8961e;
       --ok: #22c55e;
       --warn: #fb7185;
     }
@@ -29,13 +28,13 @@
         radial-gradient(circle at 84% 18%, rgba(248, 150, 30, 0.14), transparent 46%),
         radial-gradient(circle at 72% 82%, rgba(102, 126, 234, 0.17), transparent 48%),
         var(--bg);
-      padding: 84px 18px 140px;
+      padding: 72px 16px 132px;
       display: flex;
       justify-content: center;
     }
 
     main {
-      width: min(1180px, 100%);
+      width: min(1640px, 100%);
       display: grid;
       gap: 22px;
     }
@@ -75,14 +74,14 @@
     .hero p {
       margin: 0;
       color: var(--muted);
-      max-width: 760px;
+      max-width: 840px;
       line-height: 1.62;
     }
 
     .layout {
       display: grid;
       gap: 20px;
-      grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+      grid-template-columns: minmax(480px, 0.95fr) minmax(0, 1.45fr);
     }
 
     @media (max-width: 980px) {
@@ -93,6 +92,8 @@
       padding: 20px;
       display: grid;
       gap: 14px;
+      align-content: start;
+      align-items: start;
     }
 
     .panel h2 {
@@ -114,7 +115,9 @@
     }
 
     textarea,
-    select {
+    select,
+    input[type="text"],
+    input[type="password"] {
       width: 100%;
       border-radius: 15px;
       border: 1px solid rgba(120, 143, 188, 0.42);
@@ -126,22 +129,36 @@
     }
 
     textarea {
-      min-height: 320px;
+      height: clamp(240px, 34vh, 420px);
+      min-height: 240px;
       resize: vertical;
       line-height: 1.42;
     }
 
     textarea:focus,
     select:focus,
+    input:focus,
     button:focus {
       outline: 2px solid rgba(76, 201, 240, 0.45);
       outline-offset: 2px;
     }
 
-    .actions {
+    .actions,
+    .inline {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field small {
+      color: var(--muted);
+      font-size: 12px;
     }
 
     button {
@@ -179,7 +196,6 @@
     }
 
     .badge strong { color: var(--text); }
-
     .status-ok { color: var(--ok); }
     .status-warn { color: var(--warn); }
 
@@ -193,7 +209,7 @@
     table {
       border-collapse: collapse;
       width: 100%;
-      min-width: 860px;
+      min-width: 980px;
       font-size: 13px;
     }
 
@@ -240,6 +256,19 @@
       font-size: 13px;
     }
 
+    .summary-box {
+      border-radius: 14px;
+      border: 1px solid rgba(120, 143, 188, 0.35);
+      background: rgba(5, 12, 27, 0.52);
+      padding: 12px;
+      min-height: 130px;
+      max-height: 260px;
+      overflow: auto;
+      white-space: pre-wrap;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
     .explain {
       padding: 20px;
       line-height: 1.7;
@@ -264,7 +293,11 @@
     @media (max-width: 700px) {
       body { padding: 72px 12px 130px; }
       .hero, .panel, .explain { border-radius: 18px; }
-      textarea { min-height: 240px; }
+      textarea {
+        height: 220px;
+        min-height: 220px;
+      }
+      table { min-width: 860px; }
     }
   </style>
 </head>
@@ -274,33 +307,54 @@
 
     <section class="hero">
       <h1>Tiny LLM Record Processor</h1>
-      <p>Paste one record per line using <code>date|group|body|recipient</code>. A small in-browser model loads on demand, classifies each record, estimates confidence, and suggests whether the recipient should be rerouted.</p>
-      <p>Valid recipients: <strong>stu</strong>, <strong>bob</strong>, <strong>sally</strong>.</p>
+      <p>Paste one record per line using <code>date|group|body|to|from</code>. A small local model classifies each record, and a filtered RAG-style summary runs with a Hugging Face model downloaded into your browser.</p>
+      <p>Allowed users in <code>to</code> and <code>from</code>: <strong>stu</strong>, <strong>bob</strong>, <strong>sally</strong>.</p>
     </section>
 
     <section class="layout">
       <article class="panel">
         <h2>Input Records</h2>
-        <p>Each non-empty line must contain 4 fields: <code>YYYY-MM-DD|group|body|recipient</code>.</p>
+        <p>Each non-empty line must contain 5 fields: <code>YYYY-MM-DD|group|body|to|from</code>.</p>
+
         <label for="recordInput">Record lines</label>
         <textarea id="recordInput" spellcheck="false"></textarea>
-        <label for="recipientFilter">Recipient filter</label>
-        <select id="recipientFilter">
-          <option value="all">All recipients</option>
+
+        <label for="userFilter">User filter (matches to OR from)</label>
+        <select id="userFilter">
+          <option value="all">All users</option>
           <option value="stu">stu</option>
           <option value="bob">bob</option>
           <option value="sally">sally</option>
         </select>
+
         <div class="actions">
-          <button id="loadModelBtn" type="button">Load small model</button>
+          <button id="loadModelBtn" type="button">Load small local model</button>
           <button id="runBtn" type="button" class="primary">Process records</button>
         </div>
+
+        <div class="field">
+          <label for="hfModel">Hugging Face browser model (downloaded for summary)</label>
+          <select id="hfModel">
+            <option value="Xenova/t5-small">Xenova/t5-small (~78 MB)</option>
+            <option value="Xenova/flan-t5-small">Xenova/flan-t5-small (~95 MB)</option>
+            <option value="Xenova/distilbart-cnn-6-6" selected>Xenova/distilbart-cnn-6-6 (~284 MB)</option>
+          </select>
+          <small>First run downloads model files to browser cache, then reuses them.</small>
+        </div>
+
+        <div class="actions">
+          <button id="summarizeBtn" type="button">Summarize filtered (RAG style)</button>
+        </div>
+
         <div class="badge-row" id="stats"></div>
       </article>
 
       <article class="panel">
         <h2>Model Output</h2>
-        <p id="modelStatus" class="status-warn">Model not loaded yet.</p>
+        <p id="modelStatus" class="status-warn">Local model not loaded yet.</p>
+        <p id="remoteModelStatus" class="status-warn">Remote model: Not loaded.</p>
+        <p id="summaryStatus" class="status-warn">No summary generated yet.</p>
+
         <div class="table-wrap">
           <table aria-label="Processed records table">
             <thead>
@@ -308,96 +362,86 @@
                 <th>#</th>
                 <th>Date</th>
                 <th>Group</th>
-                <th>Recipient</th>
+                <th>To</th>
+                <th>From</th>
                 <th>Intent</th>
                 <th>Confidence</th>
-                <th>Suggested Owner</th>
+                <th>Suggested To</th>
+                <th>Entities</th>
                 <th>Body</th>
               </tr>
             </thead>
             <tbody id="outputRows">
-              <tr><td colspan="8">No records processed yet.</td></tr>
+              <tr><td colspan="10">No records processed yet.</td></tr>
             </tbody>
           </table>
         </div>
+
         <ul id="errors" class="error-list" hidden></ul>
+
+        <div class="field">
+          <label for="summaryOutput">Filtered summary</label>
+          <div id="summaryOutput" class="summary-box">Run “Summarize filtered (RAG style)” to generate a summary.</div>
+        </div>
+
+        <div class="field">
+          <label for="entityOutput">Extracted entities (filtered set)</label>
+          <div id="entityOutput" class="summary-box">Run “Process records” to extract entities.</div>
+        </div>
       </article>
     </section>
 
     <section class="explain">
-      <strong>How this page works:</strong> The model is intentionally small and local: keyword weights are loaded into memory, then each record body is tokenized and scored across intent classes (<code>task</code>, <code>billing</code>, <code>scheduling</code>, <code>incident</code>, <code>social</code>). A second lightweight scorer suggests the best recipient (<code>stu</code>, <code>bob</code>, <code>sally</code>) based on body/group keywords. All page state (input text + filter) is persisted in the URL hash so this demo is shareable with no localStorage, cookies, or backend.
+      <strong>How this page works:</strong> Records are parsed as <code>date|group|body|to|from</code>, validated, and scored by a lightweight local model for intent and suggested routing. Filtering includes rows where the selected user appears in <code>to</code> or <code>from</code>. The page also extracts lightweight entities from each body (people names, codes, money, URLs, dates, and title-cased terms) and aggregates them for the filtered set. For summarization, it retrieves filtered body text into a compact context window (RAG retrieval step), then runs a Hugging Face model downloaded in-browser via <code>transformers.js</code>. If model load or inference fails, a local extractive fallback summary is used.
     </section>
   </main>
 
-  <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot · v1</div>
+  <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot · v6</div>
 
   <script>
-    const allowedRecipients = ["stu", "bob", "sally"];
-    const defaultRecords = [
-      "2026-04-10|ops|Server CPU alarm in prod, investigate and patch tonight|stu",
-      "2026-04-10|finance|Please send invoice 4821 and update payment terms|bob",
-      "2026-04-11|people|Can we schedule a team lunch next Friday?|sally",
-      "2026-04-11|support|Need help resetting account password and MFA|stu"
-    ].join("\n");
+    const allowedUsers = ["stu", "bob", "sally"];
+    const defaultRecords = `2026-04-17|travel|Visited Tower Bridge in London with Emma Watson, stunning views over the Thames|stu|bob
+2026-04-17|travel|Explored the Taj Mahal at sunrise with Shah Rukh Khan, unforgettable experience|sally|stu
+2026-04-18|travel|Hiked Machu Picchu with Bear Grylls, challenging but rewarding|sally|stu
+2026-04-18|travel|Visited the Sydney Opera House with Hugh Jackman, iconic architecture|bob|stu
+2026-04-19|travel|Saw Niagara Falls with Ryan Reynolds, powerful and breathtaking|stu|bob
+2026-04-19|travel|Explored the Louvre with Leonardo DiCaprio, amazing art collection|sally|stu
+2026-04-20|news|Breaking update: central bank announced emergency rate cut after inflation spike|bob|sally
+2026-04-20|news|Morning bulletin reports severe storm warning and transport disruptions across NSW|stu|bob
+2026-04-21|news|Tech news says major cloud outage impacted payments API in multiple regions|sally|bob
+2026-04-21|news|Finance desk published earnings beat and upgraded guidance for Q2|bob|stu
+2026-04-22|news|Local news confirms road closure after accident near airport tunnel|stu|sally
+2026-04-22|news|World update: peace talks resumed and ceasefire monitoring team deployed|sally|stu
+2026-04-23|event|Schedule team meeting for Friday to review roadmap and assign owners|stu|bob
+2026-04-23|event|Calendar invite sent for product launch event at 10:00 with marketing and sales|bob|sally
+2026-04-24|event|Reminder: onboarding session tomorrow, bring laptop and access badge|sally|stu
+2026-04-24|event|Plan lunch event for new hires next Monday and confirm venue booking|stu|sally
+2026-04-25|event|Urgent incident drill starts at 14:00, all responders join war room|bob|stu
+2026-04-25|event|Town hall event scheduled Wednesday with Q&A and leadership updates|sally|bob`;
 
     const recordInput = document.getElementById("recordInput");
-    const recipientFilter = document.getElementById("recipientFilter");
+    const userFilter = document.getElementById("userFilter");
     const loadModelBtn = document.getElementById("loadModelBtn");
     const runBtn = document.getElementById("runBtn");
+    const summarizeBtn = document.getElementById("summarizeBtn");
     const modelStatus = document.getElementById("modelStatus");
+    const remoteModelStatus = document.getElementById("remoteModelStatus");
+    const summaryStatus = document.getElementById("summaryStatus");
+    const summaryOutput = document.getElementById("summaryOutput");
+    const entityOutput = document.getElementById("entityOutput");
     const outputRows = document.getElementById("outputRows");
     const errorsEl = document.getElementById("errors");
     const stats = document.getElementById("stats");
+    const hfModelInput = document.getElementById("hfModel");
 
     let tinyModel = null;
-
-    function bytesToBase64(bytes) {
-      let binary = "";
-      bytes.forEach((b) => { binary += String.fromCharCode(b); });
-      return btoa(binary);
-    }
-
-    function base64ToBytes(base64) {
-      const binary = atob(base64);
-      return Uint8Array.from(binary, (ch) => ch.charCodeAt(0));
-    }
-
-    function encodeState(state) {
-      const json = JSON.stringify(state);
-      const bytes = new TextEncoder().encode(json);
-      return bytesToBase64(bytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-    }
-
-    function decodeState(raw) {
-      if (!raw) return null;
-      const padded = raw.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((raw.length + 3) % 4);
-      const bytes = base64ToBytes(padded);
-      const json = new TextDecoder().decode(bytes);
-      return JSON.parse(json);
-    }
-
-    function readHashState() {
-      const raw = window.location.hash.replace(/^#/, "");
-      try {
-        return decodeState(raw);
-      } catch (_err) {
-        return null;
-      }
-    }
-
-    function writeHashState() {
-      const state = {
-        records: recordInput.value,
-        filter: recipientFilter.value
-      };
-      const encoded = encodeState(state);
-      if (window.location.hash !== `#${encoded}`) {
-        window.location.hash = encoded;
-      }
-    }
+    let currentFilteredRows = [];
+    let browserSummarizer = null;
+    let browserSummarizerModel = "";
+    let lastMeta = { valid: 0, errors: 0, filtered: 0 };
 
     function tokenize(text) {
-      return (text.toLowerCase().match(/[a-z0-9']+/g) || []).slice(0, 120);
+      return (text.toLowerCase().match(/[a-z0-9']+/g) || []).slice(0, 160);
     }
 
     function normalizeScores(scores) {
@@ -412,40 +456,16 @@
     function createTinyModel() {
       return {
         intents: {
-          task: {
-            bias: 0.2,
-            words: { investigate: 1.0, patch: 0.9, update: 0.8, deliver: 0.7, review: 0.7, todo: 0.9, fix: 0.8, reset: 0.6 }
-          },
-          billing: {
-            bias: 0.12,
-            words: { invoice: 1.2, payment: 1.1, refund: 1.0, pricing: 0.9, budget: 0.8, finance: 0.8, quote: 0.7 }
-          },
-          scheduling: {
-            bias: 0.1,
-            words: { schedule: 1.2, calendar: 1.0, tomorrow: 0.7, friday: 0.7, monday: 0.7, meeting: 1.1, lunch: 0.8 }
-          },
-          incident: {
-            bias: 0.14,
-            words: { alarm: 1.1, outage: 1.2, urgent: 1.0, broken: 0.9, error: 0.8, server: 0.9, prod: 0.9, mfa: 0.6 }
-          },
-          social: {
-            bias: 0.08,
-            words: { thanks: 0.9, hello: 0.6, welcome: 0.8, lunch: 0.5, celebrate: 1.1, congrats: 0.9 }
-          }
+          task: { bias: 0.2, words: { investigate: 1.0, patch: 0.9, update: 0.8, deliver: 0.7, review: 0.7, todo: 0.9, fix: 0.8, reset: 0.6 } },
+          billing: { bias: 0.12, words: { invoice: 1.2, payment: 1.1, refund: 1.0, pricing: 0.9, budget: 0.8, finance: 0.8, quote: 0.7 } },
+          scheduling: { bias: 0.1, words: { schedule: 1.2, calendar: 1.0, tomorrow: 0.7, friday: 0.7, monday: 0.7, meeting: 1.1, lunch: 0.8 } },
+          incident: { bias: 0.14, words: { alarm: 1.1, outage: 1.2, urgent: 1.0, broken: 0.9, error: 0.8, server: 0.9, prod: 0.9, mfa: 0.6 } },
+          social: { bias: 0.08, words: { thanks: 0.9, hello: 0.6, welcome: 0.8, lunch: 0.5, celebrate: 1.1, congrats: 0.9 } }
         },
         recipients: {
-          stu: {
-            bias: 0.2,
-            words: { server: 1.0, prod: 0.9, support: 0.8, account: 0.7, auth: 0.7, reset: 0.6, patch: 0.6 }
-          },
-          bob: {
-            bias: 0.2,
-            words: { invoice: 1.0, payment: 0.95, budget: 0.9, terms: 0.8, quote: 0.75, finance: 0.7 }
-          },
-          sally: {
-            bias: 0.2,
-            words: { people: 0.9, schedule: 0.7, lunch: 0.9, meeting: 0.8, team: 0.75, onboarding: 0.9 }
-          }
+          stu: { bias: 0.2, words: { server: 1.0, prod: 0.9, support: 0.8, account: 0.7, auth: 0.7, reset: 0.6, patch: 0.6, ops: 0.6 } },
+          bob: { bias: 0.2, words: { invoice: 1.0, payment: 0.95, budget: 0.9, terms: 0.8, quote: 0.75, finance: 0.7 } },
+          sally: { bias: 0.2, words: { people: 0.9, schedule: 0.7, lunch: 0.9, meeting: 0.8, team: 0.75, onboarding: 0.9 } }
         }
       };
     }
@@ -470,7 +490,7 @@
           bestLabel = label;
         }
       });
-      return { label: bestLabel, confidence: best, probabilities };
+      return { label: bestLabel, confidence: best };
     }
 
     function parseLine(rawLine, index) {
@@ -478,18 +498,20 @@
       if (!trimmed) return null;
 
       const fields = trimmed.split("|");
-      if (fields.length !== 4) {
-        return { error: `Line ${index + 1}: expected 4 fields, got ${fields.length}.` };
+      if (fields.length !== 5) {
+        return { error: `Line ${index + 1}: expected 5 fields, got ${fields.length}.` };
       }
 
-      const [date, groupRaw, bodyRaw, recipientRaw] = fields.map((f) => f.trim());
+      const [date, groupRaw, bodyRaw, toRaw, fromRaw] = fields.map((f) => f.trim());
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(new Date(date).getTime())) {
         return { error: `Line ${index + 1}: invalid date '${date}' (use YYYY-MM-DD).` };
       }
 
-      const recipient = recipientRaw.toLowerCase();
-      if (!allowedRecipients.includes(recipient)) {
-        return { error: `Line ${index + 1}: recipient must be stu, bob, or sally.` };
+      const to = toRaw.toLowerCase();
+      const from = fromRaw.toLowerCase();
+
+      if (!allowedUsers.includes(to) || !allowedUsers.includes(from)) {
+        return { error: `Line ${index + 1}: to/from must be stu, bob, or sally.` };
       }
 
       if (!groupRaw || !bodyRaw) {
@@ -500,18 +522,66 @@
         date,
         group: groupRaw,
         body: bodyRaw,
-        recipient,
+        to,
+        from,
         index: index + 1
       };
+    }
+
+    function rowMatchesUser(row, selectedUser) {
+      return selectedUser === "all" || row.to === selectedUser || row.from === selectedUser;
+    }
+
+    function uniqueEntities(values) {
+      const seen = new Set();
+      const out = [];
+      values.forEach((value) => {
+        const clean = value.trim();
+        if (!clean) return;
+        const key = clean.toLowerCase();
+        if (seen.has(key)) return;
+        seen.add(key);
+        out.push(clean);
+      });
+      return out;
+    }
+
+    function extractEntities(text) {
+      const entities = [];
+      const lower = text.toLowerCase();
+
+      ["stu", "bob", "sally"].forEach((name) => {
+        if (new RegExp(`\\b${name}\\b`, "i").test(text)) entities.push(name);
+      });
+
+      const patterns = [
+        /\bhttps?:\/\/[^\s)]+/gi,
+        /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,
+        /\b(?:INC|REQ|INV|PRJ|BUG)-?\d+\b/gi,
+        /\$\d+(?:\.\d{2})?\b/g,
+        /\b\d{4}-\d{2}-\d{2}\b/g
+      ];
+      patterns.forEach((pattern) => {
+        const matches = text.match(pattern) || [];
+        entities.push(...matches);
+      });
+
+      const caps = text.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2}\b/g) || [];
+      caps.forEach((item) => {
+        if (item.length > 2 && item.toLowerCase() !== lower) entities.push(item);
+      });
+
+      return uniqueEntities(entities).slice(0, 8);
     }
 
     function renderStats(meta) {
       stats.innerHTML = "";
       const items = [
-        [`Model`, tinyModel ? "Loaded" : "Not loaded"],
-        [`Valid records`, String(meta.valid)],
-        [`Errors`, String(meta.errors)],
-        [`Shown`, String(meta.shown)]
+        ["Local model", tinyModel ? "Loaded" : "Not loaded"],
+        ["Remote model Loaded", browserSummarizer ? "Yes" : "No"],
+        ["Valid records", String(meta.valid)],
+        ["Errors", String(meta.errors)],
+        ["Filtered", String(meta.filtered)]
       ];
       items.forEach(([k, v]) => {
         const div = document.createElement("div");
@@ -539,60 +609,71 @@
       outputRows.innerHTML = "";
       if (!rows.length) {
         const tr = document.createElement("tr");
-        tr.innerHTML = '<td colspan="8">No matching valid records.</td>';
+        tr.innerHTML = '<td colspan="10">No matching valid records.</td>';
         outputRows.appendChild(tr);
         return;
       }
 
       rows.forEach((row) => {
-        const mismatch = row.recipient !== row.suggestedOwner;
+        const mismatch = row.to !== row.suggestedTo;
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${row.index}</td>
           <td><code>${row.date}</code></td>
           <td>${escapeHtml(row.group)}</td>
-          <td><span class="pill">${row.recipient}</span></td>
+          <td><span class="pill">${row.to}</span></td>
+          <td><span class="pill">${row.from}</span></td>
           <td><span class="pill">${row.intent}</span></td>
           <td>${(row.confidence * 100).toFixed(1)}%</td>
-          <td><span class="pill" style="border-color:${mismatch ? 'rgba(251,113,133,0.6)' : 'rgba(34,197,94,0.55)'};background:${mismatch ? 'rgba(251,113,133,0.16)' : 'rgba(34,197,94,0.16)'};">${row.suggestedOwner}${mismatch ? ' (reroute)' : ''}</span></td>
+          <td><span class="pill" style="border-color:${mismatch ? 'rgba(251,113,133,0.6)' : 'rgba(34,197,94,0.55)'};background:${mismatch ? 'rgba(251,113,133,0.16)' : 'rgba(34,197,94,0.16)'};">${row.suggestedTo}${mismatch ? ' (reroute)' : ''}</span></td>
+          <td>${row.entities.length ? row.entities.map((e) => `<span class="pill">${escapeHtml(e)}</span>`).join(" ") : "<span class='pill'>none</span>"}</td>
           <td>${escapeHtml(row.body)}</td>
         `;
         outputRows.appendChild(tr);
       });
     }
 
+    function renderEntities(rows) {
+      const counts = {};
+      rows.forEach((row) => {
+        row.entities.forEach((entity) => {
+          counts[entity] = (counts[entity] || 0) + 1;
+        });
+      });
+      const ordered = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 20);
+      if (!ordered.length) {
+        entityOutput.textContent = "No entities found in filtered bodies.";
+        return;
+      }
+      entityOutput.textContent = ordered.map(([name, count]) => `${name}: ${count}`).join("\n");
+    }
+
     function escapeHtml(str) {
-      return str.replace(/[&<>"']/g, (ch) => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        "\"": "&quot;",
-        "'": "&#39;"
-      }[ch]));
+      return str.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
     }
 
     async function loadModel() {
       if (tinyModel) {
-        modelStatus.textContent = "Model already loaded and ready.";
+        modelStatus.textContent = "Local model already loaded and ready.";
         modelStatus.className = "status-ok";
         return;
       }
 
-      modelStatus.textContent = "Loading small model weights...";
+      modelStatus.textContent = "Loading small local model weights...";
       modelStatus.className = "status-warn";
       loadModelBtn.disabled = true;
 
-      await new Promise((resolve) => setTimeout(resolve, 450));
+      await new Promise((resolve) => setTimeout(resolve, 350));
       tinyModel = createTinyModel();
 
-      modelStatus.textContent = "Model loaded: 5 intent classes + recipient scorer ready.";
+      modelStatus.textContent = "Local model loaded: intent classifier + routing scorer ready.";
       modelStatus.className = "status-ok";
       loadModelBtn.disabled = false;
     }
 
     function processRecords() {
       if (!tinyModel) {
-        modelStatus.textContent = "Load the small model before processing.";
+        modelStatus.textContent = "Load the local model before processing.";
         modelStatus.className = "status-warn";
         return;
       }
@@ -611,54 +692,209 @@
         parsed.push(result);
       });
 
-      const filterValue = recipientFilter.value;
+      const filterValue = userFilter.value;
       const processed = parsed
         .map((item) => {
           const tokens = tokenize(item.body);
           const intent = classify(tokens, item.group, tinyModel.intents);
-          const owner = classify(tokens, item.group, tinyModel.recipients);
+          const toSuggestion = classify(tokens, item.group, tinyModel.recipients);
           return {
             ...item,
             intent: intent.label,
             confidence: intent.confidence,
-            suggestedOwner: owner.label
+            suggestedTo: toSuggestion.label,
+            entities: extractEntities(item.body)
           };
         })
-        .filter((row) => filterValue === "all" || row.recipient === filterValue);
+        .filter((row) => rowMatchesUser(row, filterValue));
 
+      currentFilteredRows = processed;
       renderRows(processed);
+      renderEntities(processed);
       renderErrors(errors);
-      renderStats({ valid: parsed.length, errors: errors.length, shown: processed.length });
+      lastMeta = { valid: parsed.length, errors: errors.length, filtered: processed.length };
+      renderStats(lastMeta);
+
+      summaryOutput.textContent = "Run “Summarize filtered (RAG style)” to generate a summary.";
+      summaryStatus.textContent = "Records processed. Summary not yet generated.";
+      summaryStatus.className = "status-warn";
     }
 
-    function initFromHash() {
-      const state = readHashState();
-      if (state && typeof state.records === "string") {
-        recordInput.value = state.records;
-      } else {
-        recordInput.value = defaultRecords;
+    function buildBodyCorpus(rows) {
+      const sorted = [...rows].sort((a, b) => b.date.localeCompare(a.date));
+      const chunks = [];
+      let total = 0;
+      const maxChars = 2600;
+
+      for (const row of sorted) {
+        const chunk = row.body.trim();
+        if (total + chunk.length > maxChars) break;
+        chunks.push(chunk);
+        total += chunk.length;
       }
-      if (state && typeof state.filter === "string" && ["all", ...allowedRecipients].includes(state.filter)) {
-        recipientFilter.value = state.filter;
+
+      return chunks.join("\n");
+    }
+
+    function buildBodyFallbackSummary(rows) {
+      const uniqueBodies = [...new Set(rows.map((r) => r.body.trim()).filter(Boolean))];
+      if (!uniqueBodies.length) return "No body text available to summarize.";
+
+      const top = uniqueBodies.slice(0, 6).map((line) => `- ${line}`);
+      return [
+        `Body summary (${rows.length} filtered records):`,
+        ...top
+      ].join("\n");
+    }
+
+    function sanitizeSummaryText(text) {
+      if (!text) return "";
+
+      const cleaned = text
+        .replace(/summarize these filtered communication records\.?/gi, "")
+        .replace(/focus on key themes, action items, and blockers\.?/gi, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      // Remove immediate duplicated sentence fragments.
+      const sentences = cleaned.split(/(?<=[.!?])\s+/).filter(Boolean);
+      const deduped = [];
+      for (const sentence of sentences) {
+        const norm = sentence.toLowerCase();
+        const prev = deduped.length ? deduped[deduped.length - 1].toLowerCase() : "";
+        if (norm !== prev) deduped.push(sentence);
+      }
+      return deduped.join(" ").trim();
+    }
+
+    function buildFallbackSummary(rows) {
+      if (!rows.length) return "No filtered records to summarize.";
+
+      const intentCounts = rows.reduce((acc, row) => {
+        acc[row.intent] = (acc[row.intent] || 0) + 1;
+        return acc;
+      }, {});
+      const intentSummary = Object.entries(intentCounts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([intent, count]) => `${intent}(${count})`)
+        .join(", ");
+
+      const routes = rows.reduce((acc, row) => {
+        const key = `${row.from}->${row.to}`;
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
+      const topRoutes = Object.entries(routes)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([route, count]) => `${route} (${count})`)
+        .join(", ");
+
+      const reroutes = rows.filter((r) => r.to !== r.suggestedTo);
+      const actions = reroutes.slice(0, 3).map((r) => `- ${r.date}: route ${r.to} -> ${r.suggestedTo} (${r.group})`);
+
+      return [
+        `Summary (${rows.length} filtered records):`,
+        `- Dominant intents: ${intentSummary || "none"}`,
+        `- Top communication paths: ${topRoutes || "none"}`,
+        `- Potential reroutes: ${reroutes.length}`,
+        actions.length ? "Action candidates:\n" + actions.join("\n") : "No reroutes suggested by local model."
+      ].join("\n");
+    }
+
+    async function getBrowserSummarizer(model) {
+      if (browserSummarizer && browserSummarizerModel === model) {
+        return browserSummarizer;
+      }
+
+      summaryStatus.textContent = `Downloading/loading Hugging Face browser model '${model}'...`;
+      summaryStatus.className = "status-warn";
+      remoteModelStatus.textContent = `Remote model: Loading '${model}'...`;
+      remoteModelStatus.className = "status-warn";
+
+      const { pipeline, env } = await import("https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2");
+      env.allowLocalModels = false;
+
+      browserSummarizer = await pipeline("summarization", model);
+      browserSummarizerModel = model;
+      remoteModelStatus.textContent = `Remote model: Loaded '${model}'.`;
+      remoteModelStatus.className = "status-ok";
+      renderStats(lastMeta);
+      return browserSummarizer;
+    }
+
+    async function summarizeFilteredRecords() {
+      if (!currentFilteredRows.length) {
+        summaryOutput.textContent = "No filtered records available. Process records first or adjust the user filter.";
+        summaryStatus.textContent = "Summary skipped: nothing to summarize.";
+        summaryStatus.className = "status-warn";
+        return;
+      }
+
+      const prompt = buildBodyCorpus(currentFilteredRows);
+
+      const model = hfModelInput.value.trim() || "Xenova/distilbart-cnn-6-6";
+
+      summarizeBtn.disabled = true;
+      summaryStatus.textContent = `Generating summary with downloaded model '${model}'...`;
+      summaryStatus.className = "status-warn";
+
+      try {
+        const summarizer = await getBrowserSummarizer(model);
+        const result = await summarizer(prompt, {
+          max_new_tokens: 180,
+          min_length: 35
+        });
+
+        const first = Array.isArray(result) ? result[0] : result;
+        const generated = first && (first.summary_text || first.generated_text)
+          ? String(first.summary_text || first.generated_text).trim()
+          : "";
+        const cleanedSummary = sanitizeSummaryText(generated);
+        const summary = cleanedSummary || buildBodyFallbackSummary(currentFilteredRows);
+
+        summaryOutput.textContent = summary || "Summary model returned empty output.";
+        summaryStatus.textContent = `Summary generated via downloaded Hugging Face model '${model}'.`;
+        summaryStatus.className = "status-ok";
+      } catch (error) {
+        const fallback = buildBodyFallbackSummary(currentFilteredRows);
+        summaryOutput.textContent = `${fallback}\n\n[Browser model fallback reason] ${error.message}`;
+        summaryStatus.textContent = "Downloaded model summary failed, local fallback used.";
+        summaryStatus.className = "status-warn";
+        remoteModelStatus.textContent = "Remote model: Load failed.";
+        remoteModelStatus.className = "status-warn";
+        renderStats(lastMeta);
+      } finally {
+        summarizeBtn.disabled = false;
       }
     }
 
-    recordInput.addEventListener("input", writeHashState);
-    recipientFilter.addEventListener("change", () => {
-      writeHashState();
+    function initDefaults() {
+      recordInput.value = defaultRecords;
+      userFilter.value = "all";
+    }
+
+    userFilter.addEventListener("change", () => {
       processRecords();
     });
+    hfModelInput.addEventListener("change", () => {
+      if (browserSummarizerModel !== hfModelInput.value) {
+        remoteModelStatus.textContent = "Remote model: Not loaded for selected model.";
+        remoteModelStatus.className = "status-warn";
+        renderStats(lastMeta);
+      }
+    });
+
     loadModelBtn.addEventListener("click", async () => {
       await loadModel();
       processRecords();
     });
     runBtn.addEventListener("click", processRecords);
-    window.addEventListener("hashchange", initFromHash);
+    summarizeBtn.addEventListener("click", summarizeFilteredRecords);
 
     (async function bootstrap() {
-      initFromHash();
-      writeHashState();
-      renderStats({ valid: 0, errors: 0, shown: 0 });
+      initDefaults();
+      renderStats(lastMeta);
       await loadModel();
       processRecords();
     }());
