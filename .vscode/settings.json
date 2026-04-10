@@ -1,5 +1,6 @@
 {
     "java.test.framework": "playwright",
     "playwright.testDir": "tests",
-    "playwright.testMatch": "**/*.spec.ts"
+    "playwright.testMatch": "**/*.spec.ts",
+    "liveServer.settings.port": 5501
 }

@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casey Jones Marathon</title>
+    <meta name="description" content="Casey Jones Marathon mock event page featuring the 1,000 cm sprint from Kingsley's Chicken to Casey Jones Pub. Main event starts 4PM Sunday.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Casey Jones Marathon">
+    <meta property="og:description" content="A rebranded marathon-style mockup for the 1,000 cm sprint from Kingsley's Chicken to Casey Jones Pub. Main event starts 4PM Sunday.">
+    <meta property="og:url" content="https://spa.stuarteggerton.com/cj-marathon/">
+    <meta property="og:image" content="https://spa.stuarteggerton.com/cj-marathon/share-card.png">
+    <meta property="og:image:alt" content="Casey Jones Marathon share card showing the 1,000 cm route from Kingsley's Chicken to Casey Jones Pub at 4PM Sunday.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Casey Jones Marathon">
+    <meta name="twitter:description" content="1,000 cm from Kingsley's Chicken to Casey Jones Pub. Main event starts 4PM Sunday.">
+    <meta name="twitter:image" content="https://spa.stuarteggerton.com/cj-marathon/share-card.png">
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --bg-soft: #161616;
+            --panel: rgba(255, 255, 255, 0.92);
+            --panel-dark: rgba(14, 14, 14, 0.9);
+            --text: #f7f4ef;
+            --ink: #121212;
+            --muted: rgba(255, 255, 255, 0.72);
+            --muted-dark: rgba(18, 18, 18, 0.68);
+            --accent: #ef3f2f;
+            --accent-2: #f35f9b;
+            --accent-soft: rgba(239, 63, 47, 0.14);
+            --border: rgba(255, 255, 255, 0.18);
+            --shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(239, 63, 47, 0.16), transparent 35%),
+                radial-gradient(circle at 82% 18%, rgba(243, 95, 155, 0.18), transparent 25%),
+                linear-gradient(180deg, #1b140f 0%, #0a0a0a 22%, #090909 100%);
+        }
+
+        a {
+            color: inherit;
+        }
+
+        .page {
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: auto auto 1fr auto auto;
+        }
+
+        .utility-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px 24px;
+            background: rgba(255, 248, 240, 0.96);
+            color: var(--ink);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 800;
+            font-size: clamp(12px, 1.7vw, 21px);
+        }
+
+        .back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--ink);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .utility-cta {
+            color: var(--accent);
+        }
+
+        .main-nav {
+            display: grid;
+            gap: 18px;
+            padding: 28px 28px 34px;
+            background: rgba(0, 0, 0, 0.94);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .nav-top,
+        .nav-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .search-pill,
+        .nav-icons span {
+            color: #ff4e94;
+            font-size: 14px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .brand-lockup {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            font-family: "Bebas Neue", "Impact", sans-serif;
+            letter-spacing: 0.04em;
+            font-size: clamp(32px, 3.8vw, 56px);
+        }
+
+        .brand-mark {
+            width: 36px;
+            height: 36px;
+            border: 3px solid white;
+            border-radius: 10px 10px 18px 10px;
+            position: relative;
+            transform: rotate(45deg);
+        }
+
+        .brand-mark::after {
+            content: "";
+            position: absolute;
+            inset: 6px;
+            border-top: 3px solid white;
+            border-right: 3px solid white;
+        }
+
+        .menu {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 28px;
+            font-family: "Bebas Neue", "Arial Narrow", sans-serif;
+            font-size: clamp(22px, 2vw, 34px);
+            letter-spacing: 0.04em;
+        }
+
+        .menu span {
+            opacity: 0.92;
+        }
+
+        .hero {
+            position: relative;
+            display: grid;
+            grid-template-columns: minmax(300px, 410px) minmax(0, 1fr);
+            gap: 24px;
+            padding: 30px 24px 120px;
+            align-items: start;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg, rgba(15, 10, 7, 0.55), rgba(15, 10, 7, 0.1)),
+                radial-gradient(circle at 18% 80%, rgba(255, 120, 66, 0.22), transparent 30%),
+                radial-gradient(circle at 70% 18%, rgba(255, 255, 255, 0.06), transparent 20%),
+                linear-gradient(180deg, rgba(42, 36, 22, 0.9), rgba(10, 10, 10, 0.72));
+            filter: blur(0.5px);
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 62% 32%, rgba(255, 234, 204, 0.18), transparent 13%),
+                radial-gradient(circle at 67% 46%, rgba(255, 0, 0, 0.18), transparent 10%),
+                radial-gradient(circle at 72% 36%, rgba(255, 255, 255, 0.14), transparent 12%),
+                radial-gradient(circle at 80% 44%, rgba(244, 121, 82, 0.16), transparent 12%),
+                linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.18));
+            mix-blend-mode: screen;
+            pointer-events: none;
+        }
+
+        .event-card,
+        .hero-copy {
+            position: relative;
+            z-index: 1;
+        }
+
+        .event-card {
+            background: var(--panel);
+            color: var(--ink);
+            border-radius: 0;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .event-poster {
+            padding: 42px 34px 28px;
+            display: grid;
+            gap: 12px;
+            min-height: 430px;
+        }
+
+        .poster-kicker {
+            font-family: "Times New Roman", serif;
+            font-weight: 700;
+            font-size: clamp(26px, 2.4vw, 44px);
+            text-align: center;
+        }
+
+        .poster-title {
+            margin: 0;
+            font-family: "Bebas Neue", "Impact", sans-serif;
+            font-size: clamp(74px, 7vw, 118px);
+            line-height: 0.9;
+            color: var(--accent);
+            letter-spacing: 0.03em;
+            text-align: center;
+        }
+
+        .poster-subtitle {
+            text-align: center;
+            font-family: "Bebas Neue", "Arial Narrow", sans-serif;
+            font-size: clamp(34px, 3vw, 48px);
+            letter-spacing: 0.05em;
+        }
+
+        .poster-meta {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            color: var(--muted-dark);
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .section-tab,
+        .cta-button {
+            background: var(--accent);
+            color: white;
+            font-family: "Bebas Neue", "Arial Narrow", sans-serif;
+            letter-spacing: 0.05em;
+        }
+
+        .section-tab {
+            padding: 13px 22px;
+            font-size: 28px;
+        }
+
+        .accordion {
+            padding: 18px;
+            display: grid;
+            gap: 14px;
+        }
+
+        .accordion-block {
+            border: 1px solid rgba(18, 18, 18, 0.08);
+            border-radius: 16px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.68);
+        }
+
+        .accordion-header {
+            width: 100%;
+            padding: 20px 22px;
+            border: 0;
+            background: transparent;
+            color: var(--ink);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-family: "Bebas Neue", "Arial Narrow", sans-serif;
+            font-size: 26px;
+            letter-spacing: 0.04em;
+        }
+
+        .accordion-content {
+            display: none;
+            padding: 0 22px 22px;
+            color: #292929;
+        }
+
+        .accordion-block.open .accordion-content {
+            display: grid;
+            gap: 12px;
+        }
+
+        .distance-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .distance-button {
+            border: 0;
+            background: transparent;
+            border-radius: 14px;
+            padding: 10px 12px;
+            text-align: left;
+            cursor: pointer;
+            font-family: "Bebas Neue", "Arial Narrow", sans-serif;
+            font-size: 26px;
+            letter-spacing: 0.04em;
+            color: #0f0f0f;
+            transition: background 0.18s ease, transform 0.18s ease;
+        }
+
+        .distance-button.active,
+        .distance-button:hover {
+            background: var(--accent-soft);
+            transform: translateX(2px);
+        }
+
+        .distance-note,
+        .info-copy {
+            font-size: 15px;
+            line-height: 1.6;
+            color: rgba(18, 18, 18, 0.76);
+        }
+
+        .cta-button {
+            display: block;
+            width: 100%;
+            border: 0;
+            padding: 18px 22px;
+            text-align: center;
+            font-size: 36px;
+            text-decoration: none;
+        }
+
+        .hero-copy {
+            min-height: 720px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-end;
+            padding: 34px 12px 0;
+        }
+
+        .copy-panel {
+            max-width: 560px;
+            display: grid;
+            gap: 18px;
+            padding: 28px;
+            border-radius: 28px;
+            background: rgba(12, 12, 12, 0.52);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.38);
+            backdrop-filter: blur(18px);
+        }
+
+        .copy-eyebrow {
+            display: inline-flex;
+            width: fit-content;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffe7dc;
+        }
+
+        .copy-panel h1 {
+            margin: 0;
+            font-family: "Bebas Neue", "Impact", sans-serif;
+            font-size: clamp(60px, 7vw, 112px);
+            line-height: 0.92;
+            letter-spacing: 0.04em;
+        }
+
+        .copy-panel p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.7;
+            font-size: 16px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .detail {
+            border-radius: 18px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .detail strong {
+            display: block;
+            font-family: "Bebas Neue", "Arial Narrow", sans-serif;
+            font-size: 26px;
+            letter-spacing: 0.04em;
+        }
+
+        .detail span {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .summary {
+            margin: -72px 24px 0;
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .summary-card {
+            padding: 22px;
+            border-radius: 22px;
+            background: rgba(16, 16, 16, 0.88);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .summary-card h2 {
+            margin: 0 0 8px;
+            font-family: "Bebas Neue", "Arial Narrow", sans-serif;
+            font-size: 34px;
+            letter-spacing: 0.04em;
+        }
+
+        .summary-card p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .explanation {
+            padding: 42px 24px 120px;
+        }
+
+        .explanation-card {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 28px;
+            border-radius: 26px;
+            background: rgba(248, 242, 236, 0.95);
+            color: var(--ink);
+            box-shadow: var(--shadow);
+            display: grid;
+            gap: 18px;
+        }
+
+        .explanation-card h2,
+        .explanation-card h3 {
+            margin: 0;
+            font-family: "Bebas Neue", "Arial Narrow", sans-serif;
+            letter-spacing: 0.04em;
+        }
+
+        .explanation-card h2 {
+            font-size: 42px;
+        }
+
+        .explanation-card h3 {
+            font-size: 28px;
+        }
+
+        .explanation-card p,
+        .explanation-card li {
+            margin: 0;
+            line-height: 1.7;
+            color: rgba(18, 18, 18, 0.78);
+        }
+
+        .explanation-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .floating-footer {
+            position: fixed;
+            left: 18px;
+            right: 18px;
+            bottom: 18px;
+            z-index: 20;
+            display: flex;
+            justify-content: center;
+        }
+
+        .floating-footer span {
+            padding: 12px 18px;
+            border-radius: 999px;
+            background: rgba(8, 8, 8, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: white;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(12px);
+            font-size: 14px;
+            text-align: center;
+        }
+
+        @media (max-width: 1100px) {
+            .hero,
+            .summary,
+            .explanation-grid,
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-copy {
+                min-height: 420px;
+                padding: 0;
+            }
+
+            .summary {
+                margin-top: 18px;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .utility-bar {
+                padding: 14px 16px;
+                font-size: 12px;
+            }
+
+            .main-nav,
+            .hero,
+            .explanation {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+
+            .event-poster {
+                padding: 28px 22px 20px;
+                min-height: auto;
+            }
+
+            .poster-title {
+                font-size: 62px;
+            }
+
+            .copy-panel h1 {
+                font-size: 56px;
+            }
+
+            .cta-button {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="utility-bar">
+            <a class="back-home" href="/">&#8592; Back to home</a>
+            <div>Casey Jones Marathon is this weekend!</div>
+            <div class="utility-cta">Register now</div>
+        </div>
+
+        <nav class="main-nav" aria-label="Main">
+            <div class="nav-top">
+                <div class="search-pill">&#9711; Search</div>
+                <div class="brand-lockup">
+                    <span class="brand-mark" aria-hidden="true"></span>
+                    <span>Casey Jones Marathon</span>
+                </div>
+                <div class="nav-icons"><span>Pub map · Account · Merch</span></div>
+            </div>
+            <div class="nav-bottom menu" aria-hidden="true">
+                <span>Mens</span>
+                <span>Womens</span>
+                <span>Brands</span>
+                <span>Our Events</span>
+                <span>Our Stores</span>
+                <span>Our Magazine</span>
+                <span>Blog</span>
+            </div>
+        </nav>
+
+        <section class="hero">
+            <aside class="event-card" aria-label="Event navigation">
+                <div class="event-poster">
+                    <div class="poster-kicker">The Canberra Times-ish</div>
+                    <h1 class="poster-title">CASEY JONES</h1>
+                    <div class="poster-subtitle">MARATHON FESTIVAL</div>
+                    <div class="poster-meta">
+                        <span>Presented by Casey Jones Pub</span>
+                        <span>Fuelled by Kingsley's Chicken</span>
+                    </div>
+                </div>
+                <div class="section-tab">Event Home</div>
+                <div class="accordion">
+                    <section class="accordion-block" data-panel="distances">
+                        <button class="accordion-header" type="button" data-toggle-panel="distances" aria-expanded="true">
+                            <span>Distances</span>
+                            <span class="accordion-symbol">+</span>
+                        </button>
+                        <div class="accordion-content">
+                            <div class="distance-list" id="distance-list"></div>
+                            <p class="distance-note" id="distance-note"></p>
+                        </div>
+                    </section>
+                    <section class="accordion-block" data-panel="info">
+                        <button class="accordion-header" type="button" data-toggle-panel="info" aria-expanded="false">
+                            <span>Event Info</span>
+                            <span class="accordion-symbol">+</span>
+                        </button>
+                        <div class="accordion-content">
+                            <p class="info-copy" id="info-copy"></p>
+                        </div>
+                    </section>
+                </div>
+                <a class="cta-button" href="#distance=sprint&panel=distances">Enter Now</a>
+            </aside>
+
+            <div class="hero-copy">
+                <div class="copy-panel">
+                    <span class="copy-eyebrow">Route mockup</span>
+                    <h1 id="hero-title">1,000 cm pub sprint</h1>
+                    <p id="hero-description"></p>
+                    <div class="detail-grid">
+                        <div class="detail">
+                            <span>Start</span>
+                            <strong id="hero-start">Kingsley's Chicken</strong>
+                        </div>
+                        <div class="detail">
+                            <span>Finish</span>
+                            <strong id="hero-finish">Casey Jones Pub</strong>
+                        </div>
+                        <div class="detail">
+                            <span>Distance</span>
+                            <strong id="hero-distance">1,000 cm</strong>
+                        </div>
+                        <div class="detail">
+                            <span>Main event</span>
+                            <strong id="hero-time">4PM Sunday</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="summary" aria-label="Highlights">
+            <article class="summary-card">
+                <h2>From Kingsley's To Casey</h2>
+                <p>A deliberately overbranded parody landing page for the shortest serious race on the calendar: a straight shot from Kingsley's Chicken to Casey Jones Pub.</p>
+            </article>
+            <article class="summary-card">
+                <h2>4PM Sunday Start</h2>
+                <p>The main event is scheduled for 4PM Sunday, which feels late enough to be athletic and early enough to still make the pub.</p>
+            </article>
+            <article class="summary-card">
+                <h2>10m In Centimetres</h2>
+                <p>The headline route is set to 1,000 cm, because converting 10 m into centimetres is objectively the right amount of unnecessary specificity.</p>
+            </article>
+            <article class="summary-card">
+                <h2>Hash-Powered State</h2>
+                <p>The selected route and open accordion panel live in the URL fragment, so the mockup stays shareable without cookies, localStorage, or backend state.</p>
+            </article>
+        </section>
+
+        <section class="explanation">
+            <div class="explanation-card">
+                <h2>What This Page Does</h2>
+                <p>This standalone SPA mocks the marathon-event page from the supplied screenshot, but rebrands it as the Casey Jones Marathon. The default course runs from Kingsley's Chicken to Casey Jones Pub, displays the 10 metre route as 1,000 centimetres, and calls out the main event start time of 4PM Sunday.</p>
+                <div class="explanation-grid">
+                    <div>
+                        <h3>How It Works</h3>
+                        <p>The page renders a poster-style event card, an accordion menu, and a cinematic hero panel that echoes the original composition without needing a build step or external framework. Selecting a route updates the main copy and the URL hash, while social metadata in the head gives WhatsApp and other apps something useful to preview.</p>
+                    </div>
+                    <div>
+                        <h3>State Model</h3>
+                        <p>The hash stores two values: the current distance option and the open accordion panel. That keeps the mockup linkable and lets the browser restore the selected view on refresh.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer class="floating-footer">
+        <span>Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot · v1.1</span>
+    </footer>
+
+    <script>
+        const raceOptions = {
+            sprint: {
+                label: "Kingsley's to Casey Jones 1000 cm",
+                heroTitle: "1,000 cm pub sprint",
+                description: "A mock finish-line dash from Kingsley's Chicken to Casey Jones Pub, calibrated for people who want the full marathon-site drama with roughly ten metres of actual commitment.",
+                start: "Kingsley's Chicken",
+                finish: "Casey Jones Pub",
+                distance: "1,000 cm",
+                note: "Default feature route. The requested 10 m has been converted to 1,000 cm. Main event starts 4PM Sunday."
+            },
+            pint: {
+                label: "Casey Jones Pint Loop",
+                heroTitle: "Foam to finish ribbon",
+                description: "A leisurely lap around the pub precinct for runners whose warm-up and recovery beverage are suspiciously identical.",
+                start: "Casey Jones Pub",
+                finish: "Casey Jones Pub",
+                distance: "4,200 cm",
+                note: "Good for spectators, social runners, and people carrying chips before the 4PM Sunday headline start."
+            },
+            tenders: {
+                label: "Kingsley's Tenders Relay",
+                heroTitle: "Relay for the snack table",
+                description: "A baton-style gimmick race that starts at the chicken counter and ends wherever the last box of chips disappears.",
+                start: "Kingsley's Chicken",
+                finish: "Snack barrier",
+                distance: "9,500 cm",
+                note: "Strictly competitive until the first person opens the dipping sauce. Wraps before the 4PM Sunday main event."
+            }
+        };
+
+        const infoCopy = "Rebranded mock event hub for Casey Jones Marathon. The main event starts at 4PM Sunday. Use the distance list to change the featured route. The page keeps the selected route and open panel in the URL hash so the state survives reloads and shares cleanly.";
+
+        const distanceList = document.getElementById("distance-list");
+        const distanceNote = document.getElementById("distance-note");
+        const infoCopyNode = document.getElementById("info-copy");
+        const heroTitle = document.getElementById("hero-title");
+        const heroDescription = document.getElementById("hero-description");
+        const heroStart = document.getElementById("hero-start");
+        const heroFinish = document.getElementById("hero-finish");
+        const heroDistance = document.getElementById("hero-distance");
+        const heroTime = document.getElementById("hero-time");
+        const panelButtons = [...document.querySelectorAll("[data-toggle-panel]")];
+        const accordionBlocks = [...document.querySelectorAll(".accordion-block")];
+
+        infoCopyNode.textContent = infoCopy;
+
+        function parseHash() {
+            const raw = window.location.hash.replace(/^#/, "");
+            const params = new URLSearchParams(raw);
+            const distance = params.get("distance") || "sprint";
+            const panel = params.get("panel") || "distances";
+            return {
+                distance: raceOptions[distance] ? distance : "sprint",
+                panel: panel === "info" ? "info" : "distances"
+            };
+        }
+
+        function writeHash(nextState) {
+            const params = new URLSearchParams();
+            params.set("distance", nextState.distance);
+            params.set("panel", nextState.panel);
+            const nextHash = params.toString();
+            if (window.location.hash.replace(/^#/, "") !== nextHash) {
+                window.location.hash = nextHash;
+            }
+        }
+
+        function renderDistances(state) {
+            distanceList.innerHTML = "";
+            Object.entries(raceOptions).forEach(([key, option]) => {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "distance-button" + (key === state.distance ? " active" : "");
+                button.textContent = option.label;
+                button.addEventListener("click", () => {
+                    writeHash({ distance: key, panel: state.panel });
+                });
+                distanceList.appendChild(button);
+            });
+        }
+
+        function renderPanels(state) {
+            accordionBlocks.forEach((block) => {
+                const isOpen = block.dataset.panel === state.panel;
+                block.classList.toggle("open", isOpen);
+                const button = block.querySelector(".accordion-header");
+                const symbol = block.querySelector(".accordion-symbol");
+                button.setAttribute("aria-expanded", isOpen ? "true" : "false");
+                symbol.textContent = isOpen ? "×" : "+";
+            });
+        }
+
+        function renderHero(state) {
+            const selected = raceOptions[state.distance];
+            heroTitle.textContent = selected.heroTitle;
+            heroDescription.textContent = selected.description;
+            heroStart.textContent = selected.start;
+            heroFinish.textContent = selected.finish;
+            heroDistance.textContent = selected.distance;
+            heroTime.textContent = "4PM Sunday";
+            distanceNote.textContent = selected.note;
+        }
+
+        function render() {
+            const state = parseHash();
+            renderDistances(state);
+            renderPanels(state);
+            renderHero(state);
+        }
+
+        panelButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                const state = parseHash();
+                const target = button.dataset.togglePanel;
+                writeHash({
+                    distance: state.distance,
+                    panel: state.panel === target ? "distances" : target
+                });
+            });
+        });
+
+        window.addEventListener("hashchange", render);
+
+        if (!window.location.hash) {
+            writeHash({ distance: "sprint", panel: "distances" });
+        } else {
+            render();
+        }
+    </script>
+</body>
+</html>
