@@ -342,6 +342,15 @@
           <small>First run downloads model files to browser cache, then reuses them.</small>
         </div>
 
+        <div class="field">
+          <label for="entityModel">Entity extraction model</label>
+          <select id="entityModel">
+            <option value="local-regex" selected>Local regex extractor (~0 MB)</option>
+            <option value="Xenova/bert-base-NER">Xenova/bert-base-NER - Small NER model (q4 ~25MB)</option>
+          </select>
+          <small>Choose local rules or browser NER model for entity extraction.</small>
+        </div>
+
         <div class="actions">
           <button id="summarizeBtn" type="button">Summarize filtered (RAG style)</button>
         </div>
@@ -353,6 +362,7 @@
         <h2>Model Output</h2>
         <p id="modelStatus" class="status-warn">Local model not loaded yet.</p>
         <p id="remoteModelStatus" class="status-warn">Remote model: Not loaded.</p>
+        <p id="entityModelStatus" class="status-warn">Entity model: Local regex extractor.</p>
         <p id="summaryStatus" class="status-warn">No summary generated yet.</p>
 
         <div class="table-wrap">
@@ -392,11 +402,11 @@
     </section>
 
     <section class="explain">
-      <strong>How this page works:</strong> Records are parsed as <code>date|group|body|to|from</code>, validated, and scored by a lightweight local model for intent and suggested routing. Filtering includes rows where the selected user appears in <code>to</code> or <code>from</code>. The page also extracts lightweight entities from each body (people names, codes, money, URLs, dates, and title-cased terms) and aggregates them for the filtered set. For summarization, it retrieves filtered body text into a compact context window (RAG retrieval step), then runs a Hugging Face model downloaded in-browser via <code>transformers.js</code>. If model load or inference fails, a local extractive fallback summary is used.
+      <strong>How this page works:</strong> Records are parsed as <code>date|group|body|to|from</code>, validated, and scored by a lightweight local model for intent and suggested routing. Filtering includes rows where the selected user appears in <code>to</code> or <code>from</code>. The page extracts entities from each body with either local regex rules or a selected browser NER model (including <code>dslim/distilbert-NER</code>) and aggregates them for the filtered set. For summarization, it retrieves filtered body text into a compact context window (RAG retrieval step), then runs a Hugging Face model downloaded in-browser via <code>transformers.js</code>. If model load or inference fails, local fallback logic is used.
     </section>
   </main>
 
-  <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot · v6</div>
+  <div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using AI · v8</div>
 
   <script>
     const allowedUsers = ["stu", "bob", "sally"];
@@ -426,6 +436,7 @@
     const summarizeBtn = document.getElementById("summarizeBtn");
     const modelStatus = document.getElementById("modelStatus");
     const remoteModelStatus = document.getElementById("remoteModelStatus");
+    const entityModelStatus = document.getElementById("entityModelStatus");
     const summaryStatus = document.getElementById("summaryStatus");
     const summaryOutput = document.getElementById("summaryOutput");
     const entityOutput = document.getElementById("entityOutput");
@@ -433,11 +444,15 @@
     const errorsEl = document.getElementById("errors");
     const stats = document.getElementById("stats");
     const hfModelInput = document.getElementById("hfModel");
+    const entityModelInput = document.getElementById("entityModel");
 
     let tinyModel = null;
     let currentFilteredRows = [];
     let browserSummarizer = null;
     let browserSummarizerModel = "";
+    let browserEntityExtractor = null;
+    let browserEntityExtractorModel = "";
+    let processGeneration = 0;
     let lastMeta = { valid: 0, errors: 0, filtered: 0 };
 
     function tokenize(text) {
@@ -579,6 +594,7 @@
       const items = [
         ["Local model", tinyModel ? "Loaded" : "Not loaded"],
         ["Remote model Loaded", browserSummarizer ? "Yes" : "No"],
+        ["Entity model Loaded", browserEntityExtractor ? "Yes" : "No"],
         ["Valid records", String(meta.valid)],
         ["Errors", String(meta.errors)],
         ["Filtered", String(meta.filtered)]
@@ -671,7 +687,56 @@
       loadModelBtn.disabled = false;
     }
 
-    function processRecords() {
+    async function getEntityExtractor(model) {
+      if (model === "local-regex") return null;
+      if (browserEntityExtractor && browserEntityExtractorModel === model) {
+        return browserEntityExtractor;
+      }
+
+      entityModelStatus.textContent = `Entity model: Loading '${model}'...`;
+      entityModelStatus.className = "status-warn";
+
+      const { pipeline, env } = await import("https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2");
+      env.allowLocalModels = false;
+
+      const initialOptions = model === "dslim/distilbert-NER" ? { quantized: false } : {};
+      try {
+        browserEntityExtractor = await pipeline("token-classification", model, initialOptions);
+      } catch (error) {
+        const message = String(error && error.message ? error.message : error);
+        if (/model_quantized\.onnx/i.test(message)) {
+          browserEntityExtractor = await pipeline("token-classification", model, { quantized: false });
+        } else {
+          throw error;
+        }
+      }
+      browserEntityExtractorModel = model;
+      entityModelStatus.textContent = `Entity model: Loaded '${model}'.`;
+      entityModelStatus.className = "status-ok";
+      renderStats(lastMeta);
+      return browserEntityExtractor;
+    }
+
+    async function enrichEntitiesWithRemote(rows, model) {
+      const extractor = await getEntityExtractor(model);
+      if (!extractor) return rows;
+
+      const enriched = [];
+      for (const row of rows) {
+        const output = await extractor(row.body, { aggregation_strategy: "simple" });
+        const nerEntities = (Array.isArray(output) ? output : [])
+          .map((item) => String(item.word || "").replace(/^##/, "").trim())
+          .filter(Boolean);
+        enriched.push({
+          ...row,
+          entities: uniqueEntities([...row.entities, ...nerEntities]).slice(0, 8)
+        });
+      }
+      return enriched;
+    }
+
+    async function processRecords() {
+      const myGeneration = ++processGeneration;
       if (!tinyModel) {
         modelStatus.textContent = "Load the local model before processing.";
         modelStatus.className = "status-warn";
@@ -718,6 +783,27 @@
       summaryOutput.textContent = "Run “Summarize filtered (RAG style)” to generate a summary.";
       summaryStatus.textContent = "Records processed. Summary not yet generated.";
       summaryStatus.className = "status-warn";
+
+      if (!processed.length) return;
+
+      const selectedEntityModel = entityModelInput.value;
+      if (selectedEntityModel === "local-regex") {
+        entityModelStatus.textContent = "Entity model: Local regex extractor.";
+        entityModelStatus.className = "status-ok";
+        return;
+      }
+
+      try {
+        const enriched = await enrichEntitiesWithRemote(processed, selectedEntityModel);
+        if (myGeneration !== processGeneration) return;
+        currentFilteredRows = enriched;
+        renderRows(enriched);
+        renderEntities(enriched);
+      } catch (error) {
+        if (myGeneration !== processGeneration) return;
+        entityModelStatus.textContent = `Entity model failed: ${error.message}`;
+        entityModelStatus.className = "status-warn";
+      }
     }
 
     function buildBodyCorpus(rows) {
@@ -872,10 +958,11 @@
     function initDefaults() {
       recordInput.value = defaultRecords;
       userFilter.value = "all";
+      entityModelInput.value = "local-regex";
     }
 
-    userFilter.addEventListener("change", () => {
-      processRecords();
+    userFilter.addEventListener("change", async () => {
+      await processRecords();
     });
     hfModelInput.addEventListener("change", () => {
       if (browserSummarizerModel !== hfModelInput.value) {
@@ -885,18 +972,30 @@
       }
     });
 
+    entityModelInput.addEventListener("change", async () => {
+      if (entityModelInput.value === "local-regex") {
+        entityModelStatus.textContent = "Entity model: Local regex extractor.";
+        entityModelStatus.className = "status-ok";
+      } else if (browserEntityExtractorModel !== entityModelInput.value) {
+        entityModelStatus.textContent = "Entity model: Not loaded for selected model.";
+        entityModelStatus.className = "status-warn";
+      }
+      renderStats(lastMeta);
+      await processRecords();
+    });
+
     loadModelBtn.addEventListener("click", async () => {
       await loadModel();
-      processRecords();
+      await processRecords();
     });
-    runBtn.addEventListener("click", processRecords);
+    runBtn.addEventListener("click", async () => { await processRecords(); });
     summarizeBtn.addEventListener("click", summarizeFilteredRecords);
 
     (async function bootstrap() {
       initDefaults();
       renderStats(lastMeta);
       await loadModel();
-      processRecords();
+      await processRecords();
     }());
   </script>
 </body>
