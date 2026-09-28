@@ -158,6 +158,7 @@
     .session-notes h2, .deck-editor h2, .explanation h2 { margin: 0; font: 500 25px Georgia, "Times New Roman", serif; }
     .session-notes p { margin: 0; color: var(--muted); line-height: 1.65; }
     .session-notes .toolbar { margin-top: 4px; }
+    .game-name-field { max-width: 560px; }
 
     details.deck-editor { margin-top: 30px; border-bottom: 1px solid var(--line); }
     details.deck-editor > summary { padding: 17px 0; color: var(--green); font-weight: 750; cursor: pointer; }
@@ -197,13 +198,39 @@
 
     @keyframes arrive { from { opacity: 0; transform: translateY(8px) rotate(-0.5deg); } to { opacity: 1; transform: translateY(0) rotate(0); } }
     @media (max-width: 720px) {
-      main { padding: 20px 18px 110px; }
-      header { margin: 38px 0 26px; }
-      .play-area { grid-template-columns: 1fr; gap: 28px; padding-top: 22px; }
-      .card { width: min(100%, 330px); }
+      main { padding: max(16px, env(safe-area-inset-top)) 16px 28px; }
+      .topline { align-items: flex-start; }
+      .topline > .eyebrow { max-width: 118px; text-align: right; }
+      header { margin: 30px 0 22px; }
+      h1 { font-size: 42px; line-height: 1.02; overflow-wrap: anywhere; }
+      .intro { font-size: 15px; }
+      .play-area { grid-template-columns: minmax(0, 1fr); gap: 22px; padding: 20px 0 24px; }
+      .card-stage { gap: 14px; }
+      .card { width: min(100%, 360px); aspect-ratio: 0.82; padding: 32px; }
+      .card::before { top: 15px; left: 15px; }
+      .card::after { right: 15px; bottom: 15px; }
+      .card::before, .card::after { width: 38px; height: 38px; }
+      .prompt { font-size: 27px; }
       .session-notes { text-align: center; align-items: center; }
+      .session-notes { gap: 14px; }
       .session-notes p { max-width: 440px; }
-      .footer { left: 10px; right: 10px; bottom: 9px; max-width: unset; text-align: center; }
+      .toolbar { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+      .toolbar button { width: 100%; min-height: 48px; padding: 10px 8px; }
+      .toolbar button.primary, .toolbar button#next-button { grid-column: 1 / -1; }
+      .deck-tools { display: grid; grid-template-columns: minmax(0, 1fr); }
+      .deck-tools button, .editor-actions button { width: 100%; min-height: 48px; }
+      .editor-actions { display: grid; grid-template-columns: 1fr; }
+      input, textarea { font-size: 16px; }
+      textarea { min-height: 220px; }
+      .explanation { padding: 22px 0 12px; }
+      .footer { position: static; max-width: none; margin: 0 16px max(12px, env(safe-area-inset-bottom)); text-align: center; }
+    }
+
+    @media (max-width: 360px) {
+      main { padding-right: 12px; padding-left: 12px; }
+      h1 { font-size: 36px; }
+      .card { padding: 26px; }
+      .prompt { font-size: 24px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -220,7 +247,7 @@
 
     <header>
       <p class="eyebrow">Open Table · Conversation cards</p>
-      <h1>Make room<br>for a real answer.</h1>
+      <h1 id="game-title">Make room for a real answer.</h1>
       <p class="intro">Take turns drawing a prompt. There are no right answers, no points, and no need to rush the conversation.</p>
     </header>
 
@@ -255,6 +282,11 @@
     <details class="deck-editor" id="deck-editor">
       <summary>Deck settings · <span id="deck-count">0</span> cards</summary>
       <div class="editor-content">
+        <div class="field game-name-field">
+          <label for="game-name-input">Game name</label>
+          <input id="game-name-input" type="text" maxlength="80" placeholder="Name this card game" autocomplete="off">
+          <p class="hint">The name appears at the top of the game and is included in its share link.</p>
+        </div>
         <div class="field">
           <label for="gist-url">Load a public GitHub Gist</label>
           <div class="deck-tools">
@@ -282,7 +314,7 @@
     </section>
   </main>
 
-  <footer class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot · v1.2</footer>
+  <footer class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot · v1.3</footer>
 
   <script>
     const sampleCards = [
@@ -320,6 +352,8 @@
       remaining: document.querySelector("#remaining"),
       drawn: document.querySelector("#drawn"),
       deckCount: document.querySelector("#deck-count"),
+      gameTitle: document.querySelector("#game-title"),
+      gameNameInput: document.querySelector("#game-name-input"),
       deckText: document.querySelector("#deck-text"),
       gistUrl: document.querySelector("#gist-url"),
       status: document.querySelector("#editor-status"),
@@ -334,6 +368,7 @@
     let drawnCount = 0;
     let revealed = false;
     let gistSource = "";
+    let gameName = "Make room for a real answer.";
 
     function shuffledIndices(length) {
       const order = Array.from({ length }, (_, index) => index);
@@ -354,7 +389,8 @@
         cards: parsedCards.length ? parsedCards : sampleCards.slice(),
         index: Math.max(0, Number.parseInt(params.get("drawn") || "0", 10) || 0),
         order: (params.get("order") || "").split(",").map(Number),
-        gist: params.get("gist") || ""
+        gist: params.get("gist") || "",
+        name: params.get("name") || "Make room for a real answer."
       };
     }
 
@@ -377,6 +413,7 @@
       params.set("cards", cards.join("\n"));
       params.set("drawn", String(drawnCount));
       params.set("order", drawOrder.join(","));
+      params.set("name", gameName);
       if (gistSource) params.set("gist", gistSource);
       const query = params.toString();
       const stream = new Blob([query]).stream().pipeThrough(new CompressionStream("gzip"));
@@ -401,6 +438,8 @@
       elements.remaining.textContent = String(Math.max(0, cards.length - drawnCount));
       elements.drawn.textContent = String(drawnCount);
       elements.deckCount.textContent = String(cards.length);
+      elements.gameTitle.textContent = gameName;
+      document.title = `${gameName} · Conversation Cards`;
       elements.drawButton.hidden = drawnCount > 0;
       elements.nextButton.hidden = drawnCount === 0 || drawnCount >= cards.length;
       elements.drawButton.disabled = cards.length === 0;
@@ -478,6 +517,12 @@
     document.querySelector("#reset-button").addEventListener("click", () => restart());
     document.querySelector("#load-gist-button").addEventListener("click", loadGist);
     elements.gistUrl.addEventListener("keydown", (event) => { if (event.key === "Enter") loadGist(); });
+    elements.gameNameInput.addEventListener("input", () => {
+      gameName = elements.gameNameInput.value.trim() || "Make room for a real answer.";
+      elements.gameTitle.textContent = gameName;
+      document.title = `${gameName} · Conversation Cards`;
+      syncHash();
+    });
 
     document.querySelector("#save-deck-button").addEventListener("click", () => {
       const nextCards = elements.deckText.value.split(/\r?\n/).map((card) => card.trim()).filter(Boolean);
@@ -511,11 +556,13 @@
       cards = initialState.cards;
       drawnCount = Math.min(initialState.index, cards.length);
       gistSource = initialState.gist;
+      gameName = initialState.name;
       const storedOrder = initialState.order;
       const validOrder = storedOrder.length === cards.length && new Set(storedOrder).size === cards.length && storedOrder.every((index) => Number.isInteger(index) && index >= 0 && index < cards.length);
       drawOrder = validOrder ? storedOrder : shuffledIndices(cards.length);
       revealed = drawnCount > 0;
       elements.gistUrl.value = gistSource;
+      elements.gameNameInput.value = gameName;
       render();
       if (!location.hash.startsWith("#z=")) syncHash();
     }
