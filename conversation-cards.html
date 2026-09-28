@@ -78,6 +78,8 @@
     }
 
     .card-stage { display: grid; justify-items: center; gap: 18px; }
+    .card[role="button"] { cursor: pointer; }
+    .card[aria-disabled="true"] { cursor: default; }
 
     .card {
       display: grid;
@@ -164,6 +166,23 @@
     details.deck-editor > summary { padding: 17px 0; color: var(--green); font-weight: 750; cursor: pointer; }
     .editor-content { display: grid; gap: 16px; padding: 2px 0 24px; }
     .field { display: grid; gap: 7px; }
+    .gist-import { display: grid; justify-items: start; gap: 6px; }
+    .gist-import button { min-height: 34px; padding: 5px 0; border: 0; color: var(--muted); font-size: 13px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+    .gist-import button:hover:not(:disabled) { background: transparent; color: var(--green); }
+    .gist-dialog {
+      width: min(480px, calc(100% - 32px));
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--paper);
+      color: var(--ink);
+      box-shadow: 0 24px 70px rgba(32, 36, 31, 0.24);
+    }
+    .gist-dialog::backdrop { background: rgba(24, 32, 27, 0.5); }
+    .gist-dialog form { display: grid; gap: 16px; }
+    .gist-dialog h2 { margin: 0; font: 500 25px Georgia, "Times New Roman", serif; }
+    .gist-dialog p { margin: 0; }
+    .gist-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
     label { font-size: 13px; font-weight: 750; }
     input, textarea {
       width: 100%;
@@ -217,9 +236,11 @@
       .toolbar { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
       .toolbar button { width: 100%; min-height: 48px; padding: 10px 8px; }
       .toolbar button.primary, .toolbar button#next-button { grid-column: 1 / -1; }
-      .deck-tools { display: grid; grid-template-columns: minmax(0, 1fr); }
-      .deck-tools button, .editor-actions button { width: 100%; min-height: 48px; }
+      .editor-actions button { width: 100%; min-height: 48px; }
       .editor-actions { display: grid; grid-template-columns: 1fr; }
+      .gist-dialog { padding: 20px; }
+      .gist-dialog-actions { display: grid; grid-template-columns: 1fr 1fr; }
+      .gist-dialog-actions button { min-height: 48px; }
       input, textarea { font-size: 16px; }
       textarea { min-height: 220px; }
       .explanation { padding: 22px 0 12px; }
@@ -253,7 +274,7 @@
 
     <section class="play-area" aria-label="Conversation card table">
       <div class="card-stage">
-        <div id="card" class="card card-back" role="status" aria-live="polite" aria-label="Face-down conversation card">
+        <div id="card" class="card card-back" role="button" tabindex="0" aria-live="polite" aria-label="Tap to reveal the next conversation card">
           <div class="card-inner">
             <span class="card-mark" aria-hidden="true">✳</span>
             <span id="card-label" class="card-label">Your next question</span>
@@ -288,14 +309,6 @@
           <p class="hint">The name appears at the top of the game and is included in its share link.</p>
         </div>
         <div class="field">
-          <label for="gist-url">Load a public GitHub Gist</label>
-          <div class="deck-tools">
-            <input id="gist-url" type="url" placeholder="https://gist.github.com/username/…" autocomplete="url">
-            <button id="load-gist-button" type="button">Load Gist</button>
-          </div>
-          <p class="hint">Use a Gist URL or ID containing a plain-text file, with one prompt per line. Loading requires an internet connection.</p>
-        </div>
-        <div class="field">
           <label for="deck-text">Your cards, one per line</label>
           <textarea id="deck-text" spellcheck="true" aria-describedby="deck-hint"></textarea>
           <p id="deck-hint" class="hint">Saving places the full deck in this page’s URL fragment, so you can share the link.</p>
@@ -304,17 +317,37 @@
           <button id="save-deck-button" class="primary" type="button">Use this deck</button>
           <button id="copy-link-button" type="button">Copy share link</button>
         </div>
+        <div class="gist-import">
+          <button id="load-gist-button" type="button">Import cards from a GitHub Gist…</button>
+          <p class="hint">The public Gist should contain a plain-text file with one card per line.</p>
+        </div>
         <p id="editor-status" class="status" role="status" aria-live="polite"></p>
       </div>
     </details>
 
+    <dialog class="gist-dialog" id="gist-dialog" aria-labelledby="gist-dialog-title">
+      <form id="gist-form">
+        <h2 id="gist-dialog-title">Import a card deck</h2>
+        <p class="hint">Enter the URL or ID of a public GitHub Gist with one card per line.</p>
+        <div class="field">
+          <label for="gist-url">GitHub Gist URL or ID</label>
+          <input id="gist-url" type="text" inputmode="url" placeholder="https://gist.github.com/username/…" autocomplete="url" required>
+        </div>
+        <p id="gist-status" class="status" role="status" aria-live="polite"></p>
+        <div class="gist-dialog-actions">
+          <button id="cancel-gist-button" type="button">Cancel</button>
+          <button id="submit-gist-button" class="primary" type="submit">Import cards</button>
+        </div>
+      </form>
+    </dialog>
+
     <section class="explanation">
       <h2>How it works</h2>
-      <p>Cards are drawn without repeats until the deck is restarted or shuffled. Your deck, draw position, and optional Gist source are stored as a gzip-compressed, Base64URL-encoded query string in the URL fragment rather than browser storage. Edit the sample prompts above or load your own plain-text list from a public GitHub Gist.</p>
+      <p>Cards are drawn without repeats until the deck is restarted or shuffled. Your deck, draw position, and optional Gist source are stored as a gzip-compressed, Base64URL-encoded query string in the URL fragment rather than browser storage. Open a Gist by ID with <code>?gist=GIST_ID</code>, by URL with <code>?gist=https://gist.github.com/username/GIST_ID</code>, or find one by name with <code>?gist=username/gist-name</code>.</p>
     </section>
   </main>
 
-  <footer class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot · v1.3</footer>
+  <footer class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot · v1.6</footer>
 
   <script>
     const sampleCards = [
@@ -430,7 +463,8 @@
     function render() {
       const currentCard = drawnCount > 0 ? cards[drawOrder[drawnCount - 1]] : null;
       elements.card.classList.toggle("card-back", !revealed);
-      elements.card.setAttribute("aria-label", revealed ? `Card ${drawnCount}: ${currentCard || ""}` : "Face-down conversation card");
+      elements.card.setAttribute("aria-label", revealed ? `Card ${drawnCount}: ${currentCard || ""}. Tap for the next card.` : "Tap to reveal the next conversation card");
+      elements.card.setAttribute("aria-disabled", String(drawnCount >= cards.length));
       elements.cardLabel.textContent = revealed ? "Take your time" : "Your next question";
       elements.prompt.hidden = !revealed;
       elements.prompt.textContent = revealed ? currentCard : "";
@@ -475,48 +509,104 @@
       return match ? match[1] : (/^[a-f0-9]{20,}$/i.test(trimmed) ? trimmed : "");
     }
 
-    async function loadGist() {
-      const value = elements.gistUrl.value.trim();
-      const gistId = gistIdFromInput(value);
-      elements.status.textContent = "";
-      if (!gistId) {
-        elements.status.textContent = "Enter a public GitHub Gist URL or Gist ID.";
-        return;
+    function gistRequestFromUrl() {
+      const params = new URLSearchParams(location.search);
+      const gistValue = params.get("gist") || "";
+      let owner = params.get("gistUser") || params.get("username") || params.get("user") || "";
+      let name = params.get("gistName") || "";
+
+      if (/^https?:\/\/gist\.github\.com\//i.test(gistValue)) {
+        const gistId = gistIdFromInput(gistValue);
+        const pathParts = new URL(gistValue).pathname.split("/").filter(Boolean);
+        if (gistId) return { gistId, owner: pathParts.length >= 2 ? pathParts[0] : "" };
+      } else if (!owner && gistValue.includes("/")) {
+        [owner, name] = gistValue.split("/").filter(Boolean);
+      } else if (owner && !name) {
+        name = gistValue;
       }
 
-      const button = document.querySelector("#load-gist-button");
-      button.disabled = true;
-      button.textContent = "Loading…";
+      const gistId = gistIdFromInput(gistValue) || gistIdFromInput(name);
+      if (gistId) return { gistId, owner };
+      return owner && name ? { owner, name } : null;
+    }
+
+    async function resolveGist(owner, name) {
+      const response = await fetch(`https://api.github.com/users/${encodeURIComponent(owner)}/gists?per_page=100`, {
+        headers: { Accept: "application/vnd.github+json" }
+      });
+      if (!response.ok) throw new Error(response.status === 404 ? `GitHub user "${owner}" was not found.` : `GitHub returned ${response.status} while looking up Gists.`);
+      const gists = await response.json();
+      const normalizedName = name.toLowerCase();
+      const gist = gists.find((item) => item.id.toLowerCase() === normalizedName)
+        || gists.find((item) => (item.description || "").toLowerCase() === normalizedName)
+        || gists.find((item) => Object.keys(item.files || {}).some((filename) => filename.toLowerCase() === normalizedName));
+      if (!gist) throw new Error(`No public Gist named "${name}" was found for ${owner}.`);
+      return gist;
+    }
+
+    async function loadGist(value, options = {}) {
+      value = value.trim();
+      const gistId = options.gistId || gistIdFromInput(value);
+      const gistStatus = options.statusElement || document.querySelector("#gist-status");
+      gistStatus.textContent = "";
+      if (!gistId) {
+        gistStatus.textContent = "Enter a public GitHub Gist URL or Gist ID.";
+        return false;
+      }
+
       try {
         const response = await fetch(`https://api.github.com/gists/${encodeURIComponent(gistId)}`, {
           headers: { Accept: "application/vnd.github+json" }
         });
         if (!response.ok) throw new Error(response.status === 404 ? "Gist not found or not public." : `GitHub returned ${response.status}.`);
         const gist = await response.json();
+        if (options.owner && gist.owner?.login?.toLowerCase() !== options.owner.toLowerCase()) {
+          throw new Error(`That Gist does not belong to ${options.owner}.`);
+        }
         const files = Object.values(gist.files || {});
-        const textFile = files.find((file) => /^(text\/|[^/]+\.(txt|md|csv)$)/i.test(`${file.type || ""} ${file.filename || ""}`)) || files[0];
+        const preferredFile = options.preferredFile && gist.files?.[options.preferredFile];
+        const textFile = preferredFile || files.find((file) => /^(text\/|[^/]+\.(txt|md|csv)$)/i.test(`${file.type || ""} ${file.filename || ""}`)) || files[0];
         const gistCards = (textFile?.content || "").split(/\r?\n/).map((card) => card.trim()).filter(Boolean);
         if (!gistCards.length) throw new Error("This Gist has no readable text cards.");
         cards = gistCards;
-        gistSource = value;
-        elements.gistUrl.value = value;
+        gistSource = options.source || value;
         restart();
         elements.status.textContent = `Loaded ${cards.length} cards from the Gist.`;
+        return true;
       } catch (error) {
-        elements.status.textContent = error.message || "Could not load that Gist.";
-      } finally {
-        button.disabled = false;
-        button.textContent = "Load Gist";
+        gistStatus.textContent = error.message || "Could not load that Gist.";
+        return false;
       }
     }
 
     elements.drawButton.addEventListener("click", beginDraw);
     elements.nextButton.addEventListener("click", beginDraw);
-    elements.card.addEventListener("click", () => { if (drawnCount > 0) elements.nextButton.click(); });
+    elements.card.addEventListener("click", () => { if (drawnCount < cards.length) beginDraw(); });
+    elements.card.addEventListener("keydown", (event) => {
+      if ((event.key === "Enter" || event.key === " ") && drawnCount < cards.length) {
+        event.preventDefault();
+        beginDraw();
+      }
+    });
     document.querySelector("#shuffle-button").addEventListener("click", () => restart(true));
     document.querySelector("#reset-button").addEventListener("click", () => restart());
-    document.querySelector("#load-gist-button").addEventListener("click", loadGist);
-    elements.gistUrl.addEventListener("keydown", (event) => { if (event.key === "Enter") loadGist(); });
+    document.querySelector("#load-gist-button").addEventListener("click", () => {
+      document.querySelector("#gist-status").textContent = "";
+      elements.gistUrl.value = "";
+      document.querySelector("#gist-dialog").showModal();
+      elements.gistUrl.focus();
+    });
+    document.querySelector("#cancel-gist-button").addEventListener("click", () => document.querySelector("#gist-dialog").close());
+    document.querySelector("#gist-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const submitButton = document.querySelector("#submit-gist-button");
+      submitButton.disabled = true;
+      submitButton.textContent = "Importing…";
+      const loaded = await loadGist(elements.gistUrl.value);
+      submitButton.disabled = false;
+      submitButton.textContent = "Import cards";
+      if (loaded) document.querySelector("#gist-dialog").close();
+    });
     elements.gameNameInput.addEventListener("input", () => {
       gameName = elements.gameNameInput.value.trim() || "Make room for a real answer.";
       elements.gameTitle.textContent = gameName;
@@ -532,7 +622,6 @@
       }
       cards = nextCards;
       gistSource = "";
-      elements.gistUrl.value = "";
       restart();
       elements.status.textContent = `${cards.length} cards saved in the URL.`;
     });
@@ -561,10 +650,39 @@
       const validOrder = storedOrder.length === cards.length && new Set(storedOrder).size === cards.length && storedOrder.every((index) => Number.isInteger(index) && index >= 0 && index < cards.length);
       drawOrder = validOrder ? storedOrder : shuffledIndices(cards.length);
       revealed = drawnCount > 0;
-      elements.gistUrl.value = gistSource;
       elements.gameNameInput.value = gameName;
       render();
       if (!location.hash.startsWith("#z=")) syncHash();
+
+      const gistRequest = gistRequestFromUrl();
+      if (gistRequest) {
+        const status = elements.status;
+        status.textContent = gistRequest.owner ? `Loading a Gist for ${gistRequest.owner}…` : "Loading Gist…";
+        try {
+          if (gistRequest.gistId) {
+            const loaded = await loadGist(gistRequest.gistId, {
+              gistId: gistRequest.gistId,
+              owner: gistRequest.owner,
+              source: gistRequest.gistId,
+              statusElement: status
+            });
+            if (!loaded) document.querySelector("#deck-editor").open = true;
+            return;
+          }
+          const gist = await resolveGist(gistRequest.owner, gistRequest.name);
+          const filename = Object.keys(gist.files || {}).find((file) => file.toLowerCase() === gistRequest.name.toLowerCase());
+          await loadGist(gistRequest.name, {
+            gistId: gist.id,
+            owner: gistRequest.owner,
+            preferredFile: filename,
+            source: `${gistRequest.owner}/${gistRequest.name}`,
+            statusElement: status
+          });
+        } catch (error) {
+          status.textContent = error.message || "Could not load that Gist.";
+          document.querySelector("#deck-editor").open = true;
+        }
+      }
     }
 
     initialize();
