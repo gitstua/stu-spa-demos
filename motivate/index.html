@@ -298,7 +298,7 @@
             font-size: 0.9rem;
         }
 
-        /* Full-viewport overlay for the money bag, beer, steak and whiskey rain. */
+        /* Full-viewport overlay for the money bag, beer, steak, whiskey, ramen and rare broccoli rain. */
         #effects {
             position: fixed;
             top: 0;
@@ -420,15 +420,20 @@
 
         <section class="card explainer" aria-labelledby="about-heading">
             <h2 id="about-heading">A little about this page</h2>
-            <p>Little Earners turns time and a chosen hourly reward into a live pocket-money counter. The timer starts automatically when the page opens; pause or begin again whenever you like. Your reward rate and timer are stored in the URL fragment, so you can bookmark or share this exact setup without an account. Money bags, beer, steak and whiskey rain down to cheer you on — most often in the first minute — tap or click any of them to pop it and score a point (your pop count for each treat is saved in the URL too), and the Celebrations button switches them off.</p>
+            <p>Little Earners turns time and a chosen hourly reward into a live pocket-money counter. The timer starts automatically when the page opens; pause or begin again whenever you like. Your reward rate and timer are stored in the URL fragment, so you can bookmark or share this exact setup without an account. Money bags, beer, steak, whiskey and ramen (plus the occasional rare broccoli) rain down to cheer you on — most often in the first minute — tap or click any of them to pop it and score a point (your pop count for each treat is saved in the URL too), and the Celebrations button switches them off.</p>
         </section>
     </main>
 
-    <footer>Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot · v1.20</footer>
+    <footer>Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot · v1.21</footer>
 
     <script>
-        // Everything that rains down; also the order pop counts are saved in the URL.
-        const TREATS = ["💰", "🍺", "🥩", "🥃"];
+        // Everything that rains down; also the order pop counts are saved in the URL
+        // (new treats go on the end so older links keep their scores).
+        const TREATS = ["💰", "🍺", "🥩", "🥃", "🍜", "🥦"];
+        // Broccoli is a rare surprise: roughly 1 drop in 40.
+        const RARE_TREAT = "🥦";
+        const RARE_CHANCE = 0.025;
+        const COMMON_TREATS = TREATS.filter((treat) => treat !== RARE_TREAT);
         const defaults = { rate: 1000, elapsed: 0, startedAt: null, fx: true };
         const elements = {
             amount: document.getElementById("amt"),
@@ -627,7 +632,9 @@
             for (let i = 0; i < total; i++) {
                 const drop = document.createElement("span");
                 drop.className = "drop";
-                drop.textContent = choices[Math.floor(Math.random() * choices.length)];
+                drop.textContent = Math.random() < RARE_CHANCE
+                    ? RARE_TREAT
+                    : choices[Math.floor(Math.random() * choices.length)];
                 const size = (minSize + Math.random() * (maxSize - minSize)) * (0.7 + scale * 0.3);
                 drop.style.fontSize = `${size}rem`;
                 effects.append(drop);
@@ -687,7 +694,7 @@
         }
 
         function showTreatRain() {
-            rain(TREATS, 20, 2.4, 4.2);
+            rain(COMMON_TREATS, 20, 2.4, 4.2);
         }
 
         function celebrationsActive() {
