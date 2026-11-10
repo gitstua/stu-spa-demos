@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101629">
+    <title>Little Earners — a little motivation</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #101629;
+            --panel: rgba(27, 37, 61, 0.88);
+            --panel-border: rgba(184, 197, 230, 0.15);
+            --text: #f5f6ff;
+            --muted: #aab4ce;
+            --gold: #ffd166;
+            --coral: #ff8e72;
+            --mint: #78e6c1;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 28px 20px 112px;
+            display: flex;
+            justify-content: center;
+            font-family: "Inter", "Segoe UI", Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(ellipse at 12% 10%, rgba(120, 230, 193, 0.12), transparent 34rem),
+                radial-gradient(ellipse at 90% 25%, rgba(255, 142, 114, 0.12), transparent 32rem),
+                var(--bg);
+        }
+
+        a {
+            color: inherit;
+        }
+
+        main {
+            width: min(680px, 100%);
+            display: grid;
+            align-content: start;
+            gap: 20px;
+        }
+
+        .back-home {
+            width: fit-content;
+            color: var(--mint);
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .back-home:hover,
+        .back-home:focus-visible {
+            text-decoration: underline;
+        }
+
+        header {
+            text-align: center;
+            padding: 10px 0 2px;
+        }
+
+        .eyebrow {
+            margin: 0 0 8px;
+            color: var(--gold);
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2.2rem, 8vw, 3.5rem);
+            letter-spacing: -0.055em;
+        }
+
+        header p {
+            margin: 10px auto 0;
+            max-width: 470px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .card {
+            padding: clamp(22px, 6vw, 36px);
+            border: 1px solid var(--panel-border);
+            border-radius: 28px;
+            background: var(--panel);
+            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
+            backdrop-filter: blur(12px);
+        }
+
+        .earnings-card {
+            text-align: center;
+        }
+
+        .amount-label {
+            margin: 0;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        #amt {
+            margin: 8px 0 4px;
+            color: var(--gold);
+            font-size: clamp(3.3rem, 15vw, 6rem);
+            font-variant-numeric: tabular-nums;
+            font-weight: 850;
+            letter-spacing: -0.07em;
+            line-height: 1.08;
+        }
+
+        #celebration {
+            min-height: 26px;
+            margin: 0;
+            color: var(--mint);
+            font-weight: 700;
+        }
+
+        .progress-wrap {
+            margin: 24px 0 18px;
+            text-align: left;
+        }
+
+        .progress-copy {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 9px;
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .progress-copy strong {
+            color: var(--text);
+        }
+
+        .progress-track {
+            height: 12px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.09);
+        }
+
+        #progress {
+            width: 0;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--mint), var(--gold));
+            transition: width 350ms ease;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin: 22px 0;
+        }
+
+        .stat {
+            padding: 14px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.055);
+        }
+
+        .stat-label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        .stat strong {
+            font-size: 1.05rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        button {
+            min-height: 46px;
+            padding: 0 20px;
+            border: 1px solid transparent;
+            border-radius: 14px;
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 140ms ease, filter 140ms ease, background 140ms ease;
+        }
+
+        button:hover {
+            filter: brightness(1.08);
+            transform: translateY(-1px);
+        }
+
+        button:focus-visible,
+        input:focus-visible {
+            outline: 3px solid var(--mint);
+            outline-offset: 3px;
+        }
+
+        .primary {
+            min-width: 150px;
+            color: #242032;
+            background: var(--gold);
+        }
+
+        .secondary {
+            color: var(--text);
+            border-color: var(--panel-border);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .settings-card {
+            display: grid;
+            gap: 18px;
+        }
+
+        .settings-card h2,
+        .explainer h2 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .settings-card > p,
+        .explainer p {
+            margin: -10px 0 0;
+            color: var(--muted);
+            font-size: 0.92rem;
+            line-height: 1.6;
+        }
+
+        .settings {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        label {
+            display: grid;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 0.87rem;
+            font-weight: 650;
+        }
+
+        input {
+            width: 100%;
+            min-height: 46px;
+            padding: 0 13px;
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            color: var(--text);
+            background: rgba(8, 13, 27, 0.5);
+            font: inherit;
+        }
+
+        .settings button {
+            align-self: end;
+        }
+
+        .explainer {
+            display: grid;
+            gap: 14px;
+        }
+
+        .explainer p {
+            margin: 0;
+        }
+
+        .notice {
+            min-height: 1.3em;
+            margin: 0;
+            color: var(--coral);
+            font-size: 0.9rem;
+        }
+
+        /* Full-viewport overlay for the coin and beer rain. */
+        #effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        #effects {
+            z-index: 1000;
+        }
+
+        .drop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            line-height: 1;
+            user-select: none;
+            will-change: transform;
+        }
+
+        footer {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            padding: 13px 18px;
+            color: var(--muted);
+            background: rgba(12, 17, 31, 0.9);
+            border-top: 1px solid var(--panel-border);
+            text-align: center;
+            font-size: 0.8rem;
+            backdrop-filter: blur(12px);
+        }
+
+        footer a {
+            color: var(--gold);
+        }
+
+        @media (max-width: 480px) {
+            .settings {
+                grid-template-columns: 1fr;
+            }
+
+            .settings button {
+                width: 100%;
+            }
+
+            .progress-copy {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="effects" aria-hidden="true"></div>
+    <main>
+        <a class="back-home" href="/">← Back to home</a>
+        <header>
+            <p class="eyebrow">Little Earners</p>
+            <h1>Every little bit adds up.</h1>
+            <p>A cheerful little counter for watching pocket money grow. Set a reward, pick a goal, and let the good work count.</p>
+        </header>
+
+        <section class="card earnings-card" aria-labelledby="earnings-heading">
+            <p class="amount-label" id="earnings-heading">You’ve earned</p>
+            <p id="amt" aria-live="polite">$0.00</p>
+            <p id="celebration" aria-live="polite">Ready when you are!</p>
+
+            <div class="progress-wrap">
+                <div class="progress-copy">
+                    <span>Goal progress</span>
+                    <span><strong id="goal-progress">$0.00</strong> of <strong id="goal-amount">$20.00</strong></span>
+                </div>
+                <div class="progress-track" id="goal-track" role="progressbar" aria-label="Savings goal progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <div id="progress"></div>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <span class="stat-label">Time on the job</span>
+                    <strong id="elapsed">00:00:00</strong>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="primary" id="toggle" type="button">Start earning</button>
+                <button class="secondary" id="reset" type="button">Start over</button>
+                <button class="secondary" id="fx-toggle" type="button" aria-pressed="true">🪙 Celebrations on</button>
+            </div>
+        </section>
+
+        <section class="card settings-card" aria-labelledby="settings-heading">
+            <h2 id="settings-heading">Make it yours</h2>
+            <p>Choose an hourly reward and a goal to work towards.</p>
+            <div class="settings">
+                <label for="rate-input">Reward per hour ($)
+                    <input id="rate-input" type="number" min="0.01" max="100000" step="0.01" inputmode="decimal" value="10.00">
+                </label>
+                <label for="goal-input">Savings goal ($)
+                    <input id="goal-input" type="number" min="0.01" max="1000000" step="0.01" inputmode="decimal" value="20.00">
+                </label>
+                <button class="secondary" id="save-settings" type="button">Save settings</button>
+            </div>
+            <p class="notice" id="notice" role="status"></p>
+        </section>
+
+        <section class="card explainer" aria-labelledby="about-heading">
+            <h2 id="about-heading">A little about this page</h2>
+            <p>Little Earners turns time and a chosen hourly reward into a live pocket-money counter. Start, pause, or begin again whenever you like. Your reward rate, goal, and timer are stored in the URL fragment, so you can bookmark or share this exact setup without an account. Coins and beer rain down to cheer you on — most often in the first minute — and the Celebrations button switches them off.</p>
+        </section>
+    </main>
+
+    <footer>Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot · v1.8</footer>
+
+    <script>
+        const defaults = { rate: 1000, goal: 2000, elapsed: 0, startedAt: null, fx: true };
+        const elements = {
+            amount: document.getElementById("amt"),
+            celebration: document.getElementById("celebration"),
+            elapsed: document.getElementById("elapsed"),
+            goalAmount: document.getElementById("goal-amount"),
+            goalProgress: document.getElementById("goal-progress"),
+            goalTrack: document.getElementById("goal-track"),
+            progress: document.getElementById("progress"),
+            rateInput: document.getElementById("rate-input"),
+            goalInput: document.getElementById("goal-input"),
+            toggle: document.getElementById("toggle"),
+            notice: document.getElementById("notice")
+        };
+        const state = readState();
+        let lastWholeDollar = -1;
+        let celebrationTimeout = null;
+        const effects = document.getElementById("effects");
+
+        function readState() {
+            const params = new URLSearchParams(window.location.hash.slice(1));
+            const numberFromHash = (key, fallback, min, max) => {
+                const value = Number(params.get(key));
+                return Number.isFinite(value) && value >= min && value <= max ? value : fallback;
+            };
+            const startedAt = Number(params.get("started"));
+
+            return {
+                rate: numberFromHash("rate", defaults.rate, 1, 10000000),
+                goal: numberFromHash("goal", defaults.goal, 1, 100000000),
+                elapsed: numberFromHash("elapsed", defaults.elapsed, 0, Number.MAX_SAFE_INTEGER),
+                startedAt: Number.isSafeInteger(startedAt) && startedAt > 0 ? startedAt : null,
+                fx: params.get("fx") !== "0"
+            };
+        }
+
+        function elapsedMilliseconds() {
+            return state.elapsed + (state.startedAt === null ? 0 : Date.now() - state.startedAt);
+        }
+
+        function earnedCents() {
+            return Math.round(elapsedMilliseconds() * state.rate / 3600000);
+        }
+
+        function money(cents) {
+            return (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
+        }
+
+        function formatElapsed(milliseconds) {
+            const totalSeconds = Math.floor(milliseconds / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            if (hours >= 24) {
+                const days = Math.floor(hours / 24);
+                return `${days}d ${String(hours % 24).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+            }
+            return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        }
+
+        function saveStateToHash() {
+            const params = new URLSearchParams({
+                rate: String(state.rate),
+                goal: String(state.goal),
+                elapsed: String(Math.round(state.elapsed)),
+                started: state.startedAt === null ? "" : String(state.startedAt)
+            });
+            if (!state.fx) params.set("fx", "0");
+            history.replaceState(null, "", `#${params.toString()}`);
+        }
+
+        function render() {
+            const earned = earnedCents();
+            const dollars = Math.floor(earned / 100);
+            const percent = Math.min(100, earned / state.goal * 100);
+            elements.amount.textContent = money(earned);
+            elements.elapsed.textContent = formatElapsed(elapsedMilliseconds());
+            elements.goalProgress.textContent = money(earned);
+            elements.goalAmount.textContent = money(state.goal);
+            elements.progress.style.width = `${percent}%`;
+            elements.goalTrack.setAttribute("aria-valuenow", String(Math.round(percent)));
+            elements.toggle.textContent = state.startedAt === null ? "Start earning" : "Pause";
+            elements.celebration.textContent = earned >= state.goal
+                ? "Goal reached! Look what you made happen! 🎉"
+                : dollars > 0
+                    ? `${money(state.goal - earned)} to go — you’re doing great!`
+                    : state.startedAt === null
+                        ? "Ready when you are!"
+                        : "Every second counts. Keep going!";
+
+            if (dollars > lastWholeDollar && dollars > 0) {
+                elements.celebration.textContent = `Another dollar earned! You’re on your way! 🎉`;
+            }
+            lastWholeDollar = dollars;
+            saveStateToHash();
+        }
+
+        function toggleTimer() {
+            if (state.startedAt === null) {
+                state.startedAt = Date.now();
+                startCelebrations();
+            } else {
+                state.elapsed = elapsedMilliseconds();
+                state.startedAt = null;
+                stopCelebrations();
+            }
+            elements.notice.textContent = "";
+            render();
+        }
+
+        function resetTimer() {
+            state.elapsed = 0;
+            state.startedAt = null;
+            stopCelebrations();
+            lastWholeDollar = -1;
+            elements.notice.textContent = "";
+            render();
+        }
+
+        function parseMoneyInput(input, maximum) {
+            const value = Number(input.value);
+            if (!Number.isFinite(value) || value <= 0 || value > maximum) {
+                return null;
+            }
+            return Math.round(value * 100);
+        }
+
+        function saveSettings() {
+            const rate = parseMoneyInput(elements.rateInput, 100000);
+            const goal = parseMoneyInput(elements.goalInput, 1000000);
+            if (rate === null || goal === null) {
+                elements.notice.textContent = "Enter a reward from $0.01 to $100,000 and a goal from $0.01 to $1,000,000.";
+                return;
+            }
+            state.rate = rate;
+            state.goal = goal;
+            elements.notice.textContent = "Settings saved — let’s do this!";
+            render();
+        }
+
+        const pageLoadedAt = Date.now();
+        const INTRO_MS = 20000; // celebrate on load even if the timer is paused
+
+
+        // Rain `count` drops across the whole viewport, picking each one
+        // at random from `emojis` (a single emoji or an array of them).
+        // Uses the Web Animations API with pixel values so it behaves the
+        // same in Chrome/Arc, Safari and mobile browsers.
+        function rain(emojis, count, minSize, maxSize) {
+            const choices = Array.isArray(emojis) ? emojis : [emojis];
+            if (!state.fx) return;
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            // Scale with screen size: fewer, smaller drops on a phone.
+            const scale = Math.min(1, Math.max(0.55, width / 1100));
+            const total = Math.max(6, Math.round(count * scale));
+            for (let i = 0; i < total; i++) {
+                const drop = document.createElement("span");
+                drop.className = "drop";
+                drop.textContent = choices[Math.floor(Math.random() * choices.length)];
+                const size = (minSize + Math.random() * (maxSize - minSize)) * (0.7 + scale * 0.3);
+                drop.style.fontSize = `${size}rem`;
+                effects.append(drop);
+
+                const x = Math.random() * (width - 20);
+                const drift = (Math.random() - 0.5) * 160;
+                const spin = (Math.random() - 0.5) * 720;
+                const duration = 2200 + Math.random() * 1800;
+                const delay = Math.random() * 1400;
+                const animation = drop.animate([
+                    { transform: `translate(${x}px, -120px) rotate(0deg)` },
+                    { transform: `translate(${x + drift}px, ${height + 60}px) rotate(${spin}deg)` }
+                ], { duration, delay, easing: "cubic-bezier(0.35, 0, 0.65, 1)", fill: "both" });
+                animation.onfinish = () => drop.remove();
+                animation.oncancel = () => drop.remove();
+            }
+        }
+
+        function showCoinRain() {
+            if (!state.fx) return;
+            rain(["🪙", "🪙", "💰"], 26, 1.6, 3.2);
+        }
+
+        function showBeerRain() {
+            rain("🍺", 12, 2.4, 4.2);
+        }
+
+        function celebrationsActive() {
+            return state.startedAt !== null || Date.now() - pageLoadedAt < INTRO_MS;
+        }
+
+        function scheduleCelebration() {
+            window.clearTimeout(celebrationTimeout);
+            if (!celebrationsActive()) return;
+            const sinceLoad = Date.now() - pageLoadedAt;
+            // Very frequent early on (~1.5–3s), easing to ~4–7s after a minute.
+            const ramp = Math.min(sinceLoad / 60000, 1);
+            const delay = 1500 + ramp * 2500 + Math.random() * (1500 + ramp * 1500);
+            celebrationTimeout = window.setTimeout(() => {
+                if (!celebrationsActive()) return;
+                const roll = Math.random();
+                if (roll < 0.35) {
+                    showBeerRain();
+                } else if (roll < 0.55) {
+                    showCoinRain();
+                    showBeerRain();
+                } else {
+                    showCoinRain();
+                }
+                scheduleCelebration();
+            }, delay);
+        }
+
+        function startCelebrations() {
+            showCoinRain();
+            window.setTimeout(showBeerRain, 700);
+            scheduleCelebration();
+        }
+
+        function stopCelebrations() {
+            window.clearTimeout(celebrationTimeout);
+            celebrationTimeout = null;
+        }
+
+        elements.rateInput.value = (state.rate / 100).toFixed(2);
+        elements.goalInput.value = (state.goal / 100).toFixed(2);
+        elements.toggle.addEventListener("click", toggleTimer);
+        document.getElementById("reset").addEventListener("click", resetTimer);
+        const fxToggle = document.getElementById("fx-toggle");
+        function renderFxToggle() {
+            fxToggle.textContent = state.fx ? "🪙 Celebrations on" : "Celebrations off";
+            fxToggle.setAttribute("aria-pressed", String(state.fx));
+        }
+        fxToggle.addEventListener("click", () => {
+            state.fx = !state.fx;
+            renderFxToggle();
+            if (state.fx) {
+                startCelebrations();
+            } else {
+                stopCelebrations();
+                effects.replaceChildren();
+            }
+            render();
+        });
+        renderFxToggle();
+        document.getElementById("save-settings").addEventListener("click", saveSettings);
+
+        if (state.startedAt === null && window.location.hash === "") {
+            state.startedAt = Date.now();
+        }
+        startCelebrations();
+        render();
+        window.setInterval(render, 250);
+    </script>
+</body>
+</html>
