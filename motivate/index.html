@@ -117,43 +117,36 @@
         }
 
         #celebration {
-            min-height: 26px;
+            /* Fixed height so the big praise text never shifts the layout. */
+            display: grid;
+            place-items: center;
+            min-height: 6rem;
             margin: 0;
             color: var(--mint);
             font-weight: 700;
+            perspective: 600px;
         }
 
-        .progress-wrap {
-            margin: 24px 0 18px;
-            text-align: left;
+        /* The rotating praise messages: large, glowing and springy. */
+        #celebration.praise {
+            font-size: clamp(1.6rem, 7vw, 2.6rem);
+            font-weight: 850;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            text-shadow: 0 0 18px rgba(120, 230, 193, 0.45), 0 6px 24px rgba(0, 0, 0, 0.35);
         }
 
-        .progress-copy {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 9px;
-            color: var(--muted);
-            font-size: 0.88rem;
+        /* Zooms out of the screen towards the reader, overshoots, then settles. */
+        #celebration.pop {
+            animation: pop-out 900ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
         }
 
-        .progress-copy strong {
-            color: var(--text);
-        }
-
-        .progress-track {
-            height: 12px;
-            overflow: hidden;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.09);
-        }
-
-        #progress {
-            width: 0;
-            height: 100%;
-            border-radius: inherit;
-            background: linear-gradient(90deg, var(--mint), var(--gold));
-            transition: width 350ms ease;
+        @keyframes pop-out {
+            0% { opacity: 0; transform: translateZ(-400px) scale(0.3); filter: blur(6px); }
+            45% { opacity: 1; transform: translateZ(120px) scale(1.35); filter: blur(0); }
+            65% { transform: translateZ(-30px) scale(0.92); }
+            82% { transform: translateZ(20px) scale(1.06); }
+            100% { opacity: 1; transform: translateZ(0) scale(1); }
         }
 
         .stats {
@@ -244,6 +237,7 @@
         .settings {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
+            align-items: end;
             gap: 14px;
         }
 
@@ -337,10 +331,6 @@
             .settings button {
                 width: 100%;
             }
-
-            .progress-copy {
-                font-size: 0.8rem;
-            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -349,6 +339,10 @@
             *::after {
                 scroll-behavior: auto !important;
                 transition-duration: 0.01ms !important;
+            }
+
+            #celebration.pop {
+                animation: none;
             }
         }
     </style>
@@ -360,23 +354,13 @@
         <header>
             <p class="eyebrow">Little Earners</p>
             <h1>Every little bit adds up.</h1>
-            <p>A cheerful little counter for watching pocket money grow. Set a reward, pick a goal, and let the good work count.</p>
+            <p>A cheerful little counter for watching pocket money grow. Set a reward and let the good work count.</p>
         </header>
 
         <section class="card earnings-card" aria-labelledby="earnings-heading">
             <p class="amount-label" id="earnings-heading">You’ve earned</p>
             <p id="amt" aria-live="polite">$0.00</p>
             <p id="celebration" aria-live="polite">Ready when you are!</p>
-
-            <div class="progress-wrap">
-                <div class="progress-copy">
-                    <span>Goal progress</span>
-                    <span><strong id="goal-progress">$0.00</strong> of <strong id="goal-amount">$20.00</strong></span>
-                </div>
-                <div class="progress-track" id="goal-track" role="progressbar" aria-label="Savings goal progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-                    <div id="progress"></div>
-                </div>
-            </div>
 
             <div class="stats">
                 <div class="stat">
@@ -394,13 +378,10 @@
 
         <section class="card settings-card" aria-labelledby="settings-heading">
             <h2 id="settings-heading">Make it yours</h2>
-            <p>Choose an hourly reward and a goal to work towards.</p>
+            <p>Choose an hourly reward.</p>
             <div class="settings">
                 <label for="rate-input">Reward per hour ($)
                     <input id="rate-input" type="number" min="0.01" max="100000" step="0.01" inputmode="decimal" value="10.00">
-                </label>
-                <label for="goal-input">Savings goal ($)
-                    <input id="goal-input" type="number" min="0.01" max="1000000" step="0.01" inputmode="decimal" value="20.00">
                 </label>
                 <button class="secondary" id="save-settings" type="button">Save settings</button>
             </div>
@@ -409,24 +390,19 @@
 
         <section class="card explainer" aria-labelledby="about-heading">
             <h2 id="about-heading">A little about this page</h2>
-            <p>Little Earners turns time and a chosen hourly reward into a live pocket-money counter. Start, pause, or begin again whenever you like. Your reward rate, goal, and timer are stored in the URL fragment, so you can bookmark or share this exact setup without an account. Money bags, beer, steak and whiskey rain down to cheer you on — most often in the first minute — and the Celebrations button switches them off.</p>
+            <p>Little Earners turns time and a chosen hourly reward into a live pocket-money counter. The timer starts automatically when the page opens; pause or begin again whenever you like. Your reward rate and timer are stored in the URL fragment, so you can bookmark or share this exact setup without an account. Money bags, beer, steak and whiskey rain down to cheer you on — most often in the first minute — and the Celebrations button switches them off.</p>
         </section>
     </main>
 
-    <footer>Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot · v1.13</footer>
+    <footer>Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot · v1.18</footer>
 
     <script>
-        const defaults = { rate: 1000, goal: 2000, elapsed: 0, startedAt: null, fx: true };
+        const defaults = { rate: 1000, elapsed: 0, startedAt: null, fx: true };
         const elements = {
             amount: document.getElementById("amt"),
             celebration: document.getElementById("celebration"),
             elapsed: document.getElementById("elapsed"),
-            goalAmount: document.getElementById("goal-amount"),
-            goalProgress: document.getElementById("goal-progress"),
-            goalTrack: document.getElementById("goal-track"),
-            progress: document.getElementById("progress"),
             rateInput: document.getElementById("rate-input"),
-            goalInput: document.getElementById("goal-input"),
             toggle: document.getElementById("toggle"),
             notice: document.getElementById("notice")
         };
@@ -445,7 +421,6 @@
 
             return {
                 rate: numberFromHash("rate", defaults.rate, 1, 10000000),
-                goal: numberFromHash("goal", defaults.goal, 1, 100000000),
                 elapsed: numberFromHash("elapsed", defaults.elapsed, 0, Number.MAX_SAFE_INTEGER),
                 startedAt: Number.isSafeInteger(startedAt) && startedAt > 0 ? startedAt : null,
                 fx: params.get("fx") !== "0"
@@ -479,7 +454,6 @@
         function saveStateToHash() {
             const params = new URLSearchParams({
                 rate: String(state.rate),
-                goal: String(state.goal),
                 elapsed: String(Math.round(state.elapsed)),
                 started: state.startedAt === null ? "" : String(state.startedAt)
             });
@@ -487,29 +461,65 @@
             history.replaceState(null, "", `#${params.toString()}`);
         }
 
+        // Encouragement shown once a dollar is earned, rotating every few seconds.
+        const PRAISE = [
+            "You’re doing great — keep it up!",
+            "You did a document!",
+            "Great work on that email!",
+            "Superb workshop!",
+            "That meeting? Nailed it!",
+            "Inbox zero hero!",
+            "Spreadsheet wizard!",
+            "Absolute legend!",
+            "Crushing it today!",
+            "You made that look easy!",
+            "Top-notch teamwork!",
+            "Deadline? Destroyed!",
+            "Productivity powerhouse!",
+            "Look at you go!",
+            "Slide deck superstar!",
+            "Problem solved like a pro!",
+            "The boss would be proud!",
+            "Coffee well spent! ☕",
+            "Unstoppable!"
+        ];
+        const PRAISE_MS = 6000;
+
+        let dollarMessageUntil = 0;
+
+        // Only touch the DOM when the message changes, replaying the pop each time.
+        function showMessage(text, isPraise) {
+            const el = elements.celebration;
+            el.classList.toggle("praise", isPraise);
+            if (el.textContent === text) return;
+            el.textContent = text;
+            el.classList.remove("pop");
+            if (isPraise) {
+                void el.offsetWidth; // restart the CSS animation
+                el.classList.add("pop");
+            }
+        }
+
         function render() {
             const earned = earnedCents();
             const dollars = Math.floor(earned / 100);
-            const percent = Math.min(100, earned / state.goal * 100);
             elements.amount.textContent = money(earned);
             elements.elapsed.textContent = formatElapsed(elapsedMilliseconds());
-            elements.goalProgress.textContent = money(earned);
-            elements.goalAmount.textContent = money(state.goal);
-            elements.progress.style.width = `${percent}%`;
-            elements.goalTrack.setAttribute("aria-valuenow", String(Math.round(percent)));
             elements.toggle.textContent = state.startedAt === null ? "Start earning" : "Pause";
-            elements.celebration.textContent = earned >= state.goal
-                ? "Goal reached! Look what you made happen! 🎉"
-                : dollars > 0
-                    ? `${money(state.goal - earned)} to go — you’re doing great!`
-                    : state.startedAt === null
-                        ? "Ready when you are!"
-                        : "Every second counts. Keep going!";
-
-            if (dollars > lastWholeDollar && dollars > 0) {
-                elements.celebration.textContent = `Another dollar earned! You’re on your way! 🎉`;
+            // Hold the "another dollar" message for a few seconds so it can be read.
+            if (dollars > lastWholeDollar && dollars > 0 && lastWholeDollar >= 0) {
+                dollarMessageUntil = Date.now() + 3000;
             }
             lastWholeDollar = dollars;
+            const isPraise = dollars > 0;
+            const message = !isPraise
+                ? state.startedAt === null
+                    ? "Ready when you are!"
+                    : "Every second counts. Keep going!"
+                : Date.now() < dollarMessageUntil
+                    ? "Another dollar earned! 🎉"
+                    : PRAISE[Math.floor(Date.now() / PRAISE_MS) % PRAISE.length];
+            showMessage(message, isPraise);
             saveStateToHash();
         }
 
@@ -545,13 +555,11 @@
 
         function saveSettings() {
             const rate = parseMoneyInput(elements.rateInput, 100000);
-            const goal = parseMoneyInput(elements.goalInput, 1000000);
-            if (rate === null || goal === null) {
-                elements.notice.textContent = "Enter a reward from $0.01 to $100,000 and a goal from $0.01 to $1,000,000.";
+            if (rate === null) {
+                elements.notice.textContent = "Enter a reward from $0.01 to $100,000.";
                 return;
             }
             state.rate = rate;
-            state.goal = goal;
             elements.notice.textContent = "Settings saved — let’s do this!";
             render();
         }
@@ -629,7 +637,6 @@
         }
 
         elements.rateInput.value = (state.rate / 100).toFixed(2);
-        elements.goalInput.value = (state.goal / 100).toFixed(2);
         elements.toggle.addEventListener("click", toggleTimer);
         document.getElementById("reset").addEventListener("click", resetTimer);
         const fxToggle = document.getElementById("fx-toggle");
@@ -651,7 +658,8 @@
         renderFxToggle();
         document.getElementById("save-settings").addEventListener("click", saveSettings);
 
-        if (state.startedAt === null && window.location.hash === "") {
+        // Auto-start on every load; a paused session resumes from its saved time.
+        if (state.startedAt === null) {
             state.startedAt = Date.now();
         }
         startCelebrations();
