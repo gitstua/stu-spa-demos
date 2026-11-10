@@ -286,7 +286,7 @@
             font-size: 0.9rem;
         }
 
-        /* Full-viewport overlay for the coin and beer rain. */
+        /* Full-viewport overlay for the money bag, beer, steak and whiskey rain. */
         #effects {
             position: fixed;
             top: 0;
@@ -388,7 +388,7 @@
             <div class="controls">
                 <button class="primary" id="toggle" type="button">Start earning</button>
                 <button class="secondary" id="reset" type="button">Start over</button>
-                <button class="secondary" id="fx-toggle" type="button" aria-pressed="true">🪙 Celebrations on</button>
+                <button class="secondary" id="fx-toggle" type="button" aria-pressed="true">🍺 Celebrations on</button>
             </div>
         </section>
 
@@ -409,11 +409,11 @@
 
         <section class="card explainer" aria-labelledby="about-heading">
             <h2 id="about-heading">A little about this page</h2>
-            <p>Little Earners turns time and a chosen hourly reward into a live pocket-money counter. Start, pause, or begin again whenever you like. Your reward rate, goal, and timer are stored in the URL fragment, so you can bookmark or share this exact setup without an account. Coins and beer rain down to cheer you on — most often in the first minute — and the Celebrations button switches them off.</p>
+            <p>Little Earners turns time and a chosen hourly reward into a live pocket-money counter. Start, pause, or begin again whenever you like. Your reward rate, goal, and timer are stored in the URL fragment, so you can bookmark or share this exact setup without an account. Money bags, beer, steak and whiskey rain down to cheer you on — most often in the first minute — and the Celebrations button switches them off.</p>
         </section>
     </main>
 
-    <footer>Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot · v1.10</footer>
+    <footer>Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot · v1.13</footer>
 
     <script>
         const defaults = { rate: 1000, goal: 2000, elapsed: 0, startedAt: null, fx: true };
@@ -596,13 +596,8 @@
             }
         }
 
-        function showCoinRain() {
-            if (!state.fx) return;
-            rain(["🪙", "🪙", "💰"], 26, 1.6, 3.2);
-        }
-
-        function showBeerRain() {
-            rain("🍺", 12, 2.4, 4.2);
+        function showTreatRain() {
+            rain(["💰", "🍺", "🥩", "🥃"], 20, 2.4, 4.2);
         }
 
         function celebrationsActive() {
@@ -618,22 +613,13 @@
             const delay = 1500 + ramp * 2500 + Math.random() * (1500 + ramp * 1500);
             celebrationTimeout = window.setTimeout(() => {
                 if (!celebrationsActive()) return;
-                const roll = Math.random();
-                if (roll < 0.35) {
-                    showBeerRain();
-                } else if (roll < 0.55) {
-                    showCoinRain();
-                    showBeerRain();
-                } else {
-                    showCoinRain();
-                }
+                showTreatRain();
                 scheduleCelebration();
             }, delay);
         }
 
         function startCelebrations() {
-            showCoinRain();
-            window.setTimeout(showBeerRain, 700);
+            showTreatRain();
             scheduleCelebration();
         }
 
@@ -648,7 +634,7 @@
         document.getElementById("reset").addEventListener("click", resetTimer);
         const fxToggle = document.getElementById("fx-toggle");
         function renderFxToggle() {
-            fxToggle.textContent = state.fx ? "🪙 Celebrations on" : "Celebrations off";
+            fxToggle.textContent = state.fx ? "🍺 Celebrations on" : "Celebrations off";
             fxToggle.setAttribute("aria-pressed", String(state.fx));
         }
         fxToggle.addEventListener("click", () => {
