@@ -151,7 +151,7 @@
 
         .stats {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 12px;
             margin: 22px 0;
         }
@@ -170,8 +170,26 @@
         }
 
         .stat strong {
+            display: inline-block;
             font-size: 1.05rem;
             font-variant-numeric: tabular-nums;
+        }
+
+        .score-breakdown {
+            display: block;
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 0.8rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Quick bounce on the score each time something is popped. */
+        #score.bump {
+            animation: score-bump 300ms ease-out;
+        }
+
+        @keyframes score-bump {
+            50% { transform: scale(1.4); color: var(--gold); }
         }
 
         .controls {
@@ -303,6 +321,13 @@
             line-height: 1;
             user-select: none;
             will-change: transform;
+            /* The overlay ignores taps, but each drop catches them so it can be popped. */
+            pointer-events: auto;
+            cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            /* A bigger invisible hit area makes small drops easier to tap. */
+            padding: 10px;
         }
 
         footer {
@@ -367,6 +392,11 @@
                     <span class="stat-label">Time on the job</span>
                     <strong id="elapsed">00:00:00</strong>
                 </div>
+                <div class="stat">
+                    <span class="stat-label">Treats popped</span>
+                    <strong id="score" aria-live="polite">0</strong>
+                    <span class="score-breakdown" id="score-breakdown"></span>
+                </div>
             </div>
 
             <div class="controls">
@@ -390,13 +420,15 @@
 
         <section class="card explainer" aria-labelledby="about-heading">
             <h2 id="about-heading">A little about this page</h2>
-            <p>Little Earners turns time and a chosen hourly reward into a live pocket-money counter. The timer starts automatically when the page opens; pause or begin again whenever you like. Your reward rate and timer are stored in the URL fragment, so you can bookmark or share this exact setup without an account. Money bags, beer, steak and whiskey rain down to cheer you on — most often in the first minute — and the Celebrations button switches them off.</p>
+            <p>Little Earners turns time and a chosen hourly reward into a live pocket-money counter. The timer starts automatically when the page opens; pause or begin again whenever you like. Your reward rate and timer are stored in the URL fragment, so you can bookmark or share this exact setup without an account. Money bags, beer, steak and whiskey rain down to cheer you on — most often in the first minute — tap or click any of them to pop it and score a point (your pop count for each treat is saved in the URL too), and the Celebrations button switches them off.</p>
         </section>
     </main>
 
-    <footer>Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot · v1.18</footer>
+    <footer>Made with ❤️ by Stu at <a href="https://github.com/gitstua/stu-spa-demos">github.com/gitstua/stu-spa-demos</a> using GitHub Copilot · v1.20</footer>
 
     <script>
+        // Everything that rains down; also the order pop counts are saved in the URL.
+        const TREATS = ["💰", "🍺", "🥩", "🥃"];
         const defaults = { rate: 1000, elapsed: 0, startedAt: null, fx: true };
         const elements = {
             amount: document.getElementById("amt"),
@@ -404,7 +436,9 @@
             elapsed: document.getElementById("elapsed"),
             rateInput: document.getElementById("rate-input"),
             toggle: document.getElementById("toggle"),
-            notice: document.getElementById("notice")
+            notice: document.getElementById("notice"),
+            score: document.getElementById("score"),
+            scoreBreakdown: document.getElementById("score-breakdown")
         };
         const state = readState();
         let lastWholeDollar = -1;
@@ -418,12 +452,19 @@
                 return Number.isFinite(value) && value >= min && value <= max ? value : fallback;
             };
             const startedAt = Number(params.get("started"));
+            // Pop counts are stored as "pops=3.5.0.2", one number per treat.
+            const savedPops = (params.get("pops") || "").split(".");
+            const pops = TREATS.map((_, i) => {
+                const n = Number(savedPops[i]);
+                return Number.isSafeInteger(n) && n > 0 ? n : 0;
+            });
 
             return {
                 rate: numberFromHash("rate", defaults.rate, 1, 10000000),
                 elapsed: numberFromHash("elapsed", defaults.elapsed, 0, Number.MAX_SAFE_INTEGER),
                 startedAt: Number.isSafeInteger(startedAt) && startedAt > 0 ? startedAt : null,
-                fx: params.get("fx") !== "0"
+                fx: params.get("fx") !== "0",
+                pops
             };
         }
 
@@ -458,6 +499,7 @@
                 started: state.startedAt === null ? "" : String(state.startedAt)
             });
             if (!state.fx) params.set("fx", "0");
+            if (state.pops.some(Boolean)) params.set("pops", state.pops.join("."));
             history.replaceState(null, "", `#${params.toString()}`);
         }
 
@@ -538,6 +580,8 @@
 
         function resetTimer() {
             state.elapsed = 0;
+            state.pops = TREATS.map(() => 0);
+            renderScore();
             state.startedAt = null;
             stopCelebrations();
             lastWholeDollar = -1;
@@ -601,11 +645,49 @@
                 ], { duration, delay, easing: "cubic-bezier(0.35, 0, 0.65, 1)", fill: "both" });
                 animation.onfinish = () => drop.remove();
                 animation.oncancel = () => drop.remove();
+                drop.addEventListener("pointerdown", (event) => popDrop(drop, animation, event));
+            }
+        }
+
+        // Tap or click a drop to freeze it where it is, then burst and fade it away.
+        function popDrop(drop, animation, event) {
+            if (drop.dataset.popped) return;
+            drop.dataset.popped = "1";
+            event.preventDefault();
+            const current = getComputedStyle(drop).transform;
+            animation.onfinish = null;
+            animation.oncancel = null;
+            animation.cancel();
+            drop.style.transform = current;
+            drop.style.pointerEvents = "none";
+            const burst = drop.animate([
+                { transform: `${current} scale(1)`, opacity: 1 },
+                { transform: `${current} scale(1.9)`, opacity: 0 }
+            ], { duration: 260, easing: "ease-out", fill: "forwards" });
+            burst.onfinish = () => drop.remove();
+            const index = TREATS.indexOf(drop.textContent);
+            if (index >= 0) {
+                state.pops[index] += 1;
+                renderScore(true);
+                saveStateToHash();
+            }
+        }
+
+        function renderScore(bump = false) {
+            const total = state.pops.reduce((sum, n) => sum + n, 0);
+            elements.score.textContent = String(total);
+            elements.scoreBreakdown.textContent = total === 0
+                ? "Tap the rain to score!"
+                : TREATS.map((treat, i) => `${treat} ${state.pops[i]}`).join("  ");
+            if (bump) {
+                elements.score.classList.remove("bump");
+                void elements.score.offsetWidth; // restart the animation
+                elements.score.classList.add("bump");
             }
         }
 
         function showTreatRain() {
-            rain(["💰", "🍺", "🥩", "🥃"], 20, 2.4, 4.2);
+            rain(TREATS, 20, 2.4, 4.2);
         }
 
         function celebrationsActive() {
@@ -656,6 +738,7 @@
             render();
         });
         renderFxToggle();
+        renderScore();
         document.getElementById("save-settings").addEventListener("click", saveSettings);
 
         // Auto-start on every load; a paused session resumes from its saved time.
