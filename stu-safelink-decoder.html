@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safelink Decoder</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #0f172a;
+            --panel: rgba(15, 23, 42, 0.82);
+            --panel-border: rgba(148, 163, 184, 0.35);
+            --soft: rgba(59, 130, 246, 0.18);
+            --highlight: #38bdf8;
+            --good: #4ade80;
+            --warn: #fbbf24;
+            --text: #e2e8f0;
+            --muted: rgba(226, 232, 240, 0.7);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 40px 16px 120px;
+            font-family: "Inter", "Segoe UI", Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.08), transparent 50%),
+                radial-gradient(circle at bottom right, rgba(244, 114, 182, 0.08), transparent 55%),
+                var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+        }
+
+        main { width: min(960px, 100%); display: grid; gap: 22px; }
+        a { color: inherit; }
+
+        .back-home {
+            font-weight: 600;
+            text-decoration: none;
+            color: var(--highlight);
+            font-size: 1.05rem;
+        }
+        .back-home:hover, .back-home:focus-visible { text-decoration: underline; }
+
+        header, .panel {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 32px 70px rgba(15, 23, 42, 0.45);
+        }
+
+        header h1 { margin: 12px 0 8px; font-size: clamp(28px, 5vw, 42px); }
+        header p { margin: 0; line-height: 1.6; color: var(--muted); max-width: 640px; }
+
+        .panel h2 { margin: 0 0 12px; font-size: 1.15rem; }
+
+        label { display: block; font-weight: 600; margin-bottom: 8px; }
+
+        textarea {
+            width: 100%;
+            min-height: 140px;
+            resize: vertical;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid var(--panel-border);
+            background: rgba(2, 6, 23, 0.6);
+            color: var(--text);
+            font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+        textarea:focus { outline: 2px solid var(--highlight); outline-offset: 1px; }
+
+        .row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; align-items: center; }
+
+        button {
+            border: 1px solid var(--panel-border);
+            background: var(--soft);
+            color: var(--text);
+            padding: 9px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        button:hover, button:focus-visible { border-color: var(--highlight); }
+        button.primary { background: var(--highlight); color: #0f172a; border-color: var(--highlight); }
+
+        .check { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); font-size: 0.92rem; }
+
+        .status { color: var(--muted); font-size: 0.92rem; min-height: 1.2em; }
+
+        .result {
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 12px;
+            background: rgba(2, 6, 23, 0.45);
+        }
+        .result .label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+        .result .url {
+            font: 15px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            word-break: break-all;
+            color: var(--good);
+            margin: 6px 0 10px;
+        }
+        .result .host { font-weight: 700; color: var(--warn); }
+        .result .original {
+            font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            color: var(--muted);
+            word-break: break-all;
+            max-height: 3.2em;
+            overflow: hidden;
+        }
+        .meta { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; font-size: 0.88rem; margin: 8px 0; }
+        .meta dt { color: var(--muted); }
+        .meta dd { margin: 0; word-break: break-all; font-family: ui-monospace, Menlo, Consolas, monospace; }
+
+        .empty { color: var(--muted); font-style: italic; }
+
+        .explain p, .explain li { line-height: 1.6; color: var(--muted); }
+        .explain code { color: var(--text); background: rgba(148,163,184,0.15); padding: 1px 5px; border-radius: 6px; }
+
+        .footer {
+            position: fixed;
+            left: 50%;
+            bottom: 14px;
+            transform: translateX(-50%);
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 999px;
+            padding: 8px 18px;
+            font-size: 0.82rem;
+            color: var(--muted);
+            backdrop-filter: blur(8px);
+            max-width: calc(100% - 32px);
+            text-align: center;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #f1f5f9;
+                --panel: rgba(255, 255, 255, 0.92);
+                --panel-border: rgba(100, 116, 139, 0.3);
+                --soft: rgba(59, 130, 246, 0.12);
+                --highlight: #0284c7;
+                --good: #15803d;
+                --warn: #b45309;
+                --text: #0f172a;
+                --muted: rgba(15, 23, 42, 0.68);
+            }
+            header, .panel { box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08); }
+            textarea, .result { background: #f8fafc; }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <header>
+        <a class="back-home" href="/">← back to home</a>
+        <h1>🔗 Safelink Decoder</h1>
+        <p>Paste a Microsoft Defender / Outlook <strong>Safe Links</strong> URL (or a whole email body full of them) and get the real destination back, decoded entirely in your browser. Handy when Exchange Online is having a bad day and the safelinks redirector won't load.</p>
+    </header>
+
+    <section class="panel">
+        <label for="input">Safelink URL(s) or text</label>
+        <textarea id="input" spellcheck="false" placeholder="https://nam12.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fpage&amp;data=05%7C02%7C...&amp;sdata=...&amp;reserved=0"></textarea>
+        <div class="row">
+            <button class="primary" id="pasteBtn" type="button">📋 Paste &amp; decode</button>
+            <button id="sampleBtn" type="button">Try a sample</button>
+            <button id="clearBtn" type="button">Clear</button>
+            <label class="check" style="margin:0;font-weight:400"><input type="checkbox" id="saveHash"> Keep input in URL (shareable)</label>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Decoded links <span class="status" id="count"></span></h2>
+        <div id="results"><p class="empty">Nothing decoded yet.</p></div>
+    </section>
+
+    <section class="panel">
+        <h2>Cleaned text</h2>
+        <p class="status">Your input with every safelink replaced by its real destination.</p>
+        <textarea id="cleaned" readonly spellcheck="false"></textarea>
+        <div class="row">
+            <button id="copyCleaned" type="button">Copy cleaned text</button>
+            <span class="status" id="copyStatus"></span>
+        </div>
+    </section>
+
+    <section class="panel explain">
+        <h2>What this page does</h2>
+        <p><strong>Why now?</strong> On 13 November 2026 Microsoft had a global Microsoft 365 outage lasting more than 12 hours, mainly affecting access to Exchange Online, with Teams, SharePoint Online and Microsoft Defender XDR also listed as possibly affected (<a href="https://www.itnews.com.au/news/microsoft-users-caught-up-in-global-m365-outage-630319" target="_blank" rel="noopener noreferrer">iTnews: "Microsoft users caught up in global M365 outage"</a>). When Microsoft's infrastructure is struggling, Safe Links can stall too, so links in emails you've already received may hang or show errors. This page doesn't need any Microsoft service: it reads the real destination straight out of the link, so you can still get to the pages your emails point to.</p>
+        <p>Microsoft 365 rewrites links in email and Teams messages so they go through a Defender for Office 365 "Safe Links" scanner first, e.g. <code>https://aus01.safelinks.protection.outlook.com/?url=…&amp;data=…&amp;sdata=…&amp;reserved=0</code>. When that service is degraded, clicking the link just hangs or errors — but the real destination is sitting right there inside the <code>url</code> query parameter.</p>
+        <ul>
+            <li><strong>Decoding:</strong> every URL on a <code>*.safelinks.protection.outlook.com</code> host (plus the Teams <code>statics.teams.cdn.office.net/…/atp-safelinks.html</code> variant) is parsed with the browser's <code>URL</code> API and its <code>url</code> parameter is URL-decoded. Nested / double-wrapped safelinks are unwrapped repeatedly.</li>
+            <li><strong>Metadata:</strong> the <code>data</code> parameter is a pipe-separated blob (version, recipient mailbox, a message GUID, tenant ID, timestamp…). It's split and shown for curiosity — it is not needed to reach the destination.</li>
+            <li><strong>Privacy:</strong> nothing leaves your browser — no network requests are made and the destination is never visited for you. Input is only written to the URL fragment (<code>#</code>) if you tick "Keep input in URL", since the <code>data</code> field can contain your email address.</li>
+            <li><strong>Safety:</strong> Safe Links exists to catch phishing. Bypassing it means <em>you</em> are the scanner — check the highlighted host name carefully before opening anything.</li>
+        </ul>
+    </section>
+</main>
+
+<div class="footer">Made with ❤️ by Stu at github.com/gitstua/stu-spa-demos using GitHub Copilot · v2</div>
+
+<script>
+    const input = document.getElementById('input');
+    const results = document.getElementById('results');
+    const cleaned = document.getElementById('cleaned');
+    const count = document.getElementById('count');
+    const saveHash = document.getElementById('saveHash');
+
+    const SAMPLE = 'Hi team, the agenda is here: https://aus01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fagenda%3Fid%3D42%26view%3Dfull&data=05%7C02%7Cstu%40example.com%7C1a2b3c4d5e6f47a8b9c0d1e2f3a4b5c6%7C72f988bf86f141af91ab2d7cd011db47%7C0%7C0%7C638671234567890123%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C0%7C%7C%7C&sdata=abc123def456%3D&reserved=0\nand the doc is at https://nam12.safelinks.protection.outlook.com/?url=https%3A%2F%2Fgithub.com%2Fgitstua%2Fstu-spa-demos&data=05%7C02%7C%7C&sdata=xyz&reserved=0';
+
+    // Matches anything that looks like a URL; we filter for safelinks after.
+    const URL_RE = /https?:\/\/[^\s<>"'`]+/gi;
+
+    function isSafelink(u) {
+        const h = u.hostname.toLowerCase();
+        return h.endsWith('safelinks.protection.outlook.com') ||
+            (h.endsWith('.office.net') && /atp-safelinks/i.test(u.pathname));
+    }
+
+    // Unwrap one URL string, following nested safelinks. Returns null if not a safelink.
+    function unwrap(raw) {
+        // Trim sentence punctuation that got glued to the end of the link.
+        let current = raw.replace(/[).,;:!?\]]+$/, '');
+        const trimmed = raw.slice(current.length);
+        let data = null, layers = 0;
+        for (let i = 0; i < 5; i++) {
+            let u;
+            try { u = new URL(current); } catch { break; }
+            if (!isSafelink(u)) break;
+            const target = u.searchParams.get('url');
+            if (!target) break;
+            if (!data) data = u.searchParams.get('data');
+            current = target;
+            layers++;
+        }
+        if (!layers) return null;
+        return { original: raw.slice(0, raw.length - trimmed.length), decoded: current, data, layers, trailing: trimmed };
+    }
+
+    function parseData(data) {
+        if (!data) return [];
+        const p = data.split('|');
+        const rows = [];
+        if (p[0]) rows.push(['Version', p[0]]);
+        if (p[2]) rows.push(['Recipient', p[2]]);
+        const guid = p.find(x => /^[0-9a-f]{32}$/i.test(x));
+        if (guid) rows.push(['Message ID', guid]);
+        const tenant = p.find(x => /^[0-9a-f]{32}$/i.test(x) && x !== guid);
+        if (tenant) rows.push(['Tenant ID', tenant.replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, '$1-$2-$3-$4-$5')]);
+        const ticks = p.find(x => /^6\d{17}$/.test(x));
+        if (ticks) {
+            // .NET ticks: 100ns since 0001-01-01
+            const ms = Number(BigInt(ticks) / 10000n) - 62135596800000;
+            const d = new Date(ms);
+            if (!isNaN(d)) rows.push(['Timestamp', d.toLocaleString()]);
+        }
+        return rows;
+    }
+
+    function el(tag, cls, text) {
+        const e = document.createElement(tag);
+        if (cls) e.className = cls;
+        if (text != null) e.textContent = text;
+        return e;
+    }
+
+    function render() {
+        const text = input.value;
+        const found = [];
+        const out = text.replace(URL_RE, m => {
+            const r = unwrap(m);
+            if (!r) return m;
+            found.push(r);
+            return r.decoded + r.trailing;
+        });
+        cleaned.value = found.length ? out : '';
+        results.replaceChildren();
+        count.textContent = found.length ? `· ${found.length} found` : '';
+
+        if (!text.trim()) {
+            results.append(el('p', 'empty', 'Nothing decoded yet.'));
+        } else if (!found.length) {
+            results.append(el('p', 'empty', 'No safelinks found. Paste a URL containing safelinks.protection.outlook.com.'));
+        }
+
+        found.forEach((r, i) => {
+            const box = el('div', 'result');
+            let host = '';
+            try { host = new URL(r.decoded).hostname; } catch {}
+            box.append(el('div', 'label', `Destination ${found.length > 1 ? i + 1 : ''}${r.layers > 1 ? ` · unwrapped ${r.layers} layers` : ''}`));
+            if (host) {
+                const h = el('div', null);
+                h.append('Host: ', el('span', 'host', host));
+                box.append(h);
+            }
+            box.append(el('div', 'url', r.decoded));
+
+            const meta = parseData(r.data);
+            if (meta.length) {
+                const dl = el('dl', 'meta');
+                meta.forEach(([k, v]) => { dl.append(el('dt', null, k), el('dd', null, v)); });
+                box.append(dl);
+            }
+
+            const row = el('div', 'row');
+            const copy = el('button', null, 'Copy');
+            copy.type = 'button';
+            copy.onclick = () => copyText(r.decoded, copy);
+            row.append(copy);
+            if (/^https?:/i.test(r.decoded)) {
+                const open = el('a', null, 'Open ↗');
+                open.href = r.decoded;
+                open.target = '_blank';
+                open.rel = 'noopener noreferrer';
+                open.className = 'back-home';
+                row.append(open);
+            }
+            box.append(row);
+            box.append(el('div', 'original', r.original));
+            results.append(box);
+        });
+
+        writeHash();
+    }
+
+    async function copyText(t, btn) {
+        try {
+            await navigator.clipboard.writeText(t);
+            const old = btn.textContent;
+            btn.textContent = 'Copied ✓';
+            setTimeout(() => btn.textContent = old, 1200);
+        } catch {
+            btn.textContent = 'Copy failed';
+        }
+    }
+
+    // ---- URL fragment state ----
+    function writeHash() {
+        const params = new URLSearchParams();
+        if (saveHash.checked) {
+            params.set('save', '1');
+            if (input.value) params.set('q', input.value);
+        }
+        const h = params.toString();
+        history.replaceState(null, '', h ? '#' + h : location.pathname + location.search);
+    }
+
+    function readHash() {
+        const params = new URLSearchParams(location.hash.slice(1));
+        saveHash.checked = params.get('save') === '1';
+        input.value = params.get('q') || '';
+        render();
+    }
+
+    input.addEventListener('input', render);
+    saveHash.addEventListener('change', writeHash);
+    window.addEventListener('hashchange', readHash);
+
+    document.getElementById('pasteBtn').onclick = async () => {
+        try {
+            input.value = await navigator.clipboard.readText();
+            render();
+        } catch {
+            input.focus();
+            count.textContent = '· clipboard blocked — paste with Ctrl/⌘+V';
+        }
+    };
+    document.getElementById('sampleBtn').onclick = () => { input.value = SAMPLE; render(); };
+    document.getElementById('clearBtn').onclick = () => { input.value = ''; render(); input.focus(); };
+    document.getElementById('copyCleaned').onclick = e => copyText(cleaned.value, e.currentTarget);
+
+    readHash();
+</script>
+</body>
+</html>
